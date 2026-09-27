@@ -15,6 +15,11 @@
 | skills/engineering/tdd/SKILL.md | verification.md 的行为边界与非同构测试；TDD 可选，不采用强制逐测试红绿与接缝重复审批 |
 | skills/engineering/diagnosing-bugs/SKILL.md | zh-debug 的症状反馈、缩小复现、假设检验及回归；不固定假设数量，无复现时如实限制结论 |
 | skills/engineering/code-review/SKILL.md | zh-review 的需求与规范两个维度、固定候选；小任务单独立会话完成，不照搬一律双会话或通用坏味道硬规则 |
+| skills/engineering/prototype/SKILL.md | 前端参考中的设计问题优先、易运行、明确原型身份、限制持久化及保留决策原始产物；与正式实现共用任务 worktree，不强制另建丢弃分支，也不禁止原型验证 |
+| skills/engineering/prototype/UI.md | 在现有页面/组件/内容密度中比较设计，按需提供结构不同的方案与可定位入口，隔离演示写入并清理演示控件；不固定方案数量、URL 参数或切换栏 |
+| skills/engineering/prototype/LOGIC.md | 以领域语言显示操作和状态变化、可重置的场景演示；简单 HTML 是可选形态，不强制单文件或禁止项目框架，是否复用由正式质量检查决定 |
+
+2026-09-27 前端增补时重新核实上游 `main` 仍为上述固定提交，并读取 `prototype` 的三个文件、`to-spec`、`to-tickets`、`implement`、`code-review` 及 LICENSE。沿用 `to-spec` 把原型形成的决定纳入实现/验收依据、`code-review` 对照需求与项目规范的思路；预览确认、worktree 授权衔接与最终真实浏览器验收按用户本地方案重写，不把它们全部描述为上游原样规则。
 
 旧本地 zhiheng：保留外层进度、执行/验收分离、onboarding、知识筛选及恢复理念。已检查旧 `init_project.py` 与 `close_task.py` 的用途，但未复制代码、空模板、平台限制或控制器。新工具只做 Git/记录与安装的确定性检查。完整旧技能随迁移保留到发现目录之外的备份。
 

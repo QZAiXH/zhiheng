@@ -20,7 +20,7 @@ description: Coordinate development through planning, worktree implementation, i
 1. 读取适用 `AGENTS.md`、已有 `.zhiheng/PROJECT.md` 和与任务相关的决定。上下文不足时使用 [zh-context](../zh-context/SKILL.md)，不默认加载全套技能和历史。
 2. 使用 [zh-plan](../zh-plan/SKILL.md) 调查并在对话直接展示相称的计划。小而明确且已授权的任务几行后继续；复杂或有关键未决事项时先解决并等待必要确认。用户已要求实施同一计划就继续，修订请求本身不是执行授权。
 3. 开发前遵循 [工作区规则](references/workspaces.md) 确定目标分支及任务 worktree。非 Git 项目先明确建立或选择仓库。按 [任务记录](references/records.md) 保存范围、验收和恢复指针。
-4. 使用 [zh-implement](../zh-implement/SKILL.md) 或 [zh-debug](../zh-debug/SKILL.md) 实施。小任务主会话执行；复杂任务按独立可验证的步骤委派，只推进依赖已满足的步骤。委派前按 [模型与上下文](references/delegation.md) 推荐实际可用配置，并将范围、原始材料和验收条件交给新上下文。
+4. 使用 [zh-implement](../zh-implement/SKILL.md) 或 [zh-debug](../zh-debug/SKILL.md) 实施。涉及新页面、布局或主要交互变化时，按 [前端预览与验收](../zh-implement/references/frontend-preview.md) 衔接预览、具体确认、正式实现和对照验收，维护阶段及确认依据；小改或已有设计按该参考简化。小任务主会话执行；复杂任务按独立可验证的步骤委派，只推进依赖已满足的步骤。委派前按 [模型与上下文](references/delegation.md) 推荐实际可用配置，并将范围、原始材料和验收条件交给新上下文。
 5. 使用 [zh-review](../zh-review/SKILL.md) 建立真实独立验收。未通过或无法验证时保留任务现场，反馈具体条件和证据。范围内继续修复并复查受影响部分；同样失败且无新证据时先诊断。返工可复用适用的执行会话；上下文混乱或边界改变再换会话。
 6. 有效验收通过后使用 [zh-finish](../zh-finish/SKILL.md) 按本任务已约定的交付范围提交、本地合并、整合验证和清理。远端操作需单独的已有授权。最后报告实际结果和未完成事项。
 
