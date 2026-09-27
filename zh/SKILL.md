@@ -1,6 +1,6 @@
 ---
 name: zh
-description: Coordinate development from scoped planning through worktree implementation, independent acceptance, local merge, and durable recovery. Use for end-to-end bug fixes, features, and refactors; discussion and routine local operations stay within their requested scope.
+description: Coordinate development through planning, worktree implementation, independent acceptance, and local delivery; route explicit project-context initialization to zh-context. Use for end-to-end bug fixes, features, refactors, or project onboarding; discussion and routine operations stay within their requested scope.
 ---
 
 # zh：开发协作入口
@@ -8,6 +8,12 @@ description: Coordinate development from scoped planning through worktree implem
 按任务的不确定性、影响、依赖和可验证性决定流程深度。只读调查、启动已有项目、安装已声明依赖、运行配置和准备 mock 数据直接按授权处理；写临时文件本身不意味着产品开发。混合请求仅让实际开发部分进入以下流程。
 
 用户请求和项目规范优先。沿用对话中已建立的范围、目标分支、模型偏好和授权，不要求固定确认用语、执行 JSON 或授权令牌。技能切换不代表模型或会话切换。这里管理外层进度；子技能只处理收到的任务，不另起外层流程。
+
+## 项目接入
+
+用户要求“初始化／接入这个项目，建立后续开发所需的上下文”时，直接路由到 [zh-context](../zh-context/SKILL.md) 的项目接入流程；也可独立调用该技能，明确要求调查并保存上下文。先按语义区分项目知识接入与创建 Git 仓库、应用脚手架或数据库，有真实歧义才询问。仅询问如何接入或要求只读调查时保持只读。
+
+上下文接入不进入下面的开发与交付循环，也不是每次开发的前置步骤；它的文档写入、工作区和操作边界由 zh-context 维护。混合请求仅对实际产品改动使用开发流程。
 
 ## 从请求到交付
 

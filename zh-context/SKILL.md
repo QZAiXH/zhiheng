@@ -1,11 +1,21 @@
 ---
 name: zh-context
-description: Build or refresh grounded project context, terminology, verified commands, and decision pointers for onboarding or unfamiliar code. Preserve existing project knowledge and distinguish facts from assumptions.
+description: Initialize or refresh durable project context when asked to onboard a project or investigate and save its context. Map code, command evidence, terminology, and decisions; read-only investigation stays read-only and existing knowledge is preserved.
 ---
 
 # 项目上下文
 
 输入是项目、相关任务范围及已有知识；输出是足以支持下一步的项目地图、命令证据、术语/决定指针和知识缺口。独立调用只完成上下文工作，不启动实现、提交或合并。
+
+## 选择接入或调查
+
+明确要求初始化／接入项目上下文，或调查并保存上下文时，按 [项目接入流程](references/project-onboarding.md) 调查、保存必要知识并维护入口指针。这份授权涵盖必要的上下文文档与指针维护，沿用已有范围和按复杂度确认的方式，不重复索要同一授权。这里的初始化默认建立项目知识；明确要求 Git、应用或数据库初始化时按该请求处理，不能把它们当作上下文接入。
+
+仅询问如何接入、了解项目或要求只读调查时，说明方法或回传事实，不创建文档、入口或任务状态。接入不是每次开发的必经步骤，也不引入独立初始化技能或脚本。
+
+上下文文档接入不自动创建开发 worktree、提交或合并；实际产品改动才进入 [工作区开发规则](../zh/references/workspaces.md)。不能由接入推导出 `git init`、依赖安装、数据库迁移、外部服务配置或启用旧钩子的授权；另有明确授权的操作按其范围执行。非 Git 项目也可调查并按要求保存上下文，不伪造公共 Git 目录或开发任务状态。
+
+## 核实与维护知识
 
 读取适用 `AGENTS.md`，优先复用 `.zhiheng/PROJECT.md`、现有领域词汇和决策记录。按任务追到相关代码、配置、入口和检查命令；不要全库倾倒。仓库能查明的事实自己核实，用户决定与代码冲突时明确指出差异。
 
