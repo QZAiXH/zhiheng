@@ -1,0 +1,3 @@
+interface:
+  display_name: "zh-finish"
+  short_description: "Integrate accepted work and safely finish its worktree"

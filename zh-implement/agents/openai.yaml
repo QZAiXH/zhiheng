@@ -1,0 +1,3 @@
+interface:
+  display_name: "zh-implement"
+  short_description: "Implement scoped work with proportionate verification"

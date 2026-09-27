@@ -1,0 +1,3 @@
+interface:
+  display_name: "zh-debug"
+  short_description: "Diagnose symptoms and verify fixes with concrete evidence"

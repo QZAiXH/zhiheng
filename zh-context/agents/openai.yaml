@@ -1,0 +1,3 @@
+interface:
+  display_name: "zh-context"
+  short_description: "Map project facts, commands, terminology, and decisions"
