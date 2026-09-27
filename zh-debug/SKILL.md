@@ -13,4 +13,4 @@ description: Diagnose failures and performance regressions using symptom-specifi
 
 复现困难时说明已经尝试什么及缺失证据，可继续有依据的只读分析，但把结论标为假设。需要额外环境、数据或外部影响时按实际授权处理，不无限循环，也不凭推测宣称根因已确认。
 
-在范围内修复，并按 [验证策略](../zh-implement/references/verification.md) 检查原始场景和适当回归。清除本任务临时探针，保留需要交接的证据；输出原始故障、根因依据、实际修复、回归结果与限制。发现涉及新业务取舍时交外层修订计划。按 [记录规则](../zh/references/records.md) 回传候选发现；修复后的独立验收由 [zh-review](../zh-review/SKILL.md) 完成。
+在范围内修复，并按 [验证策略](../zh-implement/references/verification.md) 检查原始场景和适当回归，保留既有接口契约；无关既有失败只归因记录，本次回归可修。复杂修复交执行子 agent，主会话只调查、协调和核证；缺委派能力按 [委派规则](../zh/references/delegation.md) 处理。清除本任务临时探针，保留需要交接的证据；输出原始故障、根因依据、实际修复、回归结果与限制。发现涉及范围外修复或新业务取舍时交外层说明证据和影响并修订计划。按 [记录规则](../zh/references/records.md) 回传候选发现；修复后的独立验收由 [zh-review](../zh-review/SKILL.md) 完成。
