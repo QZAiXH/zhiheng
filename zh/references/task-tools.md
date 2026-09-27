@@ -69,3 +69,16 @@ the expected commit and branch state still match. A failed check or blocked
 cleanup leaves the task record and worktree for recovery. A repeated completed
 `finish` is idempotent. If another actor changes either worktree during delivery,
 stop and inspect live Git state before seeking new review or retrying.
+
+If a post-merge check fails only because of the environment, correct that cause
+within the existing authorization and retry `finish --check ...`. If the failure
+requires new code, the helper deliberately does not replace a review after its
+candidate has merged. Preserve that task's record, failed check, and worktree;
+create a follow-up task from the actual target commit for the repair. Carry the
+existing authorized scope and link the original task, explicitly preserving or
+transferring any unfinished repair changes. Obtain independent acceptance of
+the repaired candidate and deliver the follow-up normally. After its integration
+checks pass, record that it resolves the original failure and apply
+[zh-finish cleanup rules](../../zh-finish/SKILL.md) to the old worktree using
+native Git. Do not reset either task's machine state, rerun the original stale
+merge, or mark the failed original check as passed.
