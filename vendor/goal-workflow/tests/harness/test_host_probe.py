@@ -50,6 +50,7 @@ if '--help' in args:
     print('FAKE help --model --config'); raise SystemExit(0)
 assert '--sandbox' in args and not any('bypass' in x for x in args)
 assert args[args.index('--model')+1]=='gpt-6.1-sol'
+assert args[args.index('--disable')+1]=='multi_agent'
 for option in ('review_model="gpt-6.1-sol"','model_reasoning_effort="low"','service_tier="default"'):
     assert option in args, args
 if pathlib.Path(__file__).with_name('fail-model').exists(): raise SystemExit(7)
@@ -77,6 +78,13 @@ print(json.dumps({'type':'thread.started','thread_id':'fixture-session-exact'}))
             self.assertTrue({"implement", "independent-review", "exact-session-resume", "fresh-context-handoff"} <= names)
             self.assertIn("cancellation/descendant shutdown", summary["not_certified"])
             self.assertEqual(summary["model_calls_started"], 4)
+            self.assertFalse(summary["model_policy"]["multi_agent"])
+            handoff = (output / "repo/handoff.md").read_text()
+            self.assertIn(json.dumps([sys.executable, "-B", "-m", "unittest", "-v"]), handoff)
+            self.assertIn("Working directory: " + str(output / "repo"), handoff)
+            for log in ("verified-tests.stdout", "verified-tests.stderr", "independent-review.stdout", "independent-review.stderr"):
+                self.assertIn(str(output / log), handoff)
+                self.assertTrue((output / log).is_file())
             self.assertEqual(summary["limits"]["script_retries"], 0)
             calls = [row for row in summary["steps"] if "model_call_number" in row]
             self.assertEqual([row["model_call_number"] for row in calls], [1, 2, 3, 4])

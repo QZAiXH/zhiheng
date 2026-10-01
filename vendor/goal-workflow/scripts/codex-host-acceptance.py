@@ -51,7 +51,7 @@ def main():
                           "script_retries": 0},
                "model_calls_started": 0,
                "model_policy": {"model": args.model, "review_model": args.model,
-                                "reasoning_effort": "low", "service_tier": "default",
+                                "reasoning_effort": "low", "service_tier": "default", "multi_agent": False,
                                 "budget_unit": "Codex invocation; not API requests or currency"},
                "scope": "isolated host discovery/implementation/review/resume/handoff; not full Harness acceptance"}
 
@@ -145,7 +145,7 @@ def main():
             # review_model also overrides an inherited review-only model.
             # Official config schema: https://learn.chatgpt.com/docs/config-schema.json
             return [codex, "exec", "--sandbox", sandbox, "--json", "-C", str(repo), *action,
-                    "--model", args.model, "-c", "review_model=" + json.dumps(args.model),
+                    "--disable", "multi_agent", "--model", args.model, "-c", "review_model=" + json.dumps(args.model),
                     "-c", 'model_reasoning_effort="low"', "-c", 'service_tier="default"']
         implementation = root / "implementation.txt"
         prompt = ("Use $harness-host-probe for this isolated fixture. Fix addition in calculator.py. "
@@ -186,12 +186,16 @@ def main():
             "# Host fixture handoff\nAC-POS: add(2,3)=5. AC-NEG: add(-2,-3)=-5.\n"
             "Only calculator.py may change; tests and user configuration must be preserved.\n"
             "Implementation has run; verify actual code and rerun tests before reporting.\n"
+            "Working directory: " + str(repo) + "\n"
+            "Exact test argv: " + json.dumps([sys.executable, "-B", "-m", "unittest", "-v"]) + "\n"
+            "Last actual test logs: " + str(root / "verified-tests.stdout") + " ; " + str(root / "verified-tests.stderr") + "\n"
+            "Independent review logs: " + str(root / "independent-review.stdout") + " ; " + str(root / "independent-review.stderr") + "\n"
             "No commit/push/delivery was requested. Independent review output still requires human inspection.\n"
             "Next: state any unresolved issue; do not ship.\n")
         handoff = root / "fresh-handoff.txt"
         command("fresh-context-handoff", model_argv("read-only") +
                 ["--ephemeral", "--output-last-message", str(handoff),
-                "Read handoff.md and relevant fixture code. Do not modify files. Recover acceptance conditions, "
+                "Read handoff.md, its referenced review logs, and relevant fixture code. Rerun the exact test argv from its stated working directory. Do not modify files. Recover acceptance conditions, "
                 "constraints, current state and next action, and check them. No previous chat is required."],
                 args.timeout, model_call=True)
         if not all(x in handoff.read_text() for x in ("AC-POS", "AC-NEG")):

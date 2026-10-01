@@ -64,3 +64,5 @@ python3 scripts/codex-host-acceptance.py --run-models --model gpt-6.1-sol --max-
 官方技能加载说明：[Build skills](https://learn.chatgpt.com/docs/build-skills)；CLI 命令说明：[Developer commands](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
 
 成本参数对照 [官方配置 schema](https://learn.chatgpt.com/docs/config-schema.json) 和本机 exec/review/resume 帮助；prepare-only、缺参数拒绝、四阶段参数一致、预算耗尽及失败不重试均用假 CLI 协议测试，测试本身不调用模型。
+
+All model invocations explicitly pass `--disable multi_agent` to prevent delegated subagent calls outside the stated invocation budget. This is an invocation-only setting, not a change to personal configuration. The portable host fixture handoff includes its exact working directory, test argv, prior actual test logs and independent review logs so a fresh session can verify the recorded state.

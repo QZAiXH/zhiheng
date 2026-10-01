@@ -155,6 +155,8 @@ class CodexProbeProtocolTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(Path(item["path"]).read_bytes()).hexdigest(), item["sha256"])
             self.assertEqual(item["argv"][item["argv"].index("--model")+1], "gpt-6.1-sol")
             self.assertEqual(item["model_policy"]["reasoning_effort"], "low")
+            self.assertEqual(item["argv"][item["argv"].index("--disable")+1], "multi_agent")
+            self.assertFalse(item["model_policy"]["multi_agent"])
             self.assertEqual(item["model_policy"]["service_tier"], "default")
             self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", item["argv"])
             self.assertIn("read-only", item["argv"])

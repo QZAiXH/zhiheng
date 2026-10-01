@@ -251,7 +251,7 @@ def probe(config, controller=None):
                             policy_args = explicit_model_args(options.get("model"), options.get("max_model_calls"))
                             argv = argv[:-1] + policy_args + argv[-1:]
                             report["host_smoke_policy"] = {"model": options["model"], "review_model": options["model"],
-                                "reasoning_effort": "low", "service_tier": "default", "script_retries": 0,
+                                "reasoning_effort": "low", "service_tier": "default", "multi_agent": False, "script_retries": 0,
                                 "call_limit": options["max_model_calls"], "calls_started": 1,
                                 "budget_unit": "Codex invocation; not API requests or currency"}
                             capabilities["host_command_smoke"] = _successful(temp_controller, argv, "host-smoke", command_seconds)

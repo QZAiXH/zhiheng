@@ -130,7 +130,7 @@ def explicit_model_args(model, max_model_calls):
         raise Blocked("Host probes require an explicit nonempty model identifier")
     if type(max_model_calls) is not int or not 1 <= max_model_calls <= 4:
         raise Blocked("Host probes require an explicit max_model_calls integer in 1..4")
-    return ["--model", model, "-c", "review_model=" + json.dumps(model),
+    return ["--disable", "multi_agent", "--model", model, "-c", "review_model=" + json.dumps(model),
             "-c", 'model_reasoning_effort="low"', "-c", 'service_tier="default"']
 
 
@@ -170,7 +170,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
               "executable": executable, "artifact_directory": str(output),
               "capabilities": capabilities, "calls_started": 0, "call_limit": max_model_calls,
               "model_policy": {"model": model, "review_model": model,
-                               "reasoning_effort": "low", "service_tier": "default",
+                               "reasoning_effort": "low", "service_tier": "default", "multi_agent": False,
                                "script_retries": 0,
                                "budget_unit": "Codex invocation; not API requests or currency"},
               "host_native_stop": {"status": "blocked", "detail": "Successful CLI exits do not exercise cancellation; a real owned host cancellation drill remains required."},

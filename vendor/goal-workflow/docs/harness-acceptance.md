@@ -4,7 +4,7 @@
 
 ## 结论
 
-已实现并在隔离夹具中验证若干核心控制、证据、Git、安装及原生 Serena 接缝。当前不能称 P0–P5 完成：云端真实 Codex 启动受阻，用户 Mac 上 Codex 0.159.2 / gpt-6.1-sol low 已成功启动、四步宿主验证仍进行中；真实 GitHub 人工平台三组任务与严格保护正向合并已验，但产品自动控制器结合真实模型的两模式 P0/P5、完整知识语义闭环及成本对比尚未完成。单元通过、模拟平台或结构就绪不等于完整流程可用。
+已实现并在隔离夹具中验证若干核心控制、证据、Git、安装及原生 Serena 接缝。当前不能称 P0–P5 完成：云端真实 Codex 启动受阻，用户 Mac 上 Codex 0.159.2 / gpt-6.1-sol low 的真实实现、独立审查、exact-session续接和fresh-context交接四步已执行成功；真实 GitHub 人工平台三组任务与严格保护正向合并已验，但产品自动控制器结合真实模型的两模式 P0/P5、完整知识语义闭环及成本对比尚未完成。单元通过、模拟平台或结构就绪不等于完整流程可用。
 
 ## 证据等级
 
@@ -21,6 +21,15 @@
 
 ## 实际运行记录
 
+- 第五冻结轮：**365/365 通过，0 跳过，282.847 秒**，固定真实 Serena 已启用；[完整日志](evidence/freeze-fifth-tests.log)、[148 个输入文件 SHA](evidence/freeze-fifth-input-sha256.json)、[零漂移复核](evidence/freeze-fifth-drift.json)。包含 D/C metadata 最后修复的三分支回归与三组本地 CLI 场景。随后仅拟补 host argv 明确关闭 multi_agent 与 handoff 精确测试命令/审查日志，须以独立 fake 回归单列，不冒称这次冻结已覆盖后续文件。
+
+### 用户 Mac 真实宿主四步
+
+实际 Codex 0.159.2，gpt-6.1-sol，low。四个实际模型进程 exit 0：实现修复 calculator.py 并实际复跑两测试；独立审查另会话；返回确切原会话恢复两项 AC；新上下文读取交接与代码并跑测试。耗时依次 29.167 / 30.474 / 18.141 / 49.534 秒，合计 127.317 秒。完整 17 项安装与原生 Serena 版本、注册、记忆读写、引用检查也实际通过。
+
+这次交接仍被新会话指出缺精确测试命令和审查日志定位，需补脚本并回归；语义 onboarding、宿主激活、原生取消及完整 P0/P5 不能由四步 exit 0 推导。正在另验 P0/取消，不能标完成。公开 review usage 为 0 不代表零费用，resume usage 为累计；诊断中各步有输出记录 input/cache/output 为 53934/43904/344、35700/30336/350、19749/17792/60、99711/90752/631，并另有零输出响应，不能相加作为精确账单。
+
+
 - 第四冻结轮：**362/362 通过，0 跳过，348.256 秒**，真实固定 Serena 环境启用；[日志](evidence/freeze-fourth-tests.log)、[141 输入文件 SHA](evidence/freeze-fourth-input-sha256.json)、[零漂移](evidence/freeze-fourth-drift.json)。随后修复 commit-sensitive 任务最终 D≠C 即使同树也不能交付的边界，新增三项模拟平台回归，平台门禁 15/15 通过；因此第四快照不是该最后修复的全套证明。
 - 第三冻结轮 312/312 通过，但独立真实 CLI 夹具复跑发现 checkpoint 临时文件与 git status 竞态。已改同文件系统 Git common-dir 原子 staging；确定性暂停 mkstemp 回归确认内部临时文件不可见、用户未跟踪文件仍可见。另补 ignored 用户文件碰撞不能被交付覆盖。
 - 真实监督覆盖 Controller 子进程、gh、可变 Git、native Serena；Git/gh 父控制器被杀后，遗留子进程阻止接管的实际进程回归已运行。
@@ -36,7 +45,7 @@
 - 本地组合失败测试真实建立两条分支，分别通过，再验证组合失败且目标引用不变；无 gh 测试在只含 Git 的 PATH 下运行，配置 GitHub remote 仍走 local。
 - 原生 Serena 日志中的“12 tests”包含继承导致的重复：7 个独立方法，只有两个专门原生集成场景（生命周期与复制项目注册），不能写成 12 个独立原生场景。测试明确断言 `host_activated=False`、`onboarding_completed=False`。
 - 原生测试需要显式设置 HARNESS_TEST_SERENA 与 HARNESS_TEST_SERENA_PYTHON。未设置时跳过是未运行，不能计通过。
-- 实际 Codex：本环境 alpha 0.159.0-alpha.7 和官方 npm 稳定版 0.159.3 均进行了正常 read-only `exec` 探针。版本/help 可用；会话启动在 sandbox helper 处失败：`app-server socket directory must be a user-owned directory with mode 0700`。稳定版使用单独 CODEX_HOME/TMPDIR/XDG_RUNTIME_DIR 仍失败，未绕过安全设置，未复制凭据。这是云端阻塞记录；用户 Mac 的真实 CLI 启动已成功，完整宿主/P0证据另列，不能以版本/help成功替代。
+- 实际 Codex：本环境 alpha 0.159.0-alpha.7 和官方 npm 稳定版 0.159.3 均进行了正常 read-only `exec` 探针。版本/help 可用；会话启动在 sandbox helper 处失败：`app-server socket directory must be a user-owned directory with mode 0700`。稳定版使用单独 CODEX_HOME/TMPDIR/XDG_RUNTIME_DIR 仍失败，未绕过安全设置，未复制凭据。这是云端阻塞记录；用户 Mac 的真实四步已成功，完整 P0证据另列，不能以版本/help成功替代。
 - GitHub：用户已授权 QZAiXH/zhiheng 沙盒 Issue/分支/PR/合并。早期连接器写入 403 是历史结果；正常 gh 路径随后实际创建 Issue #1 / draft PR #2，观察失败 CI → 修复后通过、缺失检查阻断、任务/PR 身份和无保护规则识别。实际目标分支前进而 REST PR.base.sha 仍旧的情况被观察，并由真实目标 SHA 对账判 stale。后续用户已批准测试分支严格保护，真实最终 D、树和祖先已核实。merge_group/队列仍未实测。实现代码的 draft PR #3 与其 OS Actions 是另一条发布测试，不能算 GitHub 模式任务 E2E。
 
 原生清理/重命名/只读补充实测日志：[4 项真实原生测试](evidence/durable-cleanup-20261001.log)。第五项受管项目拒绝无 Controller 的原生调用在后续聚合中验证，不能混入这份较早的四项日志。
@@ -79,8 +88,8 @@
 
 | 阶段 | 当前范围 | 状态/剩余退出条件 |
 |---|---|---|
-| P0 | 固定源版本、环境与工具探针、CLI 能力与原生知识入口 | 部分；云端真实 Codex 受阻；用户 Mac 已启动，完整执行/审查/新会话/停止验收待结果，GitHub 普通读写/CI 已探针验证；严格规则与人工受保护合并已验；未建立两模式真实任务基线与工期测量 |
-| P1 | review helper 退出码、审查失败分支、依赖与文档路由 | 隔离回归已运行；真实 Codex review待验；原生平台依赖及人工交付链已验 |
+| P0 | 固定源版本、环境与工具探针、CLI 能力与原生知识入口 | 部分；云端真实 Codex 受阻；用户 Mac 实现/审查/续接/新会话四步已验，原生停止/P0与语义就绪待验，GitHub 普通读写/CI 已探针验证；严格规则与人工受保护合并已验；未建立两模式真实任务基线与工期测量 |
+| P1 | review helper 退出码、审查失败分支、依赖与文档路由 | 隔离回归已运行；真实 Codex独立review四步探针已验；完整修复循环待验；原生平台依赖及人工交付链已验 |
 | P2 | 初始化、自包含资产、合同、运行/状态锁、限额、报告定位 | 隔离控制与安装测试；实际 Codex 技能发现/加载、完整 onboarding 和环境声明仍待验 |
 | P3 | 共享串行入口、本地候选/检查/审查门禁、GitHub 适配、证据 | 真实 Git + 模拟 host/platform；真实两模式模型任务闭环与交付前知识语义更新仍待验；本地可选 push 已在真实 bare remote 夹具验证 |
 | P4 | 崩溃、遗孤、CAS、对账、预算、持久依据 | 本地故障测试已运行；真实宿主取消/平台未知操作和清理后知识可核实的完整场景待验 |
@@ -132,13 +141,13 @@
 | B06 | 补充 2 | 已结束的 attempt 迟到回传结果；持锁期间人工修改 Git 引用 | 旧结果不能推进状态；人工改动被交付前复核识别，锁不被误当作全局写保护 | `runtime_audit.test_stale_revision_and_attempt_cannot_write; local_audit.test_target_moves_and_old_evidence_is_rejected; workflow_audit.test_cli_reconcile_is_idempotent_after_actual_delivery` | R+M-host | 迟到回写/外部引用变化/已交付重复对账均验证；重复对账不会把有效 delivered 降为 blocked |
 | B07 | 补充 3 | 验证通过后，源不变而目标分支前进；或 PR head 改变 | 原验证不能直接用于交付；GitHub 由严格检查/队列和 head 约束阻止过期交付，本地重建并验证候选 | `local_audit.test_target_moves_and_old_evidence_is_rejected; github_platform_gate.test_stale_pr_base_cannot_hide_actual_target_branch_advance; github-live-summary-20261001.json` | R+M-gh+G | 真实远端 branch ref 前进而 PR.base 快照滞后已观察；对账 stale。最终 wrapper 实际 ref 查询回归已加入；真实严格保护 BEHIND/BLOCKED/CLEAN 及正向合并已验；负例未发送 merge API |
 | B08 | 补充 3 | 两条分支各自通过但组合测试失败 | 两种模式都阻止成功交付；本地目标引用保持原值，保存组合失败证据 | `local_audit.test_failed_combination_check_does_not_move_target` | R | 两分支单独命令通过、真实组合命令失败且目标不变已验；GitHub 组合场景未真实执行 |
-| B09 | 补充 3 | GitHub 使用合并队列；或 squash/rebase 改变最终 SHA | 核对真实受检对象和必要 `merge_group` 结果；排队不算完成；实际交付可关联已验证内容，否则重新验证或阻塞 | `github.test_merged_queue_requires_merge_group_evidence; github.test_delivered_commit_not_target_reachable_is_blocked; github.test_source_target_delivery_semantics` | M-gh | 真实 squash D/tree/祖先已验；commit-sensitive D≠C拒绝有独立模拟回归；真实 merge_group/rebase 尚未验 |
+| B09 | 补充 3 | GitHub 使用合并队列；或 squash/rebase 改变最终 SHA | 核对真实受检对象和必要 `merge_group` 结果；排队不算完成；实际交付可关联已验证内容，否则重新验证或阻塞 | `github.test_merged_queue_requires_merge_group_evidence; github.test_delivered_commit_not_target_reachable_is_blocked; github.test_source_target_delivery_semantics` | M-gh+G | 真实 squash D/tree/祖先已验；commit-sensitive D≠C拒绝有独立模拟回归；真实 merge_group/rebase 尚未验 |
 | B10 | 补充 3 | 本地交付前目标工作区变脏或不能快进；人工合入内容与候选不符 | 保留用户文件且不强制改引用；实际合入事实单独记录，未核实内容不解锁下游 | `local_audit.test_dirty_target_is_preserved; local_audit.test_target_moves_and_old_evidence_is_rejected; workflow_audit.test_cli_reconcile_cannot_promote_tampered_evidence` | R+M-host | 脏目标保留、引用漂移、假证据阻断已验；真实人工非等价合入仍需场景 |
 | B11 | 补充 4 | 本地任务使用非数字 ID、修改标题或重命名任务文件 | note-it、walkthrough、交付报告持续定位同一任务和产物；不请求 Issue 号，不执行 gh，不生成假 PR 链接 | `reports.test_local_nonnumeric_rename_stable; tasks.test_rename_keeps_id_and_reports_but_refreshes_source_path; local_audit.test_local_github_remote_does_not_require_gh_or_push` | R | 非数字 ID/改名报告映射/无 gh 已验 |
 | B12 | 补充 4 | 两任务重复 ID/输出路径；GitHub 原有报告继续更新 | 本地预检报告冲突；GitHub 的 `docs/issue#XXXX.html`、原 walkthrough 与 Issue/PR 链接保持兼容 | `reports.test_duplicate_and_path_collision; reports.test_github_legacy; contracts.test_casefold_and_ancestor_report_collisions` | R+S | 本地冲突和 GitHub 原格式报告已验；真实 Issue/PR 链接平台访问不在此测试内 |
 | B13 | 补充 5 | 测试或审查不退出、派生子进程；执行中收到取消 | 限额触发或取消后停止派发与交付，保存证据，并在支持的停止路径中确认本次执行及子进程退出 | `runtime_audit.test_timeout_preserves_failure_and_budget; runtime_audit.test_sigint_cancels_owned_execution_and_records_reason; runtime_audit.test_short_parent_cannot_leave_unobserved_same_group_child; review_helper.test_review_timeout_is_failure` | R+M-host | 真实本地超时/SIGINT 取消/子进程清理已验；真实 Codex 取消、跨会话宿主停止未验 |
 | B14 | 补充 5 | CI/队列长期 pending；多次恢复或重试 | 到总等待/尝试上限后停止等待并保存原因，恢复不重置已消耗预算；未取得通过证据不交付 | `runtime_audit.test_budget_survives_new_controller; runtime_audit.test_crash_recovery_preserves_attempt_and_consumed_budget; contracts.test_github_wait_limits_required` | R+S | 本地预算/恢复已验；真实 CI/队列长期 pending 的累计等待循环未验 |
-| B15 | 补充 5 | PR 创建/合并请求超时，或取消时远端操作已执行 | 查询真实结果再更新状态；不重复操作，不将“本地已停止等待”表述为“远端已取消” | `github.test_create_recovery_reuses_pr_after_timeout; github.test_authorized_merge_pending_then_timeout_reconciled; cli_audit.test_unknown_return_value_blocks_repeat_mutation` | M-gh | 模拟创建/合并超时与未知阻断已验；真实人工 PR #7 不确定响应只读对账已验，真实远端撤销未验 |
+| B15 | 补充 5 | PR 创建/合并请求超时，或取消时远端操作已执行 | 查询真实结果再更新状态；不重复操作，不将“本地已停止等待”表述为“远端已取消” | `github.test_create_recovery_reuses_pr_after_timeout; github.test_authorized_merge_pending_then_timeout_reconciled; cli_audit.test_unknown_return_value_blocks_repeat_mutation` | M-gh+G | 模拟创建/合并超时与未知阻断已验；真实人工 PR #7 不确定响应只读对账已验，真实远端撤销未验 |
 | B16 | 补充 6 | 候选知识只有临时日志、会消失的提交或即将到期的 CI 链接 | 持久化必要依据并核实后才固化；归档未完成则保留候选，不能靠引用检查无错绕过 | `knowledge.test_temporary_untracked_external_and_traversal_rejected; knowledge.test_durable_reference_binds_actual_git_commit_and_bytes` | R | 临时/未入库/外链-only 拒绝和提交证据已验；已有外部持久归档迁移未演练 |
 | B17 | 补充 6 | 清理 `.harness/runs/`、模拟 CI 产物到期，再从干净仓库副本读取 | 记忆、ADR 和必要报告仍可访问并支持结论；本地场景无需 GitHub；不能访问的必需依据有明确复核结果 | `durable_cleanup.test_cleanup_then_clean_clone_keeps_native_knowledge_and_sources` | N+R | 实际删除 runs 与模拟到期 CI 目录，再真实 clone、原生注册/read core、校验 ADR/报告字节；缺失引用明确拒绝。语义结论支持度仍非模型实测 |
 
@@ -150,12 +159,12 @@
 
 ## 目标平台边界
 
-Linux/WSL 使用 POSIX 原生锁/进程与本地文件系统；本次实际执行环境是 Linux。macOS 首轮真实 Actions 已执行并暴露失败，正在修复；原生文件系统/锁/进程/安装需真实复跑，Codex 模型宿主另需实机验收。单纯模拟 sys.platform 或分支覆盖不得写为 macOS 实测。`$zh` 是对外主入口；goal-workflow 上游技能作为内部流程组件，不改变用户已选入口。
+Linux/WSL 使用 POSIX 原生锁/进程与本地文件系统；Linux及macOS ARM/Intel已在实际 Actions通过，WSL未独立执行。macOS首轮失败保留历史，修复后的真实rerun与Mac用户宿主四步成功分列；原生停止/完整P0仍待验。单纯模拟 sys.platform 或分支覆盖不得写为 macOS 实测。`$zh` 是对外主入口；goal-workflow 上游技能作为内部流程组件，不改变用户已选入口。
 
 ## 继续验收需要的条件
 
-1. 可正常运行 Codex CLI 的用户/受支持环境：先用普通 read-only 模式启动测试，确认登录与模型可用；然后在沙盒项目运行技能发现、任务输入、独立审查、停止、续接。无需放宽系统安全策略。
-2. 已授权 GitHub 沙盒 QZAiXH/zhiheng 的普通 gh 路径已工作；不需再次登录或选择仓库。仍需按当前确认请求处理测试分支严格保护/队列规则授权，再验证实际合并、D 与受检内容关联及 Issue 收尾。不要把实现 PR #3 的 Actions 当完整模式验收。
+1. 用户Mac真实四步及17安装已通过，接着核实原生P0、取消/停止、完整语义就绪与$zh自动发现；不重跑已完成昂贵四步，也不放宽系统安全策略。
+2. 已授权 GitHub 沙盒 QZAiXH/zhiheng 的普通 gh 路径已工作；不需再次登录或选择仓库。测试分支严格保护、人工实际合并、D与受检内容关联和Issue收尾已验；真实merge queue/merge_group尚未验，如需修改队列规则须单独授权。不要把实现 PR #3 的 Actions 当完整模式验收。
 3. 两模式相同基线的三组代表任务、项目实际测试命令与限制；完成真实首次通过率/返工/人工/耗时/成本记录。
 4. 发行前冻结文件、保存完整测试日志和版本指纹，再复跑。安装/升级/回退测试在临时目录中成功不证明用户已有安装或历史 checkpoint 已迁移。
 5. 尚未有证据的功能应继续实现/测试，或明确记录阻塞并请求所需帮助；不能以手册描述、schema 合格、模拟返回或原生组件探针充当 P5 发布证明。
