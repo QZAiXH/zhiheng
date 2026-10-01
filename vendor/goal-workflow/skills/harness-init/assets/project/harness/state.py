@@ -27,12 +27,17 @@ def strict_json(raw):
     return json.loads(raw, object_pairs_hook=pairs, parse_constant=constant)
 
 
-def atomic_json(path, data):
+def atomic_json(path, data, staging_directory=None):
     path = Path(path)
     if path.is_symlink():
         raise Blocked(f"refuse symlink: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
+    stage = Path(staging_directory) if staging_directory is not None else path.parent
+    if stage.is_symlink() or not stage.is_dir():
+        raise Blocked("atomic staging directory is unsafe or missing")
+    if stage.stat().st_dev != path.parent.stat().st_dev:
+        raise Blocked("atomic checkpoint replacement requires primary worktree and Git metadata on the same filesystem")
+    fd, name = tempfile.mkstemp(prefix=path.name + ".", dir=stage)
     try:
         with os.fdopen(fd, "w") as stream:
             json.dump(data, stream, ensure_ascii=False, indent=2, allow_nan=False)
@@ -56,8 +61,11 @@ class State:
         self.path = Path(root) / ".loop-state.json"
         self.mode, self.run_id = mode, run_id
         self.lock = FileLock(str(lock_path), timeout=0)
+        self.staging_directory = Path(lock_path).parent
 
     def read(self):
+        if self.path.is_symlink():
+            raise Blocked("checkpoint symlinks are not accepted")
         if not self.path.exists():
             return {"schema_version": 2, "revision": 0, "mode": self.mode,
                     "run_id": self.run_id, "spent_seconds": 0.0, "attempts": [],
@@ -98,7 +106,10 @@ class State:
                 raise Blocked("attempt history cannot be rewritten")
             new = copy.deepcopy(data)
             new["revision"] = expected_revision + 1
-            atomic_json(self.path, new)
+            # A root-level temp file can be observed by a simultaneously running
+            # supervised `git status`. Keep atomic staging in same-filesystem Git
+            # metadata, never hide genuine user files with broad ignore patterns.
+            atomic_json(self.path, new, self.staging_directory)
             return new
 
 
@@ -133,6 +144,6 @@ def migrate_legacy(root, mode, run_id, limits, authorized=False):
                     "active": None, "attempts": [], "remote_operations": [], "tasks": {},
                     "legacy": {"backup": str(backup), "sha256": hashlib.sha256(raw).hexdigest(),
                                "issues": old["issues"], "unresolved": "reconcile actual delivery and explicitly amend unknown historical budget"}}
-        atomic_json(path, migrated)
+        atomic_json(path, migrated, controller.common)
         return {"status": "blocked", "migrated": True, "backup": str(backup),
                 "reason": migrated["legacy"]["unresolved"]}

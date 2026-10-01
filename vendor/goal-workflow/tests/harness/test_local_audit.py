@@ -124,6 +124,45 @@ class LocalAudit(unittest.TestCase):
             self.assertEqual((self.root / "base.txt").read_text(), "user unsaved change")
             self.assertEqual(git(self.root, "rev-parse", "main"), candidate["T"])
 
+    def test_ignored_user_file_collision_is_never_overwritten_by_delivery(self):
+        with (self.root / ".gitignore").open("a") as stream:
+            stream.write("ignored-user.txt\n")
+        self.commit("ignore user local file")
+        source = Path(self.tmp.name) / "source-extra"
+        git(self.root, "worktree", "add", str(source), "feature")
+        (source / "ignored-user.txt").write_text("new tracked source content\n")
+        git(source, "add", "ignored-user.txt")
+        git(source, "commit", "-m", "add source file")
+        user = self.root / "ignored-user.txt"
+        user.write_text("USER LOCAL CONTENT MUST SURVIVE\n")
+        with self.controller() as controller:
+            candidate = self.candidate(controller)
+            candidate["status"] = "verified"
+            before = git(self.root, "rev-parse", "main")
+            refusal = None
+            try:
+                deliver(controller, candidate, self.root, self.spec, self.checks,
+                        self.environment, authorized=True)
+            except Blocked as exc:
+                refusal = exc
+            self.assertEqual(user.read_text(), "USER LOCAL CONTENT MUST SURVIVE\n")
+            self.assertIsNotNone(refusal, "ignored-path collision must block delivery")
+            self.assertEqual(git(self.root, "rev-parse", "main"), before)
+
+    def test_unrelated_ignored_user_file_is_preserved_on_delivery(self):
+        with (self.root / ".gitignore").open("a") as stream:
+            stream.write("user-cache.bin\n")
+        self.commit("ignore local cache")
+        user = self.root / "user-cache.bin"
+        user.write_bytes(b"preserve unrelated bytes")
+        with self.controller() as controller:
+            candidate = self.candidate(controller)
+            candidate["status"] = "verified"
+            result = deliver(controller, candidate, self.root, self.spec, self.checks,
+                             self.environment, authorized=True)
+            self.assertEqual(result["status"], "delivered")
+            self.assertEqual(user.read_bytes(), b"preserve unrelated bytes")
+
     def test_modified_candidate_is_rejected(self):
         with self.controller() as controller:
             candidate = self.candidate(controller)

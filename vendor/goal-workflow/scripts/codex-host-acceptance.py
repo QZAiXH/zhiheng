@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Opt-in Codex host probe; isolated repo, normal sandbox, no auth/config edits.
 
-Default only prepares artifacts. --run-models uses the caller's authenticated
-Codex, incurs normal model usage and creates one resumable test session. It does
+Default only prepares artifacts. --run-models requires an explicit model and
+call budget, uses the caller's authenticated Codex, incurs normal model usage,
+and creates one resumable test session. A call means one Codex invocation, not
+one underlying API request or a monetary cap. It does
 not certify full Harness, GitHub, Serena, cancellation or semantic review quality.
 """
 import argparse
@@ -21,28 +23,52 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--codex", default="codex")
     parser.add_argument("--output", help="new, nonexistent artifact directory; otherwise a temp directory is preserved")
-    parser.add_argument("--timeout", type=int, default=180)
+    parser.add_argument("--timeout", type=int, default=90)
     parser.add_argument("--run-models", action="store_true")
+    parser.add_argument("--model", help="explicit model for every model step, including review and resume")
+    parser.add_argument("--max-model-calls", type=int,
+                        help="explicit maximum Codex model invocations (1..4); no retries")
     args = parser.parse_args()
     if os.name != "posix":
         parser.error("this process-group runner supports Linux/macOS; use WSL on Windows")
     if args.timeout < 10 or args.timeout > 1800:
         parser.error("timeout must be 10..1800 seconds per model step")
+    if args.model is not None and (not args.model.strip() or args.model != args.model.strip()
+                                   or any(c.isspace() for c in args.model)):
+        parser.error("model must be a nonempty model identifier without whitespace")
+    if args.max_model_calls is not None and not 1 <= args.max_model_calls <= 4:
+        parser.error("max-model-calls must be 1..4")
+    if args.run_models and (args.model is None or args.max_model_calls is None):
+        parser.error("--run-models requires explicit --model and --max-model-calls")
     root = Path(args.output).absolute() if args.output else Path(tempfile.mkdtemp(prefix="codex-host-acceptance-"))
     if args.output:
         root.mkdir(parents=True, exist_ok=False)
     repo = root / "repo"
     repo.mkdir()
     summary = {"artifact_directory": str(root), "status": "prepared", "steps": [],
-               "limits": {"model_step_seconds": args.timeout},
+               "limits": {"model_step_seconds": args.timeout,
+                          "max_model_calls": args.max_model_calls if args.run_models else 0,
+                          "script_retries": 0},
+               "model_calls_started": 0,
+               "model_policy": {"model": args.model, "review_model": args.model,
+                                "reasoning_effort": "low", "service_tier": "default",
+                                "budget_unit": "Codex invocation; not API requests or currency"},
                "scope": "isolated host discovery/implementation/review/resume/handoff; not full Harness acceptance"}
 
     def save():
         (root / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
 
-    def command(name, argv, timeout=30, expected=0):
+    def command(name, argv, timeout=30, expected=0, model_call=False):
+        if model_call:
+            if summary["model_calls_started"] >= args.max_model_calls:
+                raise RuntimeError(name + ": model invocation budget exhausted; no further call started")
+            # Charge before spawn, including failures and uncertain starts.
+            summary["model_calls_started"] += 1
         start = time.monotonic()
         record = {"name": name, "argv": argv, "cwd": str(repo), "timeout_seconds": timeout}
+        if model_call:
+            record.update(model_call_number=summary["model_calls_started"],
+                          model_policy=dict(summary["model_policy"]))
         summary["steps"].append(record)
         save()
         try:
@@ -108,14 +134,26 @@ def main():
             return 0
         codex = shutil.which(args.codex) or str(Path(args.codex).absolute())
         summary["codex_version"] = command("codex-version", [codex, "--version"]).strip()
-        command("codex-help", [codex, "exec", "--help"])
+        for name, action in (("codex-help", []), ("codex-review-help", ["review"]),
+                             ("codex-resume-help", ["resume"])):
+            help_text = command(name, [codex, "exec", *action, "--help"])
+            if "--model" not in help_text or "--config" not in help_text:
+                raise RuntimeError(name + ": explicit model/config options unsupported; no model call started")
+
+        def model_argv(sandbox, *action):
+            # --model and -c are supported by exec, review and resume. Explicit
+            # review_model also overrides an inherited review-only model.
+            # Official config schema: https://learn.chatgpt.com/docs/config-schema.json
+            return [codex, "exec", "--sandbox", sandbox, "--json", "-C", str(repo), *action,
+                    "--model", args.model, "-c", "review_model=" + json.dumps(args.model),
+                    "-c", 'model_reasoning_effort="low"', "-c", 'service_tier="default"']
         implementation = root / "implementation.txt"
         prompt = ("Use $harness-host-probe for this isolated fixture. Fix addition in calculator.py. "
                   "AC-POS: add(2,3) is 5. AC-NEG: add(-2,-3) is -5. Do not change tests. "
                   "Run " + sys.executable + " -B -m unittest -v. Do not commit or use network. "
                   "Do not access other projects or alter user configuration/authentication.")
-        trace = command("implement", [codex, "exec", "--sandbox", "workspace-write", "--json",
-                        "-C", str(repo), "--output-last-message", str(implementation), prompt], args.timeout)
+        trace = command("implement", model_argv("workspace-write") +
+                        ["--output-last-message", str(implementation), prompt], args.timeout, model_call=True)
         events = []
         for line in trace.splitlines():
             try:
@@ -135,12 +173,13 @@ def main():
         untracked = command("untracked-files", ["git", "ls-files", "--others", "--exclude-standard"]).splitlines()
         if changed != ["calculator.py"] or untracked:
             raise RuntimeError("fixture changed outside calculator.py; inspect artifacts")
-        command("independent-review", [codex, "exec", "--sandbox", "read-only", "--json",
-                "-C", str(repo), "review", "--uncommitted", "--ephemeral"], args.timeout)
+        command("independent-review", model_argv("read-only", "review") +
+                ["--uncommitted", "--ephemeral"], args.timeout, model_call=True)
         resumed = root / "resume.txt"
-        command("exact-session-resume", [codex, "exec", "--sandbox", "read-only", "--json",
-                "-C", str(repo), "resume", session, "--output-last-message", str(resumed),
-                "Do not run tools or modify files. Recall the two acceptance IDs from this session and their outcome."], args.timeout)
+        command("exact-session-resume", model_argv("read-only", "resume", session) +
+                ["--output-last-message", str(resumed),
+                 "Do not run tools or modify files. Recall the two acceptance IDs from this session and their outcome."],
+                args.timeout, model_call=True)
         if not all(x in resumed.read_text() for x in ("AC-POS", "AC-NEG")):
             raise RuntimeError("exact-session resume did not recover both acceptance IDs")
         (repo / "handoff.md").write_text(
@@ -150,10 +189,11 @@ def main():
             "No commit/push/delivery was requested. Independent review output still requires human inspection.\n"
             "Next: state any unresolved issue; do not ship.\n")
         handoff = root / "fresh-handoff.txt"
-        command("fresh-context-handoff", [codex, "exec", "--sandbox", "read-only", "--json", "--ephemeral",
-                "-C", str(repo), "--output-last-message", str(handoff),
+        command("fresh-context-handoff", model_argv("read-only") +
+                ["--ephemeral", "--output-last-message", str(handoff),
                 "Read handoff.md and relevant fixture code. Do not modify files. Recover acceptance conditions, "
-                "constraints, current state and next action, and check them. No previous chat is required."], args.timeout)
+                "constraints, current state and next action, and check them. No previous chat is required."],
+                args.timeout, model_call=True)
         if not all(x in handoff.read_text() for x in ("AC-POS", "AC-NEG")):
             raise RuntimeError("fresh-context handoff did not preserve both acceptance IDs")
         summary["status"] = "host_steps_executed_review_requires_inspection"

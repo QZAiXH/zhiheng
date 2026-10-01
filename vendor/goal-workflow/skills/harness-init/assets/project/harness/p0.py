@@ -104,6 +104,8 @@ def probe(config, controller=None):
         options = config.get("p0", {})
         if not isinstance(limits, dict) or not isinstance(options, dict):
             raise Blocked("limits and p0 must be objects")
+        if options.get("run_host_drills") is True and options.get("smoke_argv") is not None:
+            raise Blocked("p0.run_host_drills and p0.smoke_argv are mutually exclusive")
         command_seconds = _positive(limits.get("command_seconds"), "command_seconds")
         grace = _positive(limits.get("stop_grace_seconds"), "stop_grace_seconds")
         total = _positive(limits.get("task_seconds"), "task_seconds")
@@ -219,6 +221,8 @@ def probe(config, controller=None):
                         drills = run_host_drills(temp_controller, codex_path, options.get("output_dir"),
                                                  project_root=root, project_controller=controller,
                                                  timeout_seconds=command_seconds,
+                                                 model=options.get("model"),
+                                                 max_model_calls=options.get("max_model_calls"),
                                                  config_sha256=report["config_sha256"],
                                                  declared_environment_sha256=report["declared_environment_sha256"],
                                                  cancel_options=({"startup_seconds": options.get("cancel_startup_seconds"),
@@ -233,7 +237,7 @@ def probe(config, controller=None):
                         capabilities["host_command_smoke"] = _cap("blocked", str(exc))
                 smoke = options.get("smoke_argv")
                 if options.get("run_host_drills") is True:
-                    pass  # At most the three explicit drill calls; never a fourth optional smoke.
+                    pass  # Explicit bounded drills never add an optional smoke invocation.
                 elif smoke is not None:
                     if not isinstance(smoke, list) or not smoke or not all(isinstance(arg, str) for arg in smoke):
                         capabilities["host_command_smoke"] = _cap("blocked", "p0.smoke_argv must be an explicit nonempty argv list.")
@@ -243,6 +247,13 @@ def probe(config, controller=None):
                             if (not codex_path or argv[:7] != [codex_path, "exec", "--sandbox", "read-only", "--json", "--cd", str(temporary)]
                                     or len(argv) != 8 or not argv[-1].strip() or argv[-1].startswith("-")):
                                 raise Blocked("Only exact Codex read-only smoke argv is supported: [resolved_codex, exec, --sandbox, read-only, --json, --cd, {worktree}, prompt]; arbitrary commands/config overrides are refused")
+                            from .codex_probe import explicit_model_args
+                            policy_args = explicit_model_args(options.get("model"), options.get("max_model_calls"))
+                            argv = argv[:-1] + policy_args + argv[-1:]
+                            report["host_smoke_policy"] = {"model": options["model"], "review_model": options["model"],
+                                "reasoning_effort": "low", "service_tier": "default", "script_retries": 0,
+                                "call_limit": options["max_model_calls"], "calls_started": 1,
+                                "budget_unit": "Codex invocation; not API requests or currency"}
                             capabilities["host_command_smoke"] = _successful(temp_controller, argv, "host-smoke", command_seconds)
                         except (Blocked, OSError, ValueError) as exc:
                             capabilities["host_command_smoke"] = _cap("blocked", str(exc))

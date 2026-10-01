@@ -23,6 +23,9 @@ settings=json.loads((home/'behavior.json').read_text()) if (home/'behavior.json'
 with (home/'calls.jsonl').open('a') as f:f.write(json.dumps(args)+'\n')
 if '--version' in args:print('codex-cli SIMULATED TEST EXECUTABLE');sys.exit(0)
 if '--help' in args:print('SIMULATED help');sys.exit(0)
+assert args[args.index('--model')+1] == 'gpt-6.1-sol'
+for option in ('review_model="gpt-6.1-sol"','model_reasoning_effort="low"','service_tier="default"'):
+ assert option in args, args
 def event(x):print(json.dumps(x),flush=True)
 if settings.get('auth_fail'):
  event({'type':'error','message':'simulated authentication failure'});sys.exit(1)
@@ -84,11 +87,30 @@ class CodexProbeProtocolTests(unittest.TestCase):
     def behavior(self, **options):
         (self.executable.parent / "behavior.json").write_text(json.dumps(options))
 
-    def run_drills(self, cancel_options=None):
+    def run_drills(self, cancel_options=None, model="gpt-6.1-sol", max_model_calls=4):
         with Controller(self.repo, "local", "protocol-test", self.limits) as controller:
             return run_host_drills(controller, str(self.executable), str(self.output),
                 project_root=self.project, timeout_seconds=2, config_sha256="a"*64,
-                declared_environment_sha256="b"*64, cancel_options=cancel_options)
+                declared_environment_sha256="b"*64, model=model, max_model_calls=max_model_calls,
+                cancel_options=cancel_options)
+
+    def test_missing_or_invalid_model_budget_blocks_before_calls_or_artifacts(self):
+        for model, budget in ((None, 4), ("", 4), (" ", 4), ("gpt-6.1-sol", None),
+                              ("gpt-6.1-sol", True), ("gpt-6.1-sol", 0), ("gpt-6.1-sol", 5)):
+            with self.subTest(model=model, budget=budget):
+                with self.assertRaises(Blocked):
+                    self.run_drills(model=model, max_model_calls=budget)
+        self.assertFalse((self.executable.parent/'calls.jsonl').exists())
+        self.assertFalse(self.output.exists())
+
+    def test_explicit_one_call_budget_never_starts_review_or_resume(self):
+        result = self.run_drills(max_model_calls=1)
+        self.assertEqual(result["calls_started"], 1)
+        self.assertEqual(result["call_limit"], 1)
+        self.assertEqual(set(result["logs"]), {"start"})
+        self.assertEqual(result["capabilities"]["host_session_start"]["status"], "verified")
+        self.assertEqual(result["capabilities"]["host_independent_review"]["status"], "blocked")
+        self.assertEqual(result["capabilities"]["host_session_resume"]["status"], "blocked")
 
     def test_explicit_fourth_simulated_owned_cancellation_proof(self):
         result = self.run_drills({"startup_seconds": 1, "total_seconds": 1.5, "sleep_seconds": 5})
@@ -131,7 +153,9 @@ class CodexProbeProtocolTests(unittest.TestCase):
         self.assertEqual(result["host_native_stop"]["status"], "blocked")
         for item in result["logs"].values():
             self.assertEqual(hashlib.sha256(Path(item["path"]).read_bytes()).hexdigest(), item["sha256"])
-            self.assertNotIn("--model", item["argv"])
+            self.assertEqual(item["argv"][item["argv"].index("--model")+1], "gpt-6.1-sol")
+            self.assertEqual(item["model_policy"]["reasoning_effort"], "low")
+            self.assertEqual(item["model_policy"]["service_tier"], "default")
             self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", item["argv"])
             self.assertIn("read-only", item["argv"])
         self.assertEqual(hashlib.sha256(Path(result["report_path"]).read_bytes()).hexdigest(), result["report_sha256"])
@@ -192,6 +216,7 @@ class CodexProbeProtocolTests(unittest.TestCase):
         config={"mode":"local","repository_root":str(self.project),"environment":{"host":"SIMULATED TEST"},
                 "limits":{"command_seconds":2,"stop_grace_seconds":0.1,"task_seconds":30},
                 "p0":{"max_commands":8,"run_host_drills":True,"output_dir":str(self.output),
+                      "model":"gpt-6.1-sol","max_model_calls":3,
                       "executables":{"codex":str(self.executable)}}}
         result=probe(config)
         self.assertEqual(result["host_drills"]["calls_started"],3)
@@ -199,6 +224,46 @@ class CodexProbeProtocolTests(unittest.TestCase):
         self.assertEqual(result["capabilities"]["host_native_stop"]["status"],"blocked")
         self.assertEqual(result["automation_readiness"]["status"],"blocked")
         self.assertFalse(result["changes_ready"])
+
+    def test_p0_missing_explicit_model_never_starts_model(self):
+        config={"mode":"local","repository_root":str(self.project),"environment":{"host":"SIMULATED TEST"},
+                "limits":{"command_seconds":2,"stop_grace_seconds":0.1,"task_seconds":30},
+                "p0":{"max_commands":8,"run_host_drills":True,"output_dir":str(self.output),
+                      "max_model_calls":3,"executables":{"codex":str(self.executable)}}}
+        result=probe(config)
+        self.assertEqual(result["capabilities"]["host_command_smoke"]["status"], "blocked")
+        self.assertIn("explicit nonempty model", result["capabilities"]["host_command_smoke"]["detail"])
+        calls=(self.executable.parent/'calls.jsonl').read_text().splitlines()
+        self.assertTrue(all('--version' in json.loads(line) or '--help' in json.loads(line) for line in calls))
+
+    def test_optional_smoke_has_same_model_guard_and_records_explicit_policy(self):
+        config={"mode":"local","repository_root":str(self.project),"environment":{"host":"SIMULATED TEST"},
+                "limits":{"command_seconds":2,"stop_grace_seconds":0.1,"task_seconds":30},
+                "p0":{"max_commands":8,"executables":{"codex":str(self.executable)},
+                      "smoke_argv":[str(self.executable),"exec","--sandbox","read-only","--json","--cd",
+                                    "{worktree}","Remember the nonce abc123"]}}
+        result=probe(config)
+        self.assertEqual(result["capabilities"]["host_command_smoke"]["status"], "blocked")
+        self.assertIn("explicit nonempty model", result["capabilities"]["host_command_smoke"]["detail"])
+        self.assertFalse((self.executable.parent/'state.json').exists())
+        config["p0"].update(model="gpt-6.1-sol", max_model_calls=1)
+        result=probe(config)
+        self.assertEqual(result["capabilities"]["host_command_smoke"]["status"], "verified")
+        self.assertEqual(result["host_smoke_policy"]["calls_started"], 1)
+        self.assertEqual(result["host_smoke_policy"]["service_tier"], "default")
+
+    def test_smoke_and_host_drills_are_rejected_together_before_execution(self):
+        config={"mode":"local","repository_root":str(self.project),"environment":{"host":"SIMULATED TEST"},
+                "limits":{"command_seconds":2,"stop_grace_seconds":0.1,"task_seconds":30},
+                "p0":{"run_host_drills":True,"model":"gpt-6.1-sol","max_model_calls":4,
+                      "output_dir":str(self.output),"executables":{"codex":str(self.executable)},
+                      "smoke_argv":[str(self.executable),"exec","--sandbox","read-only","--json","--cd",
+                                    "{worktree}","Remember the nonce abc123"]}}
+        result=probe(config)
+        self.assertEqual(result["capabilities"]["configuration"]["status"], "blocked")
+        self.assertIn("mutually exclusive", result["capabilities"]["configuration"]["detail"])
+        self.assertFalse((self.executable.parent/'calls.jsonl').exists())
+        self.assertFalse(self.output.exists())
 
 
 if __name__ == '__main__':unittest.main()

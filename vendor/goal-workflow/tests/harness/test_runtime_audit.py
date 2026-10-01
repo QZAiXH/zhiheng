@@ -9,6 +9,8 @@ import sys
 import tempfile
 import time
 import unittest
+import threading
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "skills/harness-init/assets/project"))
@@ -61,10 +63,47 @@ class Audit(unittest.TestCase):
             altered["spent_seconds"] = 0
             with self.assertRaises(Blocked):
                 controller.state.write(altered, state["revision"])
+
             altered = copy.deepcopy(state)
             altered["attempts"] = []
             with self.assertRaises(Blocked):
                 controller.state.write(altered, state["revision"])
+
+    def test_atomic_checkpoint_staging_never_appears_in_real_git_status(self):
+        (self.root / ".gitignore").write_text(".loop-state.json\n")
+        (self.root / "user.keep").write_text("real user untracked file must remain visible\n")
+        from harness import state as state_module
+        original = state_module.tempfile.mkstemp
+        staged = threading.Event()
+        release = threading.Event()
+        errors = []
+        def paused_mkstemp(*args, **kwargs):
+            result = original(*args, **kwargs)
+            staged.set()
+            if not release.wait(4):
+                raise RuntimeError("fixture release timeout")
+            return result
+        with self.controller() as controller:
+            data = controller.state.read()
+            def writer():
+                try:
+                    controller.state.write(data, data["revision"])
+                except BaseException as exc:
+                    errors.append(exc)
+            with patch.object(state_module.tempfile, "mkstemp", side_effect=paused_mkstemp):
+                worker = threading.Thread(target=writer)
+                worker.start()
+                try:
+                    self.assertTrue(staged.wait(3), "atomic writer did not reach staging")
+                    status = git(self.root, "status", "--porcelain", "--untracked-files=all")
+                    self.assertIn("user.keep", status)
+                    self.assertNotIn(".loop-state.json.", status,
+                                     "Git observed checkpoint staging as a user worktree change")
+                finally:
+                    release.set()
+                    worker.join(timeout=5)
+            self.assertFalse(worker.is_alive())
+            self.assertEqual(errors, [])
 
     def test_live_controller_blocks_related_worktree(self):
         worktree = Path(self.tmp.name) / "second"

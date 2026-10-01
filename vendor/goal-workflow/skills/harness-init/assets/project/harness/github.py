@@ -320,7 +320,7 @@ class GitHubAdapter:
             policy = 'strict'
         if policy == 'merge_queue':
             policy = 'queue'
-        if policy not in ('strict', 'queue') or not self.config.get('github', {}).get('rules_verified'):
+        if policy not in ('strict', 'queue'):
             raise AdapterError('Server strict/queue rules must be independently verified')
         # Enqueue may precede merge_group creation. Completion independently requires
         # merge_group evidence in reconcile; enqueue is only delivery_pending.

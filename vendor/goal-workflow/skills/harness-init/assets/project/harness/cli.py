@@ -49,6 +49,8 @@ def github_destinations(config, task):
     head_repository = task.get("github_head_repository", repository)
     if not base or not head or not repository or not head_repository:
         raise Blocked("explicit GitHub source/destination branch and repository identities required")
+    if head_repository.lower() == repository.lower() and head == base:
+        raise Blocked("source publication must not directly overwrite the delivery target branch")
     if config.get("github", {}).get("target_branch") not in (None, base):
         raise Blocked("task GitHub target differs from P0 configured target branch")
     return base, head, head_repository
@@ -91,6 +93,13 @@ def github_verified_args(controller, config, bundle, action, args):
         proof.update(group)
     built = dict(args, evidence=proof, current_target_sha=current_target)
     if action == "merge":
+        policy = config.get("github", {}).get("merge_policy") or config.get("github", {}).get("baseline_policy")
+        policy = {"strict_checks": "strict", "merge_queue": "queue"}.get(policy, policy)
+        if policy not in ("strict", "queue"):
+            raise Blocked("automatic merge unavailable; preserve PR/CI evidence for manual handoff")
+        rules = adapter.inspect_rules(pr["base"]["ref"], config.get("github", {}).get("rules_mechanism", "rulesets"))
+        if not rules.get("rules_verified") or rules.get("policy") != policy:
+            raise Blocked("actual enforcing merge rules unavailable; only automatic merge is blocked")
         if current_target != evidence["T"]:
             raise Blocked("actual target branch advanced after local verification")
         local.check_fresh(controller.root, evidence, controller.root / task["spec"], config["checks"], config["environment"], controller)
@@ -179,7 +188,7 @@ def main(argv=None):
             p.add_argument("--semantic-review")
             p.add_argument("--authorize-semantic-review", action="store_true")
         if name == "github":
-            p.add_argument("action", choices=["tasks", "graph", "read", "dependencies", "find-pr", "checks", "reconcile", "rules", "create-pr", "merge", "verify", "complete-issue", "reconcile-issue", "wait-checks", "cancel", "commit-tree", "merge-group", "remote-state"])
+            p.add_argument("action", choices=["tasks", "graph", "read", "dependencies", "find-pr", "checks", "reconcile", "rules", "push-source", "create-pr", "merge", "verify", "complete-issue", "reconcile-issue", "wait-checks", "cancel", "commit-tree", "merge-group", "remote-state"])
             p.add_argument("--args", default="{}", help="JSON action arguments; mutation requires authorized=true")
         if name == "knowledge":
             p.add_argument("action", choices=["create", "register", "maintenance", "onboarding", "read-core", "references", "readiness", "write", "edit", "rename"])
@@ -231,12 +240,39 @@ def main(argv=None):
         elif args.command == "github":
             from .github import github_action, AdapterError, controlled_runner
             action_args = json.loads(args.args)
+            if args.action == "merge" and (config.get("github", {}).get("merge_policy") or config.get("github", {}).get("baseline_policy")) == "review_only":
+                raise Blocked("review_only preserves source/PR/CI workflow; merge requires an authorized manual handoff")
             with Controller(config["repository_root"], config["mode"], args.run, config_limits(config)) as controller:
                 if args.action == "verify":
                     try:
                         result = github_platform_verify(controller, config, bundle, action_args)
                     except AdapterError as exc:
                         raise Blocked(str(exc)) from exc
+                    print(json.dumps(result, ensure_ascii=False, indent=2))
+                    return 0
+                if args.action == "push-source":
+                    from .git_transport import push_source
+                    from .github import GitHubAdapter
+                    if config["mode"] != "github":
+                        raise Blocked("GitHub source publication requires explicit github mode")
+                    require_capabilities(controller, config, delivery=True)
+                    task = select_task(bundle, action_args.get("task_id"))
+                    proof = verified_evidence(controller, task, config, allow_local_only=True)
+                    local.check_fresh(controller.root, proof, controller.root / task["spec"], config["checks"], config["environment"], controller)
+                    base, head, repository = github_destinations(config, task)
+                    try:
+                        hostname = GitHubAdapter(config).hostname
+                    except AdapterError as exc:
+                        raise Blocked(str(exc)) from exc
+                    remote_ref = "refs/heads/" + head
+                    if action_args.get("remote_ref", remote_ref) != remote_ref:
+                        raise Blocked("source push destination differs from approved task branch")
+                    result = push_source(controller, task["id"], task["source"], proof["H"],
+                                         action_args.get("remote"), remote_ref,
+                                         expected_repository=repository,
+                                         expected_hostname=hostname,
+                                         authorized=action_args.get("authorized") is True,
+                                         use_gh_credentials=action_args.get("use_gh_credentials") is True)
                     print(json.dumps(result, ensure_ascii=False, indent=2))
                     return 0
                 if args.action == "create-pr":

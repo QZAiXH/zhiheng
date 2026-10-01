@@ -33,3 +33,17 @@
 保持明确 local/github 模式；通过当前安装入口的 --help 使用实际命令。能力收据、验收合同和真实工具结果决定能否运行/交付，ready 布尔值和模型声明不能替代证明。模拟宿主/平台须明确标记，不能升级成真实通过。
 
 默认交付到 verified 停靠；是否 push、创建 PR、merge、关闭 Issue 由本次具体授权与配置共同限制。现有安全权限保持有效，缺权限时找用户协助，不换途径绕过。
+
+## GitHub 源分支发布
+
+实现与本地检查通过后，使用引擎的受控 `github push-source` 发布当前任务源分支，再按 `create-pr → wait-checks → verify → merge → reconcile → complete-issue → closeout` 推进；各步骤仍需各自当前证据和授权。按已安装版本的 `--help` 传入同一任务 bundle/run，以及 task_id、remote 和明确 authorized。不得用助手直接执行普通 `git push` 绕过运行锁、预算、远端意图和不确定结果对账。发布源分支只表示 source_published，不表示远端检查、交付或任务完成。仅在使用已授权的正常 gh 登录时，可为该次受控 Git 指定 use_gh_credentials；不要读取或复制凭据。
+
+## 真实验收用量
+
+真实模型测试必须显式选定用户允许的模型、推理档和速度，并限制调用次数及单步时长；实现、独立审查和续接都不得静默回落到更贵的默认模型。准备、安装、单元和模拟测试不需要调用模型。缺少实际 usage 时如实记录未知，不根据失败、超时或没有输出推断零费用。
+
+## 私有仓库与不可用保护规则
+
+GitHub 模式不以付费保护规则为前提。私有仓库在凭据和权限允许时，仍可执行受控实现、源分支发布、创建 PR、读取真实 CI 和输出待合并证据。未配置规则、套餐不支持、权限不足不能混为一谈；记录实际原因，不自动购买套餐或修改权限。无法证明目标分支严格执行当前检查与最新目标约束时，仅停靠自动合并，保留待合并 PR，不标记 delivered/completed。用户后来手动合并仍须以真实 D/tree/目标祖先关系对账，不能仅凭 PR/Issue 关闭宣称交付。
+
+GitHub Free 的分支保护适用于公开仓库；私有仓库是否可用取决于实际套餐与权限，参见 [GitHub 官方说明](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)。验收同时覆盖有保护与无保护的能力分支，模拟私有条件不得称作真实私有平台测试。

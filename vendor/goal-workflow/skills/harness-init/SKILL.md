@@ -33,6 +33,8 @@ description: Initialize, run, validate, recover, and hand off the goal-workflow 
 - `closeout --bundle <file> --task <id> --run <run-id>`：交付后核对任务交接和已提交的持久依据，再推进 completed
 - `push --bundle <file> --task <id> --run <run-id> --authorize`：本地默认关闭；仅显式配置指定 remote/ref 且获授权才执行，超时先查远端实际引用
 - `github --bundle <file> --run <run-id> <action> --args '<JSON>'`：GitHub 原生查询/对账/授权交付；参数遵循适配器实际帮助与代码，不猜接口。verify核对实际PR、受检对象和CI；complete-issue依据实际交付回写任务；wait-checks持久保存等待预算；cancel核实远端操作停止。所有有副作用操作先记录意图，结果未知不得重复创建或合并
+  - 本地验证通过后先显式 `push-source --args '{"task_id":"<id>","remote":"origin","authorized":true}'`，只发布精确源分支，不会授予 verified/delivered；远端主机/仓库、SHA和分支都必须匹配，结果未知先对账。可显式 `use_gh_credentials:true` 使用仅本次命令的官方 gh credential helper，不写持久 Git 配置
+  - 然后 create-pr → 有界 wait-checks → verify → 授权 merge → reconcile → complete-issue → closeout；实际保护规则缺失不能自动合并，模型与费用按 P0 显式配置执行
 
 不要把 `evidence` 的 `eligible_for_independent_verification` 当作 verified。它只做结构、文件哈希和快照一致性检查；真实验证由受控执行、独立审查和实际 Git/平台记录共同产生。
 

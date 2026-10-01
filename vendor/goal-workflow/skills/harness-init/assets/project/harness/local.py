@@ -122,7 +122,7 @@ def deliver(controller, evidence, target_worktree, spec, checks, environment, au
         raise Blocked("target worktree dirty; preserve user changes")
     if controller.git("rev-parse", "HEAD", cwd=target_worktree) != evidence["T"]:
         raise Blocked("target changed before delivery")
-    controller.git("merge", "--ff-only", evidence["C"], cwd=target_worktree)
+    controller.git("merge", "--ff-only", "--no-overwrite-ignore", evidence["C"], cwd=target_worktree)
     delivered = controller.git("rev-parse", "HEAD", cwd=target_worktree)
     if delivered != evidence["C"] or controller.git("rev-parse", "HEAD^{tree}", cwd=target_worktree) != evidence["tree"]:
         raise Blocked("target updated but delivered content differs; block downstream")
@@ -146,12 +146,14 @@ def push_delivery(controller, task_id, remote, remote_ref, authorized=False):
     task = state["tasks"].get(task_id, {})
     if task.get("status") not in ("delivered", "completed") or not task.get("D"):
         raise Blocked("only an actually delivered commit may be pushed")
-    controller.git("remote", "get-url", remote)
-    before = controller.git("ls-remote", "--heads", remote, remote_ref)
+    from .git_transport import remote_fingerprint, query_remote_ref, push_remote_ref
+    destination = remote_fingerprint(controller, remote)
+    before = query_remote_ref(controller, remote, remote_ref, destination=destination)
     state = controller.state.read()
-    if before.split()[:1] == [task["D"]]:
+    if before == task["D"]:
         matches = [op for op in state["remote_operations"] if op.get("action") == "git-push"
                    and op.get("remote") == remote and op.get("ref") == remote_ref and op.get("D") == task["D"]
+                   and op.get("destination", destination) == destination
                    and op.get("status") in ("intent", "unknown")]
         if len(matches) > 1:
             raise Blocked("duplicate uncertain push identities require explicit reconciliation")
@@ -161,16 +163,16 @@ def push_delivery(controller, task_id, remote, remote_ref, authorized=False):
         return {"pushed": True, "reused": True, "D": task["D"], "remote": remote, "ref": remote_ref}
     if any(op.get("status") in ("intent", "unknown", "pending") for op in state["remote_operations"]):
         raise Blocked("previous remote result is unresolved; do not retry push before reconciliation")
-    operation = {"action": "git-push", "remote": remote, "ref": remote_ref, "D": task["D"], "status": "intent"}
+    operation = {"action": "git-push", "remote": remote, "ref": remote_ref, "D": task["D"], "destination": destination, "status": "intent"}
     state["remote_operations"].append(operation)
     state = controller.state.write(state, state["revision"])
     try:
-        controller.git("push", remote, task["D"] + ":" + remote_ref)
+        push_remote_ref(controller, remote, remote_ref, task["D"], destination=destination, before=before)
     except Blocked:
         # A request error is not proof of remote failure; query before retrying.
         pass
-    after = controller.git("ls-remote", "--heads", remote, remote_ref)
-    okay = after.split()[:1] == [task["D"]]
+    after = query_remote_ref(controller, remote, remote_ref, destination=destination)
+    okay = after == task["D"]
     state = controller.state.read()
     state["remote_operations"][-1]["status"] = "observed" if okay else "unknown"
     controller.state.write(state, state["revision"])

@@ -1,4 +1,4 @@
-"""Bounded optional Codex CLI drills; no credentials, model overrides or bypasses."""
+"""Bounded optional Codex CLI drills with an explicitly selected model and call budget."""
 import hashlib
 import json
 import math
@@ -124,9 +124,20 @@ def _output_directory(value, project_root, project_controller, label="host-drill
     return output
 
 
+def explicit_model_args(model, max_model_calls):
+    """Validate opt-in cost choices and return invocation-only native CLI overrides."""
+    if not isinstance(model, str) or not model or any(c.isspace() for c in model):
+        raise Blocked("Host probes require an explicit nonempty model identifier")
+    if type(max_model_calls) is not int or not 1 <= max_model_calls <= 4:
+        raise Blocked("Host probes require an explicit max_model_calls integer in 1..4")
+    return ["--model", model, "-c", "review_model=" + json.dumps(model),
+            "-c", 'model_reasoning_effort="low"', "-c", 'service_tier="default"']
+
+
 def run_host_drills(controller, executable, output_dir, *, project_root,
                     project_controller=None, timeout_seconds, config_sha256,
-                    declared_environment_sha256, cancel_options=None):
+                    declared_environment_sha256, model=None, max_model_calls=None,
+                    cancel_options=None):
     """Run three read-only calls, plus an explicitly requested fourth cancellation drill.
 
     Start -> fresh independent review -> exact-session resume. Output JSON is a
@@ -136,6 +147,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
         raise Blocked("Host drills require the actual entered temporary Controller")
     if not isinstance(executable, str) or not Path(executable).is_absolute():
         raise Blocked("Host executable must be the resolved configured Codex path")
+    policy_args = explicit_model_args(model, max_model_calls)
     if cancel_options is not None:
         if not isinstance(cancel_options, dict):
             raise Blocked("Cancellation drill limits must be an object")
@@ -156,9 +168,13 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
     result = {"version": 1, "kind": "codex_host_drills", "config_sha256": config_sha256,
               "declared_environment_sha256": declared_environment_sha256,
               "executable": executable, "artifact_directory": str(output),
-              "capabilities": capabilities, "calls_started": 0, "call_limit": 4 if cancel_options is not None else 3,
+              "capabilities": capabilities, "calls_started": 0, "call_limit": max_model_calls,
+              "model_policy": {"model": model, "review_model": model,
+                               "reasoning_effort": "low", "service_tier": "default",
+                               "script_retries": 0,
+                               "budget_unit": "Codex invocation; not API requests or currency"},
               "host_native_stop": {"status": "blocked", "detail": "Successful CLI exits do not exercise cancellation; a real owned host cancellation drill remains required."},
-              "notice": "Bounded scoped read-only session drills, with optional explicit owned-process cancellation; no model substitution, credential copy, security bypass or automatic readiness change."}
+              "notice": "Bounded scoped read-only session drills, with explicit model/low reasoning/standard tier and optional owned-process cancellation; no model substitution, credential copy, security bypass or automatic readiness change."}
 
     def save():
         raw = json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8") + b"\n"
@@ -175,6 +191,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
             if not previous.get("stopped"):
                 raise ProbeFailed("Prior execution stop is unknown; no further host calls")
         result["calls_started"] += 1
+        save()  # Charge before launching, including failed or uncertain starts.
         log = controller.root / ("host-drill-" + name + ".jsonl")
         try:
             record = controller.execute(argv, controller.root, "host-drill-" + name, log,
@@ -199,6 +216,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
             for chunk in iter(lambda: stream.read(65536), b""):
                 digest.update(chunk)
         descriptor = {"path": str(destination), "sha256": digest.hexdigest(),
+                      "model_policy": dict(result["model_policy"]),
                       "bytes": destination.stat().st_size, "argv": argv, "execution": record}
         result.setdefault("logs", {})[name] = descriptor
         if len(raw) > MAX_LOG_BYTES:
@@ -209,7 +227,9 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
             raise ProbeFailed("Codex invocation failed, timed out, or did not stop; authentication/availability errors are not success")
         return parse_events(raw), descriptor
 
-    prefix = [executable, "exec", "--sandbox", "read-only", "--json", "--cd", str(controller.root)]
+    # Actual exec/resume --help support --model/-c; official schema documents
+    # review_model, model_reasoning_effort and service_tier="default".
+    prefix = [executable, "exec", "--sandbox", "read-only", "--json", "--cd", str(controller.root)] + policy_args
     start_prompt = ("This is a bounded P0 host-session drill. Remember the nonce " + nonce +
                     " in this session for a later resume. Do not read files, use tools, modify anything or access the network. "
                     "Your entire final response must be exactly HARNESS_P0_START:" + nonce)
@@ -265,7 +285,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
                      "given in this session's initial turn. Return exactly HARNESS_P0_RESUME: followed by that original nonce. "
                      "If it is unavailable, return MISSING rather than inventing it.")
     resume_argv = [executable, "exec", "--sandbox", "read-only", "--cd", str(controller.root),
-                   "resume", "--json", session_id, resume_prompt]
+                   "resume", "--json", *policy_args, session_id, resume_prompt]
     try:
         events, log = run("resume", resume_argv)
         if events["thread_id"] != session_id or events["final"] != "HARNESS_P0_RESUME:" + nonce:

@@ -101,6 +101,8 @@ class Controller:
             raise Blocked("repository already has an active controller") from exc
         self.entered = True
         try:
+            if self.journal.is_symlink():
+                raise Blocked("shared execution journal cannot be a symlink")
             if self.journal.exists():
                 try:
                     prior = json.loads(self.journal.read_text())

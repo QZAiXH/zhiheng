@@ -45,6 +45,13 @@ class CliAudit(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(count, 0)
 
+    def test_review_only_merge_refuses_before_creating_unknown_intent(self):
+        self.config["github"] = {"baseline_policy": "review_only"}
+        code, count = self.invoke(lambda *args, **kwargs: {"status": "delivery_pending"})
+        self.assertEqual((code, count), (1, 0))
+        with Controller(self.root, "github", "github-audit", cli.config_limits(self.config)) as controller:
+            self.assertEqual(controller.state.read()["remote_operations"], [])
+
     def test_github_mutation_holds_lock_and_persists_intent_first(self):
         def adapter(*args, **kwargs):
             with self.assertRaises(Timeout):

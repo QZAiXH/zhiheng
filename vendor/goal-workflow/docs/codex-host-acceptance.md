@@ -22,16 +22,20 @@ python3 scripts/codex-host-acceptance.py
 ## 再运行真实模型步骤
 
 ```bash
-python3 scripts/codex-host-acceptance.py --run-models --timeout 180
+python3 scripts/codex-host-acceptance.py --run-models --model gpt-6.1-sol --max-model-calls 4 --timeout 90
 ```
 
 如需指定已安装的 CLI 路径：
 
 ```bash
-python3 scripts/codex-host-acceptance.py --run-models --codex /absolute/path/to/codex --timeout 180
+python3 scripts/codex-host-acceptance.py --run-models --model gpt-6.1-sol --max-model-calls 4 --codex /absolute/path/to/codex --timeout 90
 ```
 
-每次自动创建一个全新夹具；可用 `--output /new/nonexistent/path` 指定新目录。脚本不会删除产物。单个模型步骤超时 180 秒，超时即保存输出、停止本次进程组并退出，不继续后续步骤。不能将这种进程组停止描述成所有可能后台/远端工作都已取消。
+`--model` 和 `--max-model-calls` 必须显式提供；缺项会在写夹具或启动 Codex 前拒绝。示例的 `gpt-6.1-sol` 仅在已授权使用该模型时运行。实现、独立审查、精确恢复和新上下文交接都显式使用同一个模型，覆盖 `review_model`，固定 `model_reasoning_effort="low"` 和 `service_tier="default"`，不继承昂贵的模型、推理或快速档默认值。这些是当前进程的命令行参数，不写用户配置。
+
+`--max-model-calls` 取值 1..4，表示最多启动几次 Codex 模型进程；每次启动前记账，失败也计数，脚本不重试。完整四阶段需设为 4；较小预算耗尽后保留产物并阻塞后续阶段。此上限不是底层 API 请求次数、token 或金额硬上限，一个 Codex 进程可能进行多轮推理。
+
+每次自动创建一个全新夹具；可用 `--output /new/nonexistent/path` 指定新目录。脚本不会删除产物。单个模型步骤默认超时 90 秒，超时即保存输出、停止本次进程组并退出，不继续后续步骤。不能将这种进程组停止描述成所有可能后台/远端工作都已取消。
 
 实际步骤：
 
@@ -43,7 +47,7 @@ python3 scripts/codex-host-acceptance.py --run-models --codex /absolute/path/to/
 
 ## 如何判断结果
 
-输出目录中的 summary.json 记录命令、目录、超时、真实退出码、运行耗时和产物位置。每一步有独立 stdout/stderr 文件。
+输出目录中的 summary.json 记录命令、目录、超时、真实退出码、运行耗时、产物位置，以及显式模型、低推理、标准档、调用预算和已启动次数。每一步有独立 stdout/stderr 文件。
 
 - `prepared`：仅生成夹具，没调用模型
 - `blocked`：步骤未完成；读 reason 与对应 stderr，先解决正常环境问题再新开一次探针
@@ -58,3 +62,5 @@ python3 scripts/codex-host-acceptance.py --run-models --codex /absolute/path/to/
 已实际运行准备模式并编译 Python；夹具初始失败测试和 Git 基线创建成功。模型路径的命令选项对照了官方稳定版 0.159.3 的 exec / review / resume 帮助。云端真实模型启动仍被上述环境错误阻塞，脚本模型执行分支未在本次云端宣称通过。
 
 官方技能加载说明：[Build skills](https://learn.chatgpt.com/docs/build-skills)；CLI 命令说明：[Developer commands](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
+
+成本参数对照 [官方配置 schema](https://learn.chatgpt.com/docs/config-schema.json) 和本机 exec/review/resume 帮助；prepare-only、缺参数拒绝、四阶段参数一致、预算耗尽及失败不重试均用假 CLI 协议测试，测试本身不调用模型。
