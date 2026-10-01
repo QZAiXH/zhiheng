@@ -2,7 +2,7 @@ import unittest
 
 
 def clamp(value, lower, upper):
-    if lower >= upper:  # Deliberate negative test: equal bounds are valid.
+    if lower > upper:
         raise ValueError('lower exceeds upper')
     return max(lower, min(upper, value))
 
