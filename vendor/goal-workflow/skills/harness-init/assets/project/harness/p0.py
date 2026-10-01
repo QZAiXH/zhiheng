@@ -67,6 +67,12 @@ def _execution_stopped(controller):
 
 
 def _finish(report, observed):
+    dispatch = report.get("host_dispatch", {})
+    if dispatch.get("status") == "not_started":
+        dispatch["status"] = "skipped_due_to_prerequisite" if dispatch.get("requested") else "not_requested"
+        if dispatch.get("requested") and not dispatch.get("blocked_by"):
+            dispatch["blocked_by"] = [name for name, cap in report["capabilities"].items()
+                                      if cap["status"] == "blocked"]
     report["observed_environment_sha256"] = fingerprint(observed)
     report["automation_readiness"]["gaps"] = sorted(
         name for name, capability in report["capabilities"].items() if capability["status"] == "blocked")
@@ -96,6 +102,39 @@ def _successful(controller, argv, name, timeout):
     if result["exit_code"] != 0 or result["reason"] or not result["stopped"]:
         return _cap("blocked", "The bounded command did not finish successfully and stop.", **evidence)
     return _cap("verified", "This specific bounded command ran and exited successfully.", **evidence)
+
+
+def _smoke_arguments(smoke, codex_path, temporary):
+    if not isinstance(smoke, list) or not smoke or not all(isinstance(arg, str) for arg in smoke):
+        raise Blocked("p0.smoke_argv must be an explicit nonempty argv list.")
+    argv = [arg.replace("{worktree}", str(temporary)) for arg in smoke]
+    if (not codex_path or argv[:7] != [codex_path, "exec", "--sandbox", "read-only", "--json", "--cd", str(temporary)]
+            or len(argv) != 8 or not argv[-1].strip() or argv[-1].startswith("-")):
+        raise Blocked("Only exact Codex read-only smoke argv is supported: [resolved_codex, exec, --sandbox, read-only, --json, --cd, {worktree}, prompt]; arbitrary commands/config overrides are refused")
+    return argv
+
+
+def _host_prerequisites(capabilities, config, project_controller, temp_controller):
+    """Only already-observable native requirements; host/semantic gaps are not a cycle."""
+    required = ["repository_read", "repository_write", "git_version", "codex_version", "codex_help",
+                "temporary_filesystem_io", "local_process_group_stop", "serena_version",
+                "serena_core_read", "serena_references", "serena_native_probe"]
+    if config.get("host", {}).get("commit_mode", "model_commit") == "controller_commit":
+        required.append("controller_commit")
+    if config["mode"] == "github":
+        required.extend(["gh_version", "github_authenticated_capabilities"])
+    blocked = [name for name in required if capabilities.get(name, {}).get("status") != "verified"]
+    if capabilities.get("configuration", {}).get("status") == "blocked":
+        blocked.append("configuration")
+    for name, current in (("project", project_controller), ("temporary", temp_controller)):
+        if current is None or not _execution_stopped(current):
+            blocked.append(name + "_execution_stop")
+            continue
+        state = current.state.read()
+        if (state.get("spent_seconds", 0) >= current.limits["total_seconds"]
+                or len(state.get("attempts", [])) >= current.limits["max_attempts"]):
+            blocked.append(name + "_budget_exhausted")
+    return blocked
 
 
 def probe(config, controller=None):
@@ -148,6 +187,19 @@ def probe(config, controller=None):
         capabilities["configuration"] = _cap("blocked", str(exc))
         report["automation_readiness"]["gaps"] = ["configuration"]
         return report
+    report["host_dispatch"] = {
+        "requested": options.get("run_host_drills") is True or options.get("smoke_argv") is not None,
+        "status": "not_started", "calls_started": 0, "blocked_by": []}
+    if report["host_dispatch"]["requested"]:
+        try:
+            from .codex_probe import explicit_model_args
+            explicit_model_args(options.get("model"), options.get("max_model_calls"))
+        except Blocked as exc:
+            capabilities["host_command_smoke"] = _cap("blocked", str(exc))
+            report["host_dispatch"].update(status="skipped_due_to_prerequisite",
+                                           blocked_by=["host_model_configuration"])
+            report["observed_environment"] = {}
+            return _finish(report, {})
     observed = {"os": platform.platform(), "python": sys.version, "python_executable": sys.executable}
     report["observed_environment"] = observed
     for name, message in HOST_GAPS.items():
@@ -168,6 +220,64 @@ def probe(config, controller=None):
         "blocked" if commit_mode == "model_commit" else "not_applicable",
         "Model-side Git staging/commit permissions have not been observed. Controller writes, native CAS, version/help and read-only host drills do not prove model sandbox Git access."
         if commit_mode == "model_commit" else "The configured model edits/tests only; controller-owned commits have their own native capability gate.")
+    if _entered_controller(controller, root):
+        if not _execution_stopped(controller):
+            capabilities["project_execution_stop"] = _cap("blocked", "Prior project execution stop is unconfirmed; no probe dispatch is allowed.")
+            return _finish(report, observed)
+        if commit_mode == "controller_commit":
+            try:
+                from .p0_controller_commit import probe_controller_commit
+                commit_probe = probe_controller_commit(controller, command_seconds)
+                report["controller_commit_probe"] = commit_probe
+                capabilities["controller_commit"] = _cap(commit_probe["status"], commit_probe["detail"],
+                    report_path=commit_probe["report_path"], report_sha256=commit_probe["report_sha256"],
+                    scope=commit_probe["scope"], proves_model_controller_split=False,
+                    host_boundary=commit_probe.get("host_boundary", {"status": "not_observed"}))
+            except (Blocked, OSError, ValueError) as exc:
+                capabilities["controller_commit"] = _cap("blocked", str(exc))
+        if not _execution_stopped(controller):
+            capabilities["project_execution_stop"] = _cap("blocked", "Prior project probe stop is unconfirmed; no further capability dispatch is allowed.")
+            return _finish(report, observed)
+        try:
+            token = uuid.uuid4().hex
+            log = controller.common / "harness-p0" / (token + ".log")
+            file = controller.common / ("harness-p0-write-" + token)
+            code = ("from pathlib import Path; p=Path(" + repr(str(file)) + "); "
+                    "p.write_bytes(b'harness-p0'); assert p.read_bytes()==b'harness-p0'; p.unlink(); print('project-common-dir-write-confirmed')")
+            result = controller.execute([sys.executable, "-c", code], root, "p0-write-" + token, log, timeout=command_seconds)
+            okay = result["exit_code"] == 0 and not result["reason"] and result["stopped"] and not file.exists()
+            capabilities["repository_write"] = _cap("verified" if okay else "blocked",
+                "Actual locked repository common-directory write/read/delete probe; does not assert every working-tree path is writable.", record=result)
+        except (Blocked, OSError, ValueError) as exc:
+            capabilities["repository_write"] = _cap("blocked", str(exc))
+        if not _execution_stopped(controller):
+            capabilities["project_execution_stop"] = _cap("blocked", "Repository write probe stop is unconfirmed; no further capability dispatch is allowed.")
+            return _finish(report, observed)
+        knowledge = config.get("knowledge", {})
+        if isinstance(knowledge, dict) and knowledge.get("executable") and knowledge.get("serena_home"):
+            try:
+                from .knowledge import SerenaAdapter
+                adapter = SerenaAdapter(root, knowledge["executable"], knowledge["serena_home"],
+                                        timeout_seconds=command_seconds, python_executable=knowledge.get("python_executable"),
+                                        controller=controller)
+                capabilities["serena_version"] = _cap("verified", "Native pinned version command observed.", result=adapter.probe_version())
+                if options.get("register_existing") is True:
+                    capabilities["serena_registration"] = _cap("verified", "Explicit native registration executed under the project controller.", result=adapter.register_existing())
+                else:
+                    capabilities["serena_registration"] = _cap("blocked", "Native registration was not explicitly requested; project-file existence is insufficient.")
+                capabilities["serena_core_read"] = _cap("verified", "Read actual substantive project-local core through native Serena.", result=adapter.read_core())
+                capabilities["serena_references"] = _cap("verified", "Native reference verdict parsed; this is not semantic correctness.", result=adapter.check_references())
+                capabilities["serena_native_probe"] = _cap("verified", "Pinned native version, core read and parsed reference check actually completed; see separate registration/semantic gaps.")
+            except (Blocked, OSError, ValueError) as exc:
+                capabilities["serena_native_probe"] = _cap("blocked", str(exc))
+        else:
+            capabilities["serena_native_probe"] = _cap("blocked", "Pinned executable and dedicated serena_home were not configured.")
+    else:
+        capabilities["serena_native_probe"] = _cap("blocked", "Native Serena calls may write cache/config; provide the actual entered matching project controller.")
+
+    if _entered_controller(controller, root) and not _execution_stopped(controller):
+        capabilities["project_execution_stop"] = _cap("blocked", "Native prerequisite stop is unconfirmed; no further dispatch is allowed.")
+        return _finish(report, observed)
     executables = options.get("executables", {})
     if not isinstance(executables, dict):
         capabilities["configuration"] = _cap("blocked", "p0.executables must be an object")
@@ -246,52 +356,6 @@ def probe(config, controller=None):
                             safe_cleanup = bool(journal.get("stopped")) and all(owned(item) is None for item in journal.get("processes", []))
                         except Exception:
                             safe_cleanup = False
-                if options.get("run_host_drills") is True:
-                    try:
-                        from .codex_probe import run_host_drills
-                        if not codex_path:
-                            raise Blocked("Configured Codex executable was not found for actual host drills")
-                        drills = run_host_drills(temp_controller, codex_path, options.get("output_dir"),
-                                                 project_root=root, project_controller=controller,
-                                                 timeout_seconds=command_seconds,
-                                                 model=options.get("model"),
-                                                 max_model_calls=options.get("max_model_calls"),
-                                                 config_sha256=report["config_sha256"],
-                                                 declared_environment_sha256=report["declared_environment_sha256"],
-                                                 cancel_options=({"startup_seconds": options.get("cancel_startup_seconds"),
-                                                                  "sleep_seconds": options.get("cancel_sleep_seconds"),
-                                                                  "total_seconds": options.get("cancel_total_seconds")}
-                                                                 if options.get("run_host_cancel_drill") is True else None))
-                        report["host_drills"] = drills
-                        capabilities.update(drills["capabilities"])
-                        capabilities["host_native_stop"] = drills["host_native_stop"]
-                        capabilities["host_command_smoke"] = capabilities["host_session_start"]
-                    except (Blocked, OSError, ValueError) as exc:
-                        capabilities["host_command_smoke"] = _cap("blocked", str(exc))
-                smoke = options.get("smoke_argv")
-                if options.get("run_host_drills") is True:
-                    pass  # Explicit bounded drills never add an optional smoke invocation.
-                elif smoke is not None:
-                    if not isinstance(smoke, list) or not smoke or not all(isinstance(arg, str) for arg in smoke):
-                        capabilities["host_command_smoke"] = _cap("blocked", "p0.smoke_argv must be an explicit nonempty argv list.")
-                    else:
-                        try:
-                            argv = [arg.replace("{worktree}", str(temporary)) for arg in smoke]
-                            if (not codex_path or argv[:7] != [codex_path, "exec", "--sandbox", "read-only", "--json", "--cd", str(temporary)]
-                                    or len(argv) != 8 or not argv[-1].strip() or argv[-1].startswith("-")):
-                                raise Blocked("Only exact Codex read-only smoke argv is supported: [resolved_codex, exec, --sandbox, read-only, --json, --cd, {worktree}, prompt]; arbitrary commands/config overrides are refused")
-                            from .codex_probe import explicit_model_args
-                            policy_args = explicit_model_args(options.get("model"), options.get("max_model_calls"))
-                            argv = argv[:-1] + policy_args + argv[-1:]
-                            report["host_smoke_policy"] = {"model": options["model"], "review_model": options["model"],
-                                "reasoning_effort": "low", "service_tier": "default", "multi_agent": False, "script_retries": 0,
-                                "call_limit": options["max_model_calls"], "calls_started": 1,
-                                "budget_unit": "Codex invocation; not API requests or currency"}
-                            capabilities["host_command_smoke"] = _successful(temp_controller, argv, "host-smoke", command_seconds)
-                        except (Blocked, OSError, ValueError) as exc:
-                            capabilities["host_command_smoke"] = _cap("blocked", str(exc))
-                else:
-                    capabilities["host_command_smoke"] = _cap("blocked", "No explicit host smoke invocation was supplied.")
                 if mode == "github":
                     try:
                         from .github_probe import probe_github
@@ -306,6 +370,67 @@ def probe(config, controller=None):
                             "report_path": github_report["report_path"], "report_sha256": github_report["report_sha256"]}
                     except (Blocked, OSError, ValueError) as exc:
                         capabilities["github_authenticated_capabilities"] = _cap("blocked", str(exc))
+                blocked_by = _host_prerequisites(capabilities, config, controller, temp_controller)
+                smoke_error = None
+                if options.get("smoke_argv") is not None:
+                    try:
+                        _smoke_arguments(options["smoke_argv"], codex_path, temporary)
+                    except Blocked as exc:
+                        smoke_error = str(exc)
+                        blocked_by.append("host_smoke_configuration")
+                report["host_dispatch"]["blocked_by"] = blocked_by
+                host_allowed = not blocked_by
+                if report["host_dispatch"]["requested"] and not host_allowed:
+                    report["host_dispatch"]["status"] = "skipped_due_to_prerequisite"
+                    capabilities["host_command_smoke"] = _cap("blocked", smoke_error or ("Host invocation skipped: " + ", ".join(blocked_by)))
+                if options.get("run_host_drills") is True and host_allowed:
+                    try:
+                        from .codex_probe import run_host_drills
+                        if not codex_path:
+                            raise Blocked("Configured Codex executable was not found for actual host drills")
+                        report["host_dispatch"].update(status="dispatched", calls_started=None)
+                        drills = run_host_drills(temp_controller, codex_path, options.get("output_dir"),
+                                                 project_root=root, project_controller=controller,
+                                                 timeout_seconds=command_seconds,
+                                                 model=options.get("model"),
+                                                 max_model_calls=options.get("max_model_calls"),
+                                                 config_sha256=report["config_sha256"],
+                                                 declared_environment_sha256=report["declared_environment_sha256"],
+                                                 cancel_options=({"startup_seconds": options.get("cancel_startup_seconds"),
+                                                                  "sleep_seconds": options.get("cancel_sleep_seconds"),
+                                                                  "total_seconds": options.get("cancel_total_seconds")}
+                                                                 if options.get("run_host_cancel_drill") is True else None))
+                        report["host_drills"] = drills
+                        report["host_dispatch"].update(status="observed", calls_started=drills["calls_started"])
+                        capabilities.update(drills["capabilities"])
+                        capabilities["host_native_stop"] = drills["host_native_stop"]
+                        capabilities["host_command_smoke"] = capabilities["host_session_start"]
+                    except (Blocked, OSError, ValueError) as exc:
+                        capabilities["host_command_smoke"] = _cap("blocked", str(exc))
+                smoke = options.get("smoke_argv")
+                if not host_allowed:
+                    pass  # Preserve prerequisite failure; no paid invocation.
+                elif options.get("run_host_drills") is True:
+                    pass  # Explicit bounded drills never add an optional smoke invocation.
+                elif smoke is not None:
+                    if not isinstance(smoke, list) or not smoke or not all(isinstance(arg, str) for arg in smoke):
+                        capabilities["host_command_smoke"] = _cap("blocked", "p0.smoke_argv must be an explicit nonempty argv list.")
+                    else:
+                        try:
+                            argv = _smoke_arguments(smoke, codex_path, temporary)
+                            from .codex_probe import explicit_model_args
+                            policy_args = explicit_model_args(options.get("model"), options.get("max_model_calls"))
+                            argv = argv[:-1] + policy_args + argv[-1:]
+                            report["host_smoke_policy"] = {"model": options["model"], "review_model": options["model"],
+                                "reasoning_effort": "low", "service_tier": "default", "multi_agent": False, "script_retries": 0,
+                                "call_limit": options["max_model_calls"], "calls_started": 1,
+                                "budget_unit": "Codex invocation; not API requests or currency"}
+                            report["host_dispatch"].update(status="started", calls_started=1)
+                            capabilities["host_command_smoke"] = _successful(temp_controller, argv, "host-smoke", command_seconds)
+                        except (Blocked, OSError, ValueError) as exc:
+                            capabilities["host_command_smoke"] = _cap("blocked", str(exc))
+                else:
+                    capabilities["host_command_smoke"] = _cap("blocked", "No explicit host smoke invocation was supplied.")
         except (Blocked, OSError, subprocess.TimeoutExpired, ValueError, KeyError) as exc:
             capabilities["temporary_controller"] = _cap("blocked", str(exc))
         finally:
@@ -324,56 +449,5 @@ def probe(config, controller=None):
                     capabilities["temporary_controller_cleanup"] = _cap("blocked", "Execution stop is unconfirmed; probe files were preserved for reconciliation.")
     if not safe_cleanup:
         return _finish(report, observed)
-    if _entered_controller(controller, root):
-        if commit_mode == "controller_commit":
-            try:
-                from .p0_controller_commit import probe_controller_commit
-                commit_probe = probe_controller_commit(controller, command_seconds)
-                report["controller_commit_probe"] = commit_probe
-                capabilities["controller_commit"] = _cap(commit_probe["status"], commit_probe["detail"],
-                    report_path=commit_probe["report_path"], report_sha256=commit_probe["report_sha256"],
-                    scope=commit_probe["scope"], proves_model_controller_split=False,
-                    host_boundary=commit_probe.get("host_boundary", {"status": "not_observed"}))
-            except (Blocked, OSError, ValueError) as exc:
-                capabilities["controller_commit"] = _cap("blocked", str(exc))
-        if not _execution_stopped(controller):
-            capabilities["project_execution_stop"] = _cap("blocked", "Prior project probe stop is unconfirmed; no further capability dispatch is allowed.")
-            return _finish(report, observed)
-        try:
-            token = uuid.uuid4().hex
-            log = controller.common / "harness-p0" / (token + ".log")
-            file = controller.common / ("harness-p0-write-" + token)
-            code = ("from pathlib import Path; p=Path(" + repr(str(file)) + "); "
-                    "p.write_bytes(b'harness-p0'); assert p.read_bytes()==b'harness-p0'; p.unlink(); print('project-common-dir-write-confirmed')")
-            result = controller.execute([sys.executable, "-c", code], root, "p0-write-" + token, log, timeout=command_seconds)
-            okay = result["exit_code"] == 0 and not result["reason"] and result["stopped"] and not file.exists()
-            capabilities["repository_write"] = _cap("verified" if okay else "blocked",
-                "Actual locked repository common-directory write/read/delete probe; does not assert every working-tree path is writable.", record=result)
-        except (Blocked, OSError, ValueError) as exc:
-            capabilities["repository_write"] = _cap("blocked", str(exc))
-        if not _execution_stopped(controller):
-            capabilities["project_execution_stop"] = _cap("blocked", "Repository write probe stop is unconfirmed; no further capability dispatch is allowed.")
-            return _finish(report, observed)
-        knowledge = config.get("knowledge", {})
-        if isinstance(knowledge, dict) and knowledge.get("executable") and knowledge.get("serena_home"):
-            try:
-                from .knowledge import SerenaAdapter
-                adapter = SerenaAdapter(root, knowledge["executable"], knowledge["serena_home"],
-                                        timeout_seconds=command_seconds, python_executable=knowledge.get("python_executable"),
-                                        controller=controller)
-                capabilities["serena_version"] = _cap("verified", "Native pinned version command observed.", result=adapter.probe_version())
-                if options.get("register_existing") is True:
-                    capabilities["serena_registration"] = _cap("verified", "Explicit native registration executed under the project controller.", result=adapter.register_existing())
-                else:
-                    capabilities["serena_registration"] = _cap("blocked", "Native registration was not explicitly requested; project-file existence is insufficient.")
-                capabilities["serena_core_read"] = _cap("verified", "Read actual substantive project-local core through native Serena.", result=adapter.read_core())
-                capabilities["serena_references"] = _cap("verified", "Native reference verdict parsed; this is not semantic correctness.", result=adapter.check_references())
-                capabilities["serena_native_probe"] = _cap("verified", "Pinned native version, core read and parsed reference check actually completed; see separate registration/semantic gaps.")
-            except (Blocked, OSError, ValueError) as exc:
-                capabilities["serena_native_probe"] = _cap("blocked", str(exc))
-        else:
-            capabilities["serena_native_probe"] = _cap("blocked", "Pinned executable and dedicated serena_home were not configured.")
-    else:
-        capabilities["serena_native_probe"] = _cap("blocked", "Native Serena calls may write cache/config; provide the actual entered matching project controller.")
     # This implementation intentionally cannot erase HOST_GAPS via caller-supplied readiness JSON.
     return _finish(report, observed)

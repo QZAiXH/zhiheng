@@ -79,6 +79,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--suite', choices=(*SUITES, 'all'), default='all')
     parser.add_argument('--list', action='store_true', help='Discover and verify partition without running tests')
+    parser.add_argument('--failfast', action='store_true', help='Stop at the first test failure or error; recommended for local preflight')
     args = parser.parse_args()
     # Synthetic test repositories have declared local policy. Do not inherit
     # a runner account's unrelated global/system Git execution settings.
@@ -117,7 +118,7 @@ def main():
         return 2
     if deferred:
         print('FUNCTIONAL SUBSET ONLY: deferred cases and independent review remain unverified', file=sys.stderr)
-    result = unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(selected))
+    result = unittest.TextTestRunner(verbosity=2, failfast=args.failfast).run(unittest.TestSuite(selected))
     if result.skipped:
         print('Required native verification has skipped tests; inspect scope before acceptance', file=sys.stderr)
     return 0 if result.wasSuccessful() and not result.skipped else 1

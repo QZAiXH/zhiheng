@@ -95,6 +95,7 @@ class P0ProbeTests(unittest.TestCase):
         self.assertEqual(result["capabilities"]["github_authenticated_capabilities"]["status"], "not_applicable")
 
     def test_arbitrary_smoke_command_is_refused(self):
+        self.config["p0"].update(model="fixture-explicit-model", max_model_calls=1)
         self.config["p0"]["smoke_argv"] = [sys.executable, "-c", "raise RuntimeError('must not run')"]
         result = probe(self.config)
         self.assertEqual(result["capabilities"]["host_command_smoke"]["status"], "blocked")

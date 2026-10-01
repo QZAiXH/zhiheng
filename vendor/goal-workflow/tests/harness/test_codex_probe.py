@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[2] / "skills/harness-init/assets/project"
@@ -220,7 +221,9 @@ class CodexProbeProtocolTests(unittest.TestCase):
                 "p0":{"max_commands":8,"run_host_drills":True,"output_dir":str(self.output),
                       "model":"gpt-6.1-sol","max_model_calls":3,
                       "executables":{"codex":str(self.executable)}}}
-        result=probe(config)
+        # Protocol-only integration: native prerequisites are explicitly simulated.
+        with patch("harness.p0._host_prerequisites", return_value=[]):
+            result=probe(config)
         self.assertEqual(result["host_drills"]["calls_started"],3)
         self.assertEqual(result["capabilities"]["host_session_resume"]["status"],"verified")
         self.assertEqual(result["capabilities"]["host_native_stop"]["status"],"blocked")
@@ -235,8 +238,8 @@ class CodexProbeProtocolTests(unittest.TestCase):
         result=probe(config)
         self.assertEqual(result["capabilities"]["host_command_smoke"]["status"], "blocked")
         self.assertIn("explicit nonempty model", result["capabilities"]["host_command_smoke"]["detail"])
-        calls=(self.executable.parent/'calls.jsonl').read_text().splitlines()
-        self.assertTrue(all('--version' in json.loads(line) or '--help' in json.loads(line) for line in calls))
+        self.assertFalse((self.executable.parent/'calls.jsonl').exists())
+        self.assertEqual(0, result["host_dispatch"]["calls_started"])
 
     def test_optional_smoke_has_same_model_guard_and_records_explicit_policy(self):
         config={"mode":"local","repository_root":str(self.project),"environment":{"host":"SIMULATED TEST"},
@@ -249,7 +252,9 @@ class CodexProbeProtocolTests(unittest.TestCase):
         self.assertIn("explicit nonempty model", result["capabilities"]["host_command_smoke"]["detail"])
         self.assertFalse((self.executable.parent/'state.json').exists())
         config["p0"].update(model="gpt-6.1-sol", max_model_calls=1)
-        result=probe(config)
+        # Native prerequisites are mocked only to isolate the fake-host smoke protocol.
+        with patch("harness.p0._host_prerequisites", return_value=[]):
+            result=probe(config)
         self.assertEqual(result["capabilities"]["host_command_smoke"]["status"], "verified")
         self.assertEqual(result["host_smoke_policy"]["calls_started"], 1)
         self.assertEqual(result["host_smoke_policy"]["service_tier"], "default")

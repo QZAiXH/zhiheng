@@ -4,6 +4,15 @@
 
 ## 当前可选 Controller 提交：仅普通功能子集完成
 
+### 2026-10-01 P0 免费前置检查顺序修正
+
+实际 Mac 的旧 `e2af15b` 快照先完成四次真实宿主演练，之后才在 Controller 原生兼容性检查发现继承的 `core.autocrlf=input`，最终收据 blocked，没有业务 H/C/D。该原始收据保持不变；不能因宿主演练已过而忽略转换策略。
+
+本次将已有 Controller 兼容性/CAS、项目 IO、原生 Serena 及 GitHub 基础能力检查排到模型调用之前，复用结果各执行一次，不重置累计预算或扩大权限。 模型名称与调用预算的纯参数合法性先于任何原生探针检查，保留既有具体报错。原模拟 Codex 协议的两项成功夹具显式 mock 免费前置条件，以隔离原有协议断言；缺模型夹具加强为连版本调用都没有发生。确定性必需项失败时报告 `host_dispatch.skipped_due_to_prerequisite`、零调用，并保留原能力 blocked；私有仓库可选自动合并规则缺失不误挡基础流程，host/semantic/activation 未知不形成前置循环。已调度但没有返回报告的宿主调用数标为未知，不伪造零调用。 该费用门禁仅覆盖已经可观测的免费前置条件，不能承诺所有无法 ready 的情况都零费用：model_commit 的模型 Git 写权限仍未知且只读演练无法补齐，未提供 operator semantic 接受证据也会使最终收据 blocked。现有接口未单独确认用户接受部分能力演练的成本取舍。
+
+补充模型参数诊断优先级后，本轮只运行 11 项新增纯 mock 调度回归，以及明确选定的既有普通 P0/能力接线和模拟 Codex 协议测试，共 **68/68 通过，0 跳过，21.952 秒**。[日志](evidence/p0-order-allowed-regressions.log)、[执行清单](evidence/p0-order-allowed-tests.json)、[P0 源码差异](evidence/p0-dispatch-order.patch)。没有真实模型或网络调用，暂停 28 项与受阻独立审查未运行。新增 mock 只验证调度和报告，不能替代修订后实机 P0 或完整双模式验收；旧历史平台及功能证据仍对应其原快照。
+
+
 ### 2026-10-01 初始化夹具后台维护竞态
 
 快照 `2238b5b` 的 Mac ARM core 普通分片出现两项初始化测试失败：dry-run 在调用 initializer 前读取完整目录快照时，`.git/objects/maintenance.lock` 已消失；保留用户配置测试也只观察到该空锁消失。准备阶段 baseline commit 启动 Git 自动后台维护是高可信归因，但没有进程 trace，因此不声称已经直接追踪到创建锁的进程。

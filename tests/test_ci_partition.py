@@ -1,6 +1,9 @@
 import importlib.util
+import contextlib
+import io
 from pathlib import Path
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location('harness_ci_partition', Path(__file__).resolve().parents[1] / 'tools/run-harness-tests.py')
 runner = importlib.util.module_from_spec(spec)
@@ -70,3 +73,37 @@ class DeferredScopeTests(unittest.TestCase):
         selected, deferred = runner.functional_scope(tests, None)
         self.assertEqual(tests, selected)
         self.assertEqual([], deferred)
+
+
+class FailFastTests(unittest.TestCase):
+    def invoke(self, failfast):
+        executed = []
+
+        def fail():
+            executed.append('first')
+            raise AssertionError('intentional fixture failure')
+
+        def later():
+            executed.append('later')
+
+        suite = unittest.TestSuite([unittest.FunctionTestCase(fail),
+                                    unittest.FunctionTestCase(later)])
+        loader = mock.Mock(errors=[])
+        loader.discover.return_value = suite
+        argv = ['run-harness-tests.py', '--suite', 'core']
+        if failfast:
+            argv.append('--failfast')
+        with mock.patch.object(runner.unittest, 'TestLoader', return_value=loader), \
+             mock.patch.object(runner.sys, 'argv', argv), \
+             mock.patch.dict(runner.os.environ), \
+             contextlib.redirect_stdout(io.StringIO()), \
+             contextlib.redirect_stderr(io.StringIO()):
+            status = runner.main()
+        self.assertEqual(1, status)
+        return executed
+
+    def test_explicit_failfast_stops_before_next_test(self):
+        self.assertEqual(['first'], self.invoke(True))
+
+    def test_default_ci_behavior_still_collects_failures(self):
+        self.assertEqual(['first', 'later'], self.invoke(False))

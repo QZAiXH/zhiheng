@@ -6,6 +6,16 @@ Required config: explicit `mode`, absolute existing `repository_root`, positive 
 
 Per-capability `status: verified` means only that named, narrowly described probe was actually observed. `blocked` preserves missing or failed probes. The report binds `config_sha256`, `declared_environment_sha256` and `observed_environment_sha256`; observed environment includes the actual OS/Python and successful version outputs. A hash associates bytes, not truth or authorization.
 
+## Free prerequisites before model calls
+
+Explicit model and call-limit syntax is validated before any native probe or model dispatch, preserving its specific error diagnosis. P0 then reuses the existing locked-project Controller commit compatibility/CAS probe (when selected), repository IO and native Serena observations. Temporary version/IO/local-stop probes and required GitHub basic repository capabilities also run before any configured host drill or smoke. Each native probe runs once; project and temporary Controller consumption stays in its original cumulative budget. Unknown stop or exhausted remaining budget prevents host dispatch. No transform, hook or other existing repository policy is relaxed.
+
+This cost gate covers already-observable native/configuration prerequisites, not every reason final readiness can remain blocked. In `model_commit`, `model_git_commit` remains unproved by read-only drills; it is not used as a circular free prerequisite, so explicitly requested drills can still consume calls without making the final receipt ready. Missing operator semantic acceptance can also keep the final receipt blocked. There is no separate confirmation interface for accepting partial readiness: do not present this behavior as a user's informed approval of that cost tradeoff or promise that every impossible-ready run costs zero.
+
+Only already-observable required capabilities gate model dispatch. Missing optional automatic-merge rules does not block a private repository's basic PR workflow; host-only start/review/resume/cancel, semantic knowledge and host activation are not used as circular prerequisites. Their separate final readiness requirements remain unchanged.
+
+The additive `host_dispatch` observation records `requested`, `status`, `calls_started` and `blocked_by`. A known prerequisite refusal is `skipped_due_to_prerequisite` with `calls_started: 0`; no paid invocation occurs. A returned drill report supplies its actual count (`observed`). If the drill function was dispatched but failed to return its report, the count remains `null` (`dispatched`), never a fabricated zero. The legacy smoke records its attempted invocation (`started`). Unrequested host work is `not_requested`. Existing capability fields and receipt log hashes remain authoritative; a new run never rewrites an old blocked receipt as successful. Changed runtime/skill bytes require a new valid binding.
+
 ## Default probes and boundaries
 
 - Enumerate the actual configured repository directory, without modifying it
