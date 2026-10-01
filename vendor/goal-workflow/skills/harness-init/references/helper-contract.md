@@ -4,14 +4,14 @@ This is a small project-specific adapter contract, derived from the supplied pla
 
 ## Commands and result semantics
 
-Python 3.9+ is required. The standalone helper uses only the standard library:
+The isolated standard-library helper requires Python 3.9+, while the packaged runtime requires Python 3.11+ and its locked tool environment. From the actual installed `harness-init/assets/project` directory, run:
 
 ```sh
-python3 scripts/harness_check.py scaffold --mode local
-python3 scripts/harness_check.py scaffold --mode github
-python3 scripts/harness_check.py preflight --bundle /absolute/path/bundle.json
-python3 scripts/harness_check.py evidence --bundle /absolute/path/bundle.json
-python3 -m unittest discover -s scripts -p 'test_harness_check.py' -v
+uv run --locked python -m harness.harness_check scaffold --mode local
+uv run --locked python -m harness.harness_check scaffold --mode github
+uv run --locked python -m harness.harness_check preflight --bundle /absolute/path/bundle.json
+uv run --locked python -m harness.harness_check evidence --bundle /absolute/path/bundle.json
+# The source-distribution regression tests live in tests/harness, not in an installed scripts directory.
 ```
 
 `scaffold` prints a JSON draft to stdout and does not create files. Its required environment values are empty, limits are null, and tasks/checks are empty deliberately: a draft fails preflight until actual P0 observations and requirements are supplied. It does not invent tool versions, budgets, or capabilities. The Python API is `scaffold(mode) -> dict`.

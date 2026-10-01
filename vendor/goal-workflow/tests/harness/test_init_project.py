@@ -29,7 +29,9 @@ class InitProjectTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="harness-init-test-")
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name) / "repo"
+        # macOS commonly exposes /var as a symlink to /private/var; Git and the
+        # initializer intentionally report the canonical working-tree path.
+        self.root = Path(self.temp.name).resolve() / "repo"
         self.root.mkdir()
         self.git("init", "--quiet")
         self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid",
@@ -197,6 +199,19 @@ class InitProjectTests(unittest.TestCase):
         self.assertEqual("dry_run", report["status"])
         self.assertFalse(report["lock_acquired"])
         self.assertEqual(before, self.snapshot())
+
+    def test_repository_directory_alias_reports_canonical_paths(self):
+        # Reproduce the macOS /var -> /private/var distinction without weakening
+        # the separate no-symlink rules for .harness or individual artifacts.
+        alias = self.root.parent / "directory-alias"
+        alias.symlink_to(self.root.parent, target_is_directory=True)
+        result = self.invoke(repo=alias / self.root.name)
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(str(self.root.resolve()), report["repo"])
+        self.assertEqual(str((self.common / init.LOCK_NAME).resolve()), report["lock_path"])
+        config = json.loads((self.root / ".harness/config.json").read_text())
+        self.assertEqual(str(self.root.resolve()), config["repository_root"])
 
     def test_interrupted_creation_is_not_repaired_or_overwritten(self):
         real_write = init.exclusive_write

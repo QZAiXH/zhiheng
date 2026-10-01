@@ -42,7 +42,7 @@ description: Initialize, run, validate, recover, and hand off the goal-workflow 
 - 测试非零、报告缺失、意外跳过、零条测试、未知 CI、未解 Blocking 均不得通过。修复最多两轮且受累计预算限制；耗尽保存 blocked 与下一步
 - 所有子进程执行有有限时限与停止宽限。控制器在启动前持久保存本次时间预留与开始次数，正常结束按实际耗时累计；崩溃后按预留/可观测经过时间保守计费，恢复不清零历史
 - 运行锁覆盖恢复至退出，所有相关 worktree 共用。权威 `.loop-state.json` 位于主 worktree；公共 Git 目录另存执行身份日志，防止从其他 worktree 绕过恢复
-- 停止以 PID 加启动时间等身份核实，确认本次进程及子进程退出后才继续。平台实现面向 macOS 与 Linux/WSL 的原生 POSIX 能力；当前真实测试在 Linux 完成，macOS 只有模拟平台测试、尚未实机验收，WSL 也须在实际发行版完成 P0。详见[平台支持与验证边界](references/platform-support.md)。网络/分布式文件系统、原生 Windows、跨机器和任意脱离会话的守护执行不在支持范围
+- 停止以 PID 加启动时间等身份核实，确认本次进程及子进程退出后才继续。平台实现面向 macOS 与 Linux/WSL 的原生 POSIX 能力；Linux 已完成真实测试，macOS 首轮真实 CI 暴露兼容性问题、正待修复后完整重跑，WSL 也须在实际发行版完成 P0。详见[平台支持与验证边界](references/platform-support.md)。网络/分布式文件系统、原生 Windows、跨机器和任意脱离会话的守护执行不在支持范围
 - 验收合同不能由待验收分支自行削弱；沿项目基线审查配置变更。工具结构化输出不是独立可信来源
 - 仅 verified、PR 已开、Issue 已关或分支已推送不解除代码依赖。必须核对成果已交付到下游实际基线
 - GitHub 自动合并需要实际查询到严格 required checks/reviews 或合并队列规则；队列要检查 merge_group。`match-head` 不能冻结目标；能力缺失停在可审阅结果

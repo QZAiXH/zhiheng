@@ -37,6 +37,27 @@ def select_task(bundle, task_id):
     return tasks[0]
 
 
+def github_destinations(config, task):
+    base = task.get("github_base") or task.get("target", "").removeprefix("refs/heads/")
+    head = task.get("github_head") or task.get("source", "").removeprefix("refs/heads/")
+    repository = config.get("repository") or config.get("github", {}).get("repository")
+    head_repository = task.get("github_head_repository", repository)
+    if not base or not head or not repository or not head_repository:
+        raise Blocked("explicit GitHub source/destination branch and repository identities required")
+    if config.get("github", {}).get("target_branch") not in (None, base):
+        raise Blocked("task GitHub target differs from P0 configured target branch")
+    return base, head, head_repository
+
+
+def require_pr_destination(config, task, pr):
+    base, head, head_repository = github_destinations(config, task)
+    if pr.get("base", {}).get("ref") != base:
+        raise Blocked("PR targets a different named destination branch")
+    if (pr.get("head", {}).get("ref") != head
+            or pr.get("head", {}).get("repo", {}).get("full_name") != head_repository):
+        raise Blocked("PR source branch/repository differs from the authorized task")
+
+
 def github_verified_args(controller, config, bundle, action, args):
     """Build merge proof from stored execution and fresh platform/Git reads, not caller JSON."""
     from .github import GitHubAdapter
@@ -44,6 +65,8 @@ def github_verified_args(controller, config, bundle, action, args):
     evidence = verified_evidence(controller, task, config)
     adapter = GitHubAdapter(config)
     pr = adapter.read_pr(args["number"])
+    require_pr_destination(config, task, pr)
+    current_target = adapter.branch_head(pr["base"]["ref"])
     saved_task = controller.state.read()["tasks"].get(task["id"], {})
     receipt = saved_task.get("platform_evidence", {})
     checked_sha = pr.get("merge_commit_sha") if not pr.get("merged") else receipt.get("checked_sha", pr["head"]["sha"])
@@ -61,8 +84,10 @@ def github_verified_args(controller, config, bundle, action, args):
         if adapter.commit_tree(group_sha) != evidence["tree"]:
             raise Blocked("merge_group tree differs from validated candidate; revalidate actual combination")
         proof.update(group)
-    built = dict(args, evidence=proof, current_target_sha=pr["base"]["sha"])
+    built = dict(args, evidence=proof, current_target_sha=current_target)
     if action == "merge":
+        if current_target != evidence["T"]:
+            raise Blocked("actual target branch advanced after local verification")
         local.check_fresh(controller.root, evidence, controller.root / task["spec"], config["checks"], config["environment"])
         actual_commit = adapter._api(f"repos/{adapter.repository}/git/commits/{checked_sha}")
         if actual_commit.get("tree", {}).get("sha") != evidence["tree"]:
@@ -90,7 +115,9 @@ def github_platform_verify(controller, config, bundle, args):
     local_proof = verified_evidence(controller, task, config, allow_local_only=True)
     adapter = GitHubAdapter(config)
     pr = adapter.read_pr(args["number"])
-    if pr["head"]["sha"] != local_proof["H"] or pr["base"]["sha"] != local_proof["T"]:
+    require_pr_destination(config, task, pr)
+    current_target = adapter.branch_head(pr["base"]["ref"])
+    if pr["head"]["sha"] != local_proof["H"] or current_target != local_proof["T"]:
         raise Blocked("PR head or target differs from locally validated combination")
     checked_sha = pr.get("merge_commit_sha") or pr["head"]["sha"]
     actual_tree = adapter.commit_tree(checked_sha)
@@ -102,7 +129,9 @@ def github_platform_verify(controller, config, bundle, args):
     if checks["status"] != "pass":
         raise Blocked("current required GitHub CI incomplete or failed")
     after = adapter.read_pr(args["number"])
-    if after["head"]["sha"] != local_proof["H"] or after["base"]["sha"] != local_proof["T"]:
+    require_pr_destination(config, task, after)
+    after_target = adapter.branch_head(after["base"]["ref"])
+    if after["head"]["sha"] != local_proof["H"] or after_target != local_proof["T"]:
         raise Blocked("PR changed during final platform gate")
     proof = {"status": "pass", "source_sha": local_proof["H"], "target_sha": local_proof["T"],
              "checked_sha": checked_sha, "candidate_tree": actual_tree, "baseline_verified": True,
@@ -209,6 +238,11 @@ def main(argv=None):
                     task = select_task(bundle, action_args.get("task_id"))
                     local_proof = verified_evidence(controller, task, config, allow_local_only=True)
                     local.check_fresh(controller.root, local_proof, controller.root / task["spec"], config["checks"], config["environment"])
+                    base, head, head_repository = github_destinations(config, task)
+                    label = head_repository.split("/", 1)[0] + ":" + head
+                    if action_args.get("base", base) != base or action_args.get("head", label) not in (head, label):
+                        raise Blocked("PR creation source/destination differs from approved task")
+                    action_args.update(base=base, head=label)
                 if args.action in ("merge", "reconcile"):
                     try:
                         action_args = github_verified_args(controller, config, bundle, args.action, action_args)
@@ -230,10 +264,12 @@ def main(argv=None):
                     action_args.update(task_id=source_id, delivery=delivered["platform_delivery"])
                     if args.action == "reconcile-issue":
                         action_args["authorized"] = False
+                    state = controller.state.read()
                 operation = {"action": args.action, "args": action_args, "status": "intent"}
                 mutating = args.action in ("create-pr", "merge", "cancel", "complete-issue")
                 if mutating:
                     require_capabilities(controller, config, delivery=True)
+                    state = controller.state.read()
                     if args.action != "cancel" and any(o.get("status") in ("intent", "unknown", "pending") for o in state["remote_operations"]):
                         raise Blocked("outstanding remote operation requires query/reconciliation before new mutation")
                     state["remote_operations"].append(operation)

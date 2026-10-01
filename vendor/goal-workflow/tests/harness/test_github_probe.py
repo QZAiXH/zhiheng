@@ -69,7 +69,7 @@ class GitHubP0Tests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
+        self.base = Path(self.temp.name).resolve()
         self.repo = self.base / 'controller'
         self.repo.mkdir()
         subprocess.run(['git','init','--template=',str(self.repo)],check=True,capture_output=True)

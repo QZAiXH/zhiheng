@@ -37,8 +37,10 @@
 
 ### 安装统一入口与增强组件
 
+本增强版目前在开发分支 `harness/integration-v05`；以下命令明确选择该分支，尚未替换 main。
+
 ```bash
-git clone https://github.com/QZAiXH/zhiheng.git
+git clone --branch harness/integration-v05 https://github.com/QZAiXH/zhiheng.git
 cd zhiheng
 python3 tools/validate.py
 

@@ -82,3 +82,7 @@ In GitHub mode, `harness.github_probe.probe_github` runs actual bounded reads th
 Workflow sources are read from their actual immutable target commit. Use `github.probe_workflow_paths` to explicitly select at most 25 active workflow files when needed; `github.probe_merge_group_sha` optionally narrows the queue observation. API failures, unknown responses and timeouts remain blocked, never equivalent to an empty dependency list or success. Local mode never invokes this path.
 
 Detailed records are returned as `github_probe`, with `logs[*].stdout` and `.stderr` `{path,sha256,bytes}` descriptors and `report_path`/`report_sha256`. These are retained under the explicitly supplied output directory and bound by the capability-receipt code. The simulated gh tests make no live GitHub API requests or platform changes.
+
+### macOS temporary-path aliases
+
+Produced temporary roots are canonicalized at creation. For an explicitly supplied artifact path, the guard only recognizes macOS's first-component `/var` → `/private/var` or `/tmp` → `/private/tmp` alias when running on Darwin and the actual symlink target is verified exactly. After that narrow substitution, every remaining component is still checked for symlinks; unknown alias targets, link chains, inner user-controlled links and `..` remain refused. User artifact paths are never indiscriminately resolved and accepted. Portable tests simulate these system aliases without modifying system paths; native macOS CI remains the platform validation.

@@ -6,6 +6,8 @@
 
 从实际技能加载路径定位同级 `harness-init/SKILL.md`，读取它的 `references/workflow-contract.md` 与相关 helper-contract/knowledge 文档。不要根据聊天猜安装位置，不混用原版同名技能。缺少依赖时停止并提示从本仓库用 `tools/install-harness.py` 安装完整增强集合，不能退回无保护的旧自动合并路径。
 
+使用 zh 入口时，记录 `environment.entry_skill = "zh"`，并将 `environment.skills_path` 指向实际同时包含 zh 与 harness-init 的已安装技能根目录；不能只绑定内部 runtime 而遗漏 zh 路由指令。能力收据会校验这些实际加载文件。
+
 源代码存于仓库 `vendor/goal-workflow/`；安装时把七个 zh 入口和十个增强组件放在同一技能目录。选择性安装 harness-init 用于诊断仍自包含，但不能据此宣称全部 zh 工作流已安装。
 
 ## 职责路由

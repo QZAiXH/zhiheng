@@ -144,7 +144,7 @@ def probe(config, controller=None):
     if not git_path:
         capabilities["git_executable"] = _cap("blocked", "Git executable was not found; temporary controller probes cannot start.")
     else:
-        temporary = Path(tempfile.mkdtemp(prefix="harness-p0-"))
+        temporary = Path(tempfile.mkdtemp(prefix="harness-p0-")).resolve()
         try:
             # Trusted Git init is constrained to a new temporary directory; no user's repo mutation.
             env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}

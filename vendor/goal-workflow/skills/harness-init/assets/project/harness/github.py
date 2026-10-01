@@ -184,6 +184,16 @@ class GitHubAdapter:
             raise AdapterError('Malformed PR identity or refs')
         return data
 
+    def branch_head(self, branch):
+        """Resolve the branch itself: PR.base.sha can lag a real base advance."""
+        if not isinstance(branch, str) or not branch or branch.startswith('-'):
+            raise AdapterError('Explicit target branch name required')
+        data = self._api(f'repos/{self.repository}/git/ref/heads/{quote(branch, safe="")}')
+        sha = data.get('object', {}).get('sha') if isinstance(data, dict) else None
+        if not isinstance(sha, str) or not re.fullmatch(r'[0-9a-f]{40}|[0-9a-f]{64}', sha):
+            raise AdapterError('Actual target branch ref missing or malformed')
+        return sha
+
     def checks(self, number, expected_sha, required_names):
         if not required_names:
             raise AdapterError('Required checks must be explicitly configured')

@@ -29,7 +29,8 @@ class CliAudit(unittest.TestCase):
     def invoke(self, adapter, simulate_verified_proof=True):
         with patch.object(cli, "load", return_value=self.bundle), patch.object(cli, "preflight", return_value=self.config):
             proof = patch.object(cli, "github_verified_args", side_effect=lambda c, config, bundle, action, args: args) if simulate_verified_proof else contextlib.nullcontext()
-            with proof:
+            capabilities = patch.object(cli, "require_capabilities", return_value={"tier": "simulation", "fixture": "mocked capability boundary"}) if simulate_verified_proof else contextlib.nullcontext()
+            with proof, capabilities:
                 with patch("harness.github.github_action", side_effect=adapter) as called:
                     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                         code = cli.main(self.args)

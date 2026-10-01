@@ -20,7 +20,7 @@ class P0ProbeTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.config = {"mode": "local", "repository_root": str(self.root),
                        "environment": {"host": "Codex CLI not yet observed"}, "ready": False,
                        "limits": {"command_seconds": 1, "stop_grace_seconds": 0.1, "task_seconds": 10},

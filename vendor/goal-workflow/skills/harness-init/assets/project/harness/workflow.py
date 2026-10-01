@@ -137,10 +137,14 @@ def validate_task(controller, config, task, attempt_id):
             raise Blocked("required checks failed or incomplete")
         assessment = review(controller, candidate, task, config, run_dir, attempt_id, knowledge)
         check_fresh(controller.root, candidate, controller.root / task["spec"], config["checks"], config["environment"])
+        final_capability = require_capabilities(controller, config)
+        if fingerprint(final_capability["binding"]) != fingerprint(capability["binding"]):
+            raise Blocked("actual capability environment changed during validation")
         evidence = dict(candidate, mode=config["mode"], task_id=task["id"], run_id=controller.state.run_id,
                         attempt_id=attempt_id, checks=results, review=assessment,
                         task_fingerprint=fingerprint(task), policy_fingerprint=check_fingerprint(config),
                         knowledge=knowledge, verification_tier=capability["tier"],
+                        capability_binding_sha256=fingerprint(capability["binding"]),
                         status="verified" if config["mode"] == "local" else "validating")
         common = {"run_id": controller.state.run_id, "attempt_id": attempt_id, "binding": binding}
         def report(path):
@@ -187,6 +191,10 @@ def verified_evidence(controller, task, config=None, allow_local_only=False):
         raise Blocked("task requirements changed after verification")
     if config is not None and evidence["policy_fingerprint"] != check_fingerprint(config):
         raise Blocked("check, budget or platform policy changed after verification")
+    if config is not None:
+        capability = require_capabilities(controller, config)
+        if evidence.get("capability_binding_sha256") != fingerprint(capability["binding"]):
+            raise Blocked("actual capability environment changed since task verification")
     for check in evidence["checks"]:
         record = next((r for r in data["attempts"] if r["attempt_id"] == check["attempt_id"]), None)
         if not record or record["exit_code"] != 0 or record["reason"] or not record["stopped"]:
@@ -334,6 +342,7 @@ def closeout(controller, config, task, check_only=False):
     if saved.get("status") not in ("delivered", "completed") or not saved.get("D"):
         raise Blocked("closeout requires verified actual delivery")
     verified_evidence(controller, task, config)
+    state = controller.state.read()
     target = saved.get("platform_delivery", {}).get("target_sha") if config["mode"] == "github" else task["target"]
     if not target:
         raise Blocked("actual target delivery reference missing")

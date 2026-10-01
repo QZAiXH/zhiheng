@@ -79,15 +79,40 @@ def parse_events(raw):
             "read_files": sorted(reads), "command_output": "\n".join(command_outputs), "diagnostics": diagnostics[:10]}
 
 
-def _output_directory(value, project_root, project_controller, label="host-drills"):
+def _canonical_artifact_path(value):
+    """Accept only verified macOS system aliases; keep arbitrary symlink refusal.
+
+    Do not call resolve() on the supplied path before inspecting components:
+    that would erase evidence of an inner user-controlled symlink or escape.
+    """
     if not isinstance(value, str) or not value or not Path(value).is_absolute():
         raise Blocked("p0.output_dir must explicitly name an absolute artifact directory")
     path = Path(value)
     if ".." in path.parts:
         raise Blocked("p0.output_dir must be normalized")
+    if sys.platform == "darwin" and len(path.parts) >= 2 and path.parts[0] == "/":
+        expected = {"var": Path("/private/var"), "tmp": Path("/private/tmp")}.get(path.parts[1])
+        if expected is not None:
+            alias = Path("/") / path.parts[1]
+            if alias.is_symlink():
+                try:
+                    target = Path(os.readlink(alias))
+                except OSError as exc:
+                    raise Blocked("Cannot verify macOS system path alias") from exc
+                if not target.is_absolute():
+                    target = alias.parent / target
+                # normpath is lexical: never follow an unexpected link chain.
+                if Path(os.path.normpath(str(target))) != expected or not expected.is_dir():
+                    raise Blocked("Unexpected macOS system path alias target")
+                path = expected.joinpath(*path.parts[2:])
     for candidate in (path, *path.parents):
         if candidate.is_symlink():
             raise Blocked("Symlink artifact paths are refused")
+    return path
+
+
+def _output_directory(value, project_root, project_controller, label="host-drills"):
+    path = _canonical_artifact_path(value)
     root = Path(project_root).resolve()
     if path.resolve().is_relative_to(root):
         if (not isinstance(project_controller, Controller) or not project_controller.entered

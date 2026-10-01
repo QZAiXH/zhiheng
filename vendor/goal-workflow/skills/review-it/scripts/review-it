@@ -18,9 +18,9 @@ cleanup() {
     local code=$?
     for pid in "$TEST_PID" "$REVIEW_PID"; do
         if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-            kill -TERM -- "-$pid" 2>/dev/null || true
-            sleep 0.2
-            kill -KILL -- "-$pid" 2>/dev/null || true
+            kill -TERM "$pid" 2>/dev/null || true
+            # The portable supervisor handles its owned child group and exits
+            # after bounded TERM/KILL cleanup. Do not kill it before cleanup.
             wait "$pid" 2>/dev/null || true
         fi
     done
@@ -194,7 +194,7 @@ fi
 
 # --- Run ---
 [[ "$TEST_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid REVIEW_IT_TIMEOUT" >&2; exit 2; }
-command -v timeout >/dev/null && command -v setsid >/dev/null || { echo "Bounded execution requires timeout and setsid" >&2; exit 2; }
+command -v python3 >/dev/null || { echo "Bounded execution requires Python 3" >&2; exit 2; }
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/review-it.XXXXXXXX")
 [[ "$REVIEW_MODE" != "branch" ]] || DIFF_FILE="$WORK_DIR/review.diff"
 REVIEW_CMD=$(review_cmd_for "$REVIEW_MODE" "$DIFF_FILE")
@@ -220,7 +220,7 @@ fi
 TEST_PID=""
 if [[ -n "$TESTS" ]]; then
     echo "review-it: running tests in background: $TESTS"
-    setsid timeout --signal=TERM --kill-after=5s "${TEST_TIMEOUT}s" bash -c "$TESTS" > "$WORK_DIR/tests.log" 2>&1 &
+    python3 "$SCRIPT_DIR/bounded-run.py" --timeout "$TEST_TIMEOUT" --parent-pid "$$" -- bash -c "$TESTS" > "$WORK_DIR/tests.log" 2>&1 &
     TEST_PID=$!
     echo "review-it: test PID=$TEST_PID"
     echo ""
@@ -231,7 +231,7 @@ REVIEW_EXIT=0
 if [[ "$DETECTED_AGENT" == "codex" ]]; then
     REVIEW_ARGS=(codex review)
     if [[ "$REVIEW_MODE" == "local" ]]; then REVIEW_ARGS+=(--uncommitted); else REVIEW_ARGS+=(--base "$BASE"); fi
-    setsid timeout --signal=TERM --kill-after=5s "${TEST_TIMEOUT}s" "${REVIEW_ARGS[@]}" > "$WORK_DIR/review.log" 2>&1 &
+    python3 "$SCRIPT_DIR/bounded-run.py" --timeout "$TEST_TIMEOUT" --parent-pid "$$" -- "${REVIEW_ARGS[@]}" > "$WORK_DIR/review.log" 2>&1 &
     REVIEW_PID=$!
     if wait "$REVIEW_PID"; then REVIEW_EXIT=0; else REVIEW_EXIT=$?; fi
     REVIEW_PID=""

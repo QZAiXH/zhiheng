@@ -58,8 +58,8 @@ class WorkflowAudit(unittest.TestCase):
         self.registration_patch.start()
         self.addCleanup(self.registration_patch.stop)
         self.capabilities_patch = patch("harness.workflow.require_capabilities",
-                                        return_value={"tier": "simulation", "fixture": "P0 gate mocked for isolated workflow tests"})
-        self.capabilities_patch.start()
+                                        return_value={"tier": "simulation", "binding": {"fixture_host": "version-A"}, "fixture": "P0 gate mocked for isolated workflow tests"})
+        self.capabilities_mock = self.capabilities_patch.start()
         self.addCleanup(self.capabilities_patch.stop)
         # The fixture's test author explicitly approves the original baseline;
         # no production path automatically approves a modified contract.
@@ -72,6 +72,26 @@ class WorkflowAudit(unittest.TestCase):
             with self.assertRaisesRegex(Blocked, "reviewed baseline"):
                 validate_task(controller, self.config, self.task, "weakened-A")
             self.assertEqual(controller.state.read()["attempts"], [])
+
+    def test_reissued_capability_receipt_cannot_revive_old_task_evidence(self):
+        with self.controller() as controller:
+            validate_task(controller, self.config, self.task, "receipt-A")
+            verified_evidence(controller, self.task, self.config)
+            self.capabilities_mock.return_value = {"tier": "simulation", "binding": {"fixture_host": "version-B"}}
+            with self.assertRaises(Blocked):
+                verified_evidence(controller, self.task, self.config)
+
+    def test_capability_drift_during_review_prevents_verified(self):
+        from harness import workflow
+        original = workflow.review
+        def changed_after_review(*args, **kwargs):
+            result = original(*args, **kwargs)
+            self.capabilities_mock.return_value = {"tier": "simulation", "binding": {"fixture_host": "version-B"}}
+            return result
+        with self.controller() as controller, patch.object(workflow, "review", side_effect=changed_after_review):
+            with self.assertRaises(Blocked):
+                validate_task(controller, self.config, self.task, "receipt-midrun-A")
+            self.assertNotEqual(controller.state.read()["tasks"][self.task["id"]]["status"], "verified")
 
     def test_github_local_checks_alone_never_mark_generic_verified(self):
         # Fresh isolated mode, not a production mode switch or fallback.

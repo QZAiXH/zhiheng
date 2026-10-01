@@ -5,6 +5,8 @@ import shutil
 import tempfile
 import sys
 import platform
+import re
+import uuid
 from importlib.metadata import version
 from pathlib import Path
 from .state import Blocked, atomic_json
@@ -14,6 +16,9 @@ from .contracts import fingerprint, check_fingerprint
 REQUIRED_LIVE = ("local_process_group_stop", "repository_write", "serena_version", "serena_core_read",
                  "serena_references", "host_session_start", "host_independent_review", "host_session_resume",
                  "host_native_stop")
+ZH_CHAIN = ("zh", "zh-context", "zh-plan", "zh-implement", "zh-debug", "zh-review", "zh-finish",
+            "harness-init", "prd", "prd-to-spec", "to-design", "to-issues", "loop-it", "review-it",
+            "note-it", "walkthrough", "ship-it")
 
 
 def sha(path):
@@ -29,9 +34,26 @@ def binding(controller, config):
         skill_root = controller.root / skill_root
     if not skill_root.is_dir():
         raise Blocked("actual loaded skills_path must exist to bind instructions")
-    excluded = {".git", ".venv", "__pycache__", "node_modules", "dist"}
+    env_config = config.get("environment", {})
+    loaded = env_config.get("loaded_skills")
+    if env_config.get("entry_skill") == "zh":
+        loaded = loaded if loaded is not None else list(ZH_CHAIN)
+        if not isinstance(loaded, list) or not set(ZH_CHAIN).issubset(loaded):
+            raise Blocked("$zh capability receipt requires its complete 17-skill loaded chain")
+    if loaded is not None:
+        if (not isinstance(loaded, list) or not loaded or len(set(loaded)) != len(loaded)
+                or any(not isinstance(name, str) or not re.fullmatch(r"[a-z][a-z0-9-]*", name) for name in loaded)):
+            raise Blocked("loaded_skills must explicitly name unique local skill directories")
+        selected_roots = [skill_root / name for name in loaded]
+        if any(path.is_symlink() or not (path / "SKILL.md").is_file() for path in selected_roots):
+            raise Blocked("a required loaded skill is missing or symlinked")
+    elif (skill_root / "SKILL.md").is_file():
+        selected_roots = [skill_root]
+    else:
+        raise Blocked("select a concrete skill directory or explicitly list loaded_skills; do not scan unrelated personal skills")
+    excluded = {".git", ".venv", "__pycache__", "node_modules", "dist", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".DS_Store"}
     skill_files = {}
-    for path in sorted(skill_root.rglob("*")):
+    for path in sorted(path for selected in selected_roots for path in selected.rglob("*")):
         relative = path.relative_to(skill_root)
         if any(part in excluded for part in relative.parts):
             continue
@@ -47,6 +69,7 @@ def binding(controller, config):
     if not lock.is_file():
         raise Blocked("installed tool lockfile is missing; cannot bind environment")
     host_files = {}
+    host_versions = {}
     for field in ("implementation_argv", "review_argv"):
         argv = config.get("host", {}).get(field, [])
         if not argv:
@@ -55,16 +78,39 @@ def binding(controller, config):
         if not executable:
             raise Blocked("host executable unavailable: " + argv[0])
         host_files[str(Path(executable).resolve())] = sha(Path(executable).resolve())
+        if executable not in host_versions:
+            token = "cap-version-" + uuid.uuid4().hex
+            output = controller.common / "harness-capability-versions" / (token + ".stdout")
+            result = controller.execute([executable, "--version"], controller.root, token, output,
+                                        timeout=min(config.get("limits", {}).get("command_seconds", 10), 10),
+                                        separate_stderr=True)
+            reported = output.read_text().strip()
+            if result["exit_code"] != 0 or result["reason"] or not reported:
+                raise Blocked("host executable did not report a usable actual version")
+            host_versions[executable] = reported[:8192]
         for arg in argv[1:]:
             if isinstance(arg, str) and "{" not in arg and Path(arg).is_absolute() and Path(arg).is_file():
                 host_files[str(Path(arg).resolve())] = sha(Path(arg).resolve())
+    native_tools = {}
+    for name in ("executable", "python_executable"):
+        path = config.get("knowledge", {}).get(name)
+        if path:
+            resolved = Path(path).resolve()
+            if not resolved.is_file():
+                raise Blocked("configured native knowledge executable disappeared")
+            native_tools[str(resolved)] = sha(resolved)
+    if config["mode"] == "github":
+        gh = shutil.which("gh")
+        if not gh:
+            raise Blocked("GitHub mode gh executable disappeared")
+        native_tools[str(Path(gh).resolve())] = sha(Path(gh).resolve())
     return {"mode": config["mode"], "repository_id": config["repository_id"],
             "repository_root": str(controller.root), "git_common_dir": str(controller.common),
             "config_sha256": fingerprint(config), "checks_sha256": check_fingerprint(config),
             "environment_sha256": fingerprint(config.get("environment", {})),
             "runtime_sha256": fingerprint(code), "skill_sha256": fingerprint(skill_files),
             "skills_root": str(skill_root.resolve()), "skill_files": skill_files,
-            "lock_sha256": sha(lock), "host_files": host_files,
+            "lock_sha256": sha(lock), "host_files": host_files, "host_versions": host_versions, "native_tools": native_tools,
             "observed_runtime": {"python": sys.version, "os": platform.platform(),
                                  "python_executable_sha256": sha(Path(sys.executable).resolve()),
                                  "git_executable_sha256": sha(Path(shutil.which("git")).resolve()),

@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_local_audit as fixtures
-from harness.capabilities import record_capabilities, require_capabilities, binding, REQUIRED_LIVE
+from harness.capabilities import record_capabilities, require_capabilities, binding, REQUIRED_LIVE, ZH_CHAIN
 from harness.state import Blocked
 
 
@@ -103,6 +103,32 @@ class CapabilitiesAudit(unittest.TestCase):
             instruction.write_text("---\nname: probe\ndescription: fixture\n---\nChanged workflow instructions.\n")
             with self.assertRaisesRegex(Blocked, "stale"):
                 require_capabilities(controller, self.config)
+
+    def test_zh_chain_binds_17_dependencies_but_not_unrelated_personal_skill(self):
+        skills = Path(self.tmp.name) / "installed-skills"
+        for name in (*ZH_CHAIN, "unrelated-personal"):
+            directory = skills / name
+            directory.mkdir(parents=True)
+            (directory / "SKILL.md").write_text("---\nname: " + name + "\ndescription: fixture\n---\nKeep evidence.\n")
+        self.config["environment"].update(skills_path=str(skills), entry_skill="zh")
+        with self.controller() as controller:
+            self.record_simulation(controller)
+            (skills / "unrelated-personal/SKILL.md").write_text("unrelated user edit\n")
+            require_capabilities(controller, self.config)
+            (skills / "zh/SKILL.md").write_text("changed zh entry\n")
+            with self.assertRaisesRegex(Blocked, "stale"):
+                require_capabilities(controller, self.config)
+
+    def test_zh_chain_missing_dependency_cannot_record_capabilities(self):
+        skills = Path(self.tmp.name) / "incomplete-skills"
+        for name in ZH_CHAIN[:-1]:
+            directory = skills / name
+            directory.mkdir(parents=True)
+            (directory / "SKILL.md").write_text("fixture")
+        self.config["environment"].update(skills_path=str(skills), entry_skill="zh")
+        with self.controller() as controller:
+            with self.assertRaises(Blocked):
+                self.record_simulation(controller)
 
     def test_receipt_or_raw_log_tampering_is_rejected(self):
         with self.controller() as controller:
