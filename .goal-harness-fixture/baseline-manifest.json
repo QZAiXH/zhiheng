@@ -1,0 +1,19 @@
+{
+  "business_baseline_id": "goal-harness-arithmetic-v1",
+  "source": "tests/harness/test_cli_e2e.py",
+  "source_sha256": "1b44d57229b739bd636170031bb29efc35e8b33faff3b9b14da7a66c71f09eab",
+  "logical_files": {
+    "solution.py": "65a3fd7bdabc7305f51c054bf5b2cf281729a2e4da5fd2f5fa3a478ff17daaf2",
+    "tests/run_business.py": "0029589ee0aeb4d0798ebb74a915d5f43dfe29166b7a91456664e2508f15fe24",
+    "docs/spec.md": "778d01e8dd2aa701aa12f8ba8fa91c797b28b30a6f56e5ed8523727e428c9839"
+  },
+  "groups": {
+    "tiny": "add(2,3)=5; add(-2,3)=1",
+    "exception": "divide(8,2)=4; divide(1,0) raises ValueError zero divisor",
+    "dependency": [
+      "base: add",
+      "dependent: double_sum(2,3)=10, requires delivered base"
+    ]
+  },
+  "evidence_tier": "native GitHub + deterministic fixture, not real Codex E2E"
+}

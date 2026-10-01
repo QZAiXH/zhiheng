@@ -1,0 +1,23 @@
+name: Goal harness arithmetic fixtures
+on:
+  pull_request:
+    branches: ['goal-harness/fixture-*-20261001']
+permissions:
+  contents: read
+jobs:
+  business:
+    name: goal-harness-arithmetic
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record candidate identity
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          TARGET_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          printf 'source=%s\ntarget=%s\ncandidate=%s\n' "$SOURCE_SHA" "$TARGET_SHA" "$GITHUB_SHA"
+          git rev-parse HEAD HEAD^{tree}
+      - name: Business assertions
+        working-directory: .goal-harness-fixture
+        run: python3 tests/run_business.py
