@@ -3,6 +3,15 @@ name: zh-plan
 description: Turn a development request and repository facts into a reviewable plan with acceptance criteria, verifiable slices, dependencies, and execution choices. A standalone planning request does not authorize implementation or delivery.
 ---
 
+## 执衡 Harness v0.5（默认研发路径）
+
+先读 [统一增强流程](../zh/references/harness-integration.md)。它把现有 zh 入口接到固定 goal-workflow 增强实现；以下步骤适用于本版研发任务，执行后返回，不与原版状态/知识写入并行运行。
+
+复用增强 prd、按需 prd-to-spec/to-design、to-issues 做规划和切片。保留原技能关于讨论深度、计划展示与已有授权的规则；增加完整稳定 AC-ID、规范/检查指纹、稳定任务 ID、显式依赖、运行限额和交付要求。小任务可以任务卡，不强制大文档。仅规划不启动实现。
+
+下文保留原协作经验和独立用法。若与增强合同的状态、知识、执行和交付机制冲突，以当前任务的增强合同为准；用户授权和项目规则始终优先，技能文本不会扩大权限。
+
+
 # 制定可审阅计划
 
 输入为请求、已有授权和项目事实，输出为与任务规模相称的计划及仍需决定的问题。独立调用只制定计划；接收 `zh` 交接时沿用已有决定，不重问。

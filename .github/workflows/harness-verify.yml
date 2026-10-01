@@ -1,0 +1,68 @@
+name: Harness platform verification
+on:
+  push:
+    branches: ['harness/**']
+  pull_request:
+    paths:
+      - 'vendor/goal-workflow/**'
+      - 'zh*/**'
+      - 'tools/**'
+      - 'tests/**'
+      - '.github/workflows/harness-verify.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    name: harness-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # verified v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # verified v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned tooling and Serena source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install uv==0.12.19
+          SERENA="$RUNNER_TEMP/serena-v1.7.0"
+          git init "$SERENA"
+          git -C "$SERENA" remote add origin https://github.com/oraios/serena.git
+          git -C "$SERENA" fetch --depth=1 origin 949a27ef1e5fda1a6e7b561e777bcece345c6ffd
+          git -C "$SERENA" checkout --detach FETCH_HEAD
+          uv sync --locked --no-dev --project "$SERENA"
+          uv sync --locked --project vendor/goal-workflow/skills/harness-init/assets/project
+          echo "HARNESS_TEST_SERENA=$SERENA/.venv/bin/serena" >> "$GITHUB_ENV"
+          echo "HARNESS_TEST_SERENA_PYTHON=$SERENA/.venv/bin/python" >> "$GITHUB_ENV"
+      - name: Validate zh entrypoints and installation regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/validate.py
+          python -m unittest discover -s tests -v
+      - name: Test native OS runtime and explicit simulated host/platform scenarios
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --locked --project vendor/goal-workflow/skills/harness-init/assets/project \
+            python -m unittest discover -s vendor/goal-workflow/tests/harness -v
+      - name: Record evidence boundary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '### Evidence scope'
+            echo '- Actual hosted runner OS, Git, filesystem, process and pinned Serena tests'
+            echo '- Host and GitHub adapter fixtures are explicitly simulated; no model credential or production secret used'
+            echo '- This job does not establish real Codex model execution, WSL execution, or live GitHub merge-rule acceptance'
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Runner: $RUNNER_OS / $RUNNER_ARCH"
+          } >> "$GITHUB_STEP_SUMMARY"

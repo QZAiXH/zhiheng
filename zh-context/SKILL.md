@@ -3,6 +3,15 @@ name: zh-context
 description: Initialize or refresh durable project context when asked to onboard a project or investigate and save its context. Map code, command evidence, terminology, and decisions; read-only investigation stays read-only and existing knowledge is preserved.
 ---
 
+## 执衡 Harness v0.5（默认研发路径）
+
+先读 [统一增强流程](../zh/references/harness-integration.md)。它把现有 zh 入口接到固定 goal-workflow 增强实现；以下步骤适用于本版研发任务，执行后返回，不与原版状态/知识写入并行运行。
+
+项目知识接入使用 Serena v1.7.0 的原生注册/onboarding/读写与渐进记忆入口，重要决策复用 MADR。已有 .zhiheng/PROJECT.md、项目规则与文档先作为证据来源读取并保留，不删除，不再建立与 Serena 并行可写的知识源。只有维护模板或非空列表不能宣称 onboarding 完成。项目尚未通过 P0 时明确保存缺口。
+
+下文保留原协作经验和独立用法。若与增强合同的状态、知识、执行和交付机制冲突，以当前任务的增强合同为准；用户授权和项目规则始终优先，技能文本不会扩大权限。
+
+
 # 项目上下文
 
 输入是项目、相关任务范围及已有知识；输出是足以支持下一步的项目地图、命令证据、术语/决定指针和知识缺口。独立调用只完成上下文工作，不启动实现、提交或合并。

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harness 初始化与执行"
+  short_description: "Codex CLI 的双模式目标工作流、证据验证与中断恢复"
+  default_prompt: "使用 $harness-init 接入当前项目，先核实 local 或 github 模式、工具与知识就绪状态，再执行有界验证。"

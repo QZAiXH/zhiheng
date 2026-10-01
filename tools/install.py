@@ -306,6 +306,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.action == "install":
+            if (args.source / "zh/references/harness-integration.md").exists():
+                raise InstallError("This source requires harness dependencies; use tools/install-harness.py --destination <project-or-home>. Legacy restore remains supported.")
             result = install(args.source, args.target, args.backups, args.dry_run)
         else:
             result = restore(args.backup_id, args.backups, args.target, args.dry_run)

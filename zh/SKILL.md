@@ -1,7 +1,16 @@
 ---
 name: zh
-description: Coordinate development through planning, worktree implementation, independent acceptance, and local delivery; route explicit project-context initialization to zh-context. Use for end-to-end bug fixes, features, refactors, or project onboarding; discussion and routine operations stay within their requested scope.
+description: Coordinate development through planning, worktree implementation, independent acceptance, and explicit local/GitHub delivery; route explicit project-context initialization to zh-context. Use for end-to-end bug fixes, features, refactors, or project onboarding; discussion and routine operations stay within their requested scope.
 ---
+
+## 执衡 Harness v0.5（默认研发路径）
+
+先读 [统一增强流程](../zh/references/harness-integration.md)。它把现有 zh 入口接到固定 goal-workflow 增强实现；以下步骤适用于本版研发任务，执行后返回，不与原版状态/知识写入并行运行。
+
+对研发任务默认采用本增强流程，统一入口保持 `$zh`。先按请求确认 local/github 和目标基线，再经 harness-init 的受控配置/能力检查衔接原 goal-workflow 技能链。新功能、修复、恢复和交付共享同一 checkpoint、锁、预算和证据；不要同时运行下方旧任务脚本的另一套状态机。仅讨论、只读调查或常规运维仍按原请求范围处理，不自动启动开发。
+
+下文保留原协作经验和独立用法。若与增强合同的状态、知识、执行和交付机制冲突，以当前任务的增强合同为准；用户授权和项目规则始终优先，技能文本不会扩大权限。
+
 
 # zh：开发协作入口
 

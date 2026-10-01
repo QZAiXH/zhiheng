@@ -1,0 +1,51 @@
+"""Platform-gate unit fixtures, not live GitHub/real-Codex acceptance."""
+import copy
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+from harness.cli import github_platform_verify
+from harness.runtime import Controller
+from harness.state import Blocked
+
+class PlatformGateTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name);subprocess.run(['git','init','-q',str(self.root)],check=True)
+        self.limits={'command_seconds':2,'stop_grace_seconds':.2,'total_seconds':10,'max_attempts':5}
+        self.config={'mode':'github','github':{'required_checks':['test']}}
+        self.task={'id':'task-one'};self.bundle={'tasks':[self.task]}
+        self.proof={'H':'h'*40,'T':'t'*40,'C':'c'*40,'tree':'tree-fixture','verification_tier':'simulation'}
+        self.pr={'number':3,'head':{'sha':self.proof['H']},'base':{'sha':self.proof['T']},'merge_commit_sha':'m'*40}
+        self.adapter=MagicMock();self.adapter.read_pr.return_value=copy.deepcopy(self.pr)
+        self.adapter.commit_tree.return_value='tree-fixture'
+        self.adapter.checks.return_value={'status':'pass','checked_sha':'m'*40,'checks':{'test':{'status':'pass'}}}
+    def invoke(self):
+        with Controller(self.root,'github','run-one',self.limits) as controller:
+            state=controller.state.read();state['tasks']['task-one']={'status':'validating','local_validation':'passed','verification_tier':'simulation'}
+            controller.state.write(state,state['revision'])
+            with patch('harness.cli.verified_evidence',return_value=self.proof),patch('harness.github.GitHubAdapter',return_value=self.adapter):
+                result=github_platform_verify(controller,self.config,self.bundle,{'task_id':'task-one','number':3})
+                return result,controller.state.read()
+    def test_passing_current_platform_gate_promotes_with_simulation_label(self):
+        result,state=self.invoke();self.assertEqual(result['status'],'verified');self.assertEqual(result['verification_tier'],'simulation')
+        self.assertEqual(state['tasks']['task-one']['platform_evidence']['checked_sha'],'m'*40)
+        self.adapter.checks.assert_called_once_with(3,'m'*40,['test'])
+    def test_missing_or_failed_ci_never_promotes(self):
+        self.adapter.checks.return_value={'status':'blocked','checks':{}}
+        with self.assertRaisesRegex(Blocked,'CI incomplete'):self.invoke()
+    def test_changed_source_blocks(self):
+        self.adapter.read_pr.return_value['head']['sha']='x'*40
+        with self.assertRaisesRegex(Blocked,'head or target'):self.invoke()
+    def test_wrong_actual_tree_blocks(self):
+        self.adapter.commit_tree.return_value='wrong'
+        with self.assertRaisesRegex(Blocked,'object differs'):self.invoke()
+    def test_race_after_checks_blocks(self):
+        changed=copy.deepcopy(self.pr);changed['base']['sha']='z'*40
+        self.adapter.read_pr.side_effect=[self.pr,changed]
+        with self.assertRaisesRegex(Blocked,'changed during'):self.invoke()
+    def test_metadata_sensitive_candidate_blocks_tree_only_equivalence(self):
+        self.task['tests_depend_on_commit_metadata']=True
+        with self.assertRaisesRegex(Blocked,'commit-sensitive'):self.invoke()
+if __name__=='__main__':unittest.main()

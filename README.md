@@ -1,8 +1,15 @@
 # 执衡 · Zhiheng
 
+## Harness v0.5 集成状态
+
+本版按 2026-09-30 计划增强，目标为 Codex CLI on macOS、Linux／WSL；用户入口保持 `$zh`。原项目资料保留，增强流程采用显式 local/github 模式、Serena 原生记忆、MADR 决策、真实证据门禁及中断对账。
+
+当前仍在完成逐项验收，不能把单元测试或模拟宿主/平台通过视作全部环境通过。实现和未完成项见[逐项验收追踪](vendor/goal-workflow/docs/harness-acceptance.md)，真实 Codex 环境可运行[宿主验收脚本](vendor/goal-workflow/docs/codex-host-acceptance.md)。
+
+
 让 AI 开发有计划、有边界、有独立验收，也有明确的交付结果。
 
-执衡是一套面向 Codex 的开发协作技能，包含七个可组合的 skills。以 `$zh` 为入口，它将项目理解、需求规划、隔离开发、问题诊断、独立审查和收尾交付串联起来，适用于已有项目的功能开发、缺陷修复与重构。
+执衡是一套面向 Codex 的开发协作技能，保留七个可组合的 zh 技能作为对外入口，底层接入固定 goal-workflow 的十个增强组件。以 `$zh` 为入口，它将项目理解、需求规划、隔离开发、问题诊断、独立审查和收尾交付串联起来，适用于已有项目的功能开发、缺陷修复与重构。
 
 [快速开始](#快速开始) · [使用示例](#使用示例) · [技能分工](#技能分工) · [安装与恢复](tools/INSTALL.md) · [参与贡献](CONTRIBUTING.md)
 
@@ -22,39 +29,30 @@
 ### 环境要求
 
 - 支持本地 skills 的 Codex 环境。
-- Python **3.10+**，用于安装、校验和 Git 辅助脚本；脚本只依赖 Python 标准库。
+- Python **3.11+** 与 uv：安装入口使用标准库；增强执行环境通过独立 uv.lock 固定 filelock、psutil、jsonschema、Markdown，不混入业务依赖。
 - Git，用于仓库克隆和开发 worktree。
 - 完整开发流程需要宿主支持独立子 agent / 新会话；涉及前端时，还需要可用的浏览器操作或项目浏览器测试能力。
 
 下面是 Linux、macOS 或 WSL 的 Bash 示例。Windows 用户可在 WSL 中执行；其他环境需按实际 shell 调整路径和命令。
 
-### 安装七个技能
+### 安装统一入口与增强组件
 
 ```bash
 git clone https://github.com/QZAiXH/zhiheng.git
 cd zhiheng
-
 python3 tools/validate.py
 
-# 先预览将替换的目录，不写入文件
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups" \
-  --dry-run
+# 用户级安装：先预览，再安装到 ~/.agents/skills
+python3 tools/install-harness.py --destination "$HOME" --dry-run
+python3 tools/install-harness.py --destination "$HOME"
 
-# 安装，并保存输出中的 backup_id 以便恢复
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups"
-
-python3 tools/validate.py "$HOME/.agents/skills"
+# 或项目级安装（替换成实际项目目录）
+python3 tools/install-harness.py --destination /path/to/project
 ```
 
-示例使用 Codex 的用户级目录 `~/.agents/skills`；路径与 `$` 调用方式见 [OpenAI 官方 skills 文档](https://learn.chatgpt.com/docs/build-skills)。安装后打开新的 Codex 会话，进入自己的项目，在输入框选择 `$zh`。如果没有出现，检查安装目录并重启 Codex。
+统一入口仍为 `$zh`。完整安装包括七个 zh 入口和十个增强组件；它们在同一技能目录中协作。只安装文件不代表运行环境、知识 onboarding 或平台验收已经通过。
 
-**请显式传入安装路径。** 当前安装脚本保留了早期环境的 `/root/.codex/skills` 默认值，不会自动使用当前用户的 home 或 `CODEX_HOME`。如果你的宿主使用其他目录，替换示例中的 `--target`。七个技能相互引用，需完整安装并保持为同级目录。
-
-安装会备份并替换目标目录中的同名七个技能，同时将目标目录里的旧 `zhiheng` 技能退出使用；其他技能保持不变。源码目录、安装目录和备份目录必须互不包含。更新、项目级安装、旧版迁移和恢复见 [安装指南](tools/INSTALL.md)。
+安装器保留已有未托管同名技能，不覆盖用户修改；如果检测到旧安装冲突，先按[安装与迁移说明](tools/INSTALL.md)处理。不要同时启用原版与增强版同名技能。已有旧版备份仍可使用原恢复工具。
 
 ### 开始第一个任务
 

@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-10-01T03:37:24Z",
+  "repository": "QZAiXH/zhiheng",
+  "method": "GitHub connector APIs, not gh CLI",
+  "original_sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+  "reads": {
+    "branches?per_page=100": "[{\"name\":\"main\",\"commit\":{\"sha\":\"fb1935376a450c0956b0388e5ff01d223faefac6\",\"url\":\"https://api.github.com/repos/QZAiXH/zhiheng/commits/fb1935376a450c0956b0388e5ff01d223faefac6\"},\"protected\":false}]",
+    "rulesets": "[]",
+    "pulls?state=all&per_page=20": "[]",
+    "issues?state=all&per_page=20": "[]"
+  },
+  "write_attempts": [
+    {
+      "operation": "create_branch",
+      "target": "goal-harness/smoke-base-20261001",
+      "result": "403 Resource not accessible by integration"
+    },
+    {
+      "operation": "create_issue",
+      "title": "[Acceptance smoke] Validate GitHub Issue → PR → CI → isolated merge",
+      "result": "403 Resource not accessible by integration"
+    },
+    {
+      "operation": "create_branch",
+      "target": "goal-harness/smoke-head-20261001",
+      "result": "403 Resource not accessible by integration"
+    }
+  ],
+  "conclusion": "Live platform smoke blocked before any successful mutation; no adapter or CI or merge acceptance established."
+}

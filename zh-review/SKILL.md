@@ -3,6 +3,15 @@ name: zh-review
 description: Independently assess a concrete candidate against confirmed requirements, project standards, and raw validation evidence. Report pass, fail, or unverifiable conditions without implementing, committing, or merging.
 ---
 
+## 执衡 Harness v0.5（默认研发路径）
+
+先读 [统一增强流程](../zh/references/harness-integration.md)。它把现有 zh 入口接到固定 goal-workflow 增强实现；以下步骤适用于本版研发任务，执行后返回，不与原版状态/知识写入并行运行。
+
+使用增强 review-it 的真实独立上下文/受控审查入口核查完整 AC-ID、当前候选和原始工具证据。区分 Blocking/Warning/Info；零测试、意外跳过、缺报告、命令失败和未知结果不能判通过。修复轮数受限，耗尽进入 blocked；不能沿用本地检查来宣称 GitHub 远端验证完成。
+
+下文保留原协作经验和独立用法。若与增强合同的状态、知识、执行和交付机制冲突，以当前任务的增强合同为准；用户授权和项目规则始终优先，技能文本不会扩大权限。
+
+
 # 独立验收
 
 本技能只审查并回传结论，不顺带实现、提交或合并。首次验收必须是真实新会话，不继承执行对话或执行者自评。调用者按 [委派规则](../zh/references/delegation.md) 启动独立审查；已经处于这样创建的审查会话时直接审查，不递归创建审查者。只复制完整执行历史的宿主不能宣称满足该要求；没有独立能力时报告验收受阻。

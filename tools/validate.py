@@ -43,6 +43,28 @@ def validate(root):
                 ast.parse(script.read_text(), filename=str(script))
             except SyntaxError as exc:
                 errors.append(str(exc))
+    if (root / 'zh/references/harness-integration.md').is_file():
+        dependency_root = root / 'vendor/goal-workflow/skills' if (root / 'vendor/goal-workflow/skills').is_dir() else root
+        components = ('harness-init', 'prd', 'prd-to-spec', 'to-design', 'to-issues', 'loop-it', 'review-it', 'note-it', 'walkthrough', 'ship-it')
+        for name in components:
+            entry = dependency_root / name / 'SKILL.md'
+            if not entry.is_file():
+                errors.append(f'{entry}: missing enhanced dependency')
+                continue
+            content = entry.read_text()
+            if not re.search(r'^name: ' + re.escape(name) + r'$', content, re.M):
+                errors.append(f'{entry}: incorrect enhanced skill name')
+        assets = dependency_root / 'harness-init/assets/project'
+        for required in ('pyproject.toml', 'uv.lock', 'harness/cli.py', 'harness/runtime.py', 'harness/state.py'):
+            if not (assets / required).is_file():
+                errors.append(f'{assets / required}: missing packaged runtime asset')
+        for script in assets.rglob('*.py'):
+            if any(part in ('.venv', '__pycache__') for part in script.parts):
+                continue
+            try:
+                ast.parse(script.read_text(), filename=str(script))
+            except (SyntaxError, UnicodeError) as exc:
+                errors.append(str(exc))
     return errors
 
 
@@ -55,4 +77,4 @@ if __name__ == '__main__':
         print(problem, file=sys.stderr)
     if problems:
         raise SystemExit(1)
-    print('Validated seven skill entries, licenses, local references, and Python syntax.')
+    print('Validated zh entries, licenses, local references and Python syntax; enhanced dependencies checked when present.')

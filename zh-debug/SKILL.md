@@ -3,6 +3,15 @@ name: zh-debug
 description: Diagnose failures and performance regressions using symptom-specific reproduction, falsifiable hypotheses, and regression evidence; implement a fix only within the requested scope.
 ---
 
+## 执衡 Harness v0.5（默认研发路径）
+
+先读 [统一增强流程](../zh/references/harness-integration.md)。它把现有 zh 入口接到固定 goal-workflow 增强实现；以下步骤适用于本版研发任务，执行后返回，不与原版状态/知识写入并行运行。
+
+保留基于复现、假设、证据的诊断方式。涉及增强任务的修改或续跑须进入同一受控 run/attempt，保留原始失败与消耗，不能重建运行来绕过上限。只读诊断按范围执行；修复后重新核验受影响验收及最终组合。
+
+下文保留原协作经验和独立用法。若与增强合同的状态、知识、执行和交付机制冲突，以当前任务的增强合同为准；用户授权和项目规则始终优先，技能文本不会扩大权限。
+
+
 # 诊断与修复
 
 输入是原始症状、期望、相关环境与授权范围。单纯诊断可以阅读、复现和缩小问题，不先建开发 worktree；实际改产品代码前按 [工作区规则](../zh/references/workspaces.md) 建立任务工作区。独立调用不隐式获得提交或合并权限。
