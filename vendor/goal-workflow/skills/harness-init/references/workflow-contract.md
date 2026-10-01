@@ -8,6 +8,8 @@
 - `.harness/config.json` 显式固定 `local`/`github`。checkpoint 必须同模式、同仓库、同运行；恢复不匹配则停止。local 的 GitHub remote 不改变模式，github 的认证失败不触发降级。
 - local 不要求 gh、GitHub 账户或 remote；默认不 push。模型、业务依赖是否需要网络另行报告，不能承诺全系统离线。
 - P0 记录 Codex 的任务输入、执行、独立审查、退出/取消和新会话恢复实测。缺少能力保存 blocked/手动交接，不伪称自动运行。
+- 提交分工由 `host.commit_mode` 明确选择：缺省 `model_commit` 保留旧配置语义；新初始化草稿推荐 `controller_commit`。后者要求逐任务批准精确 `allowed_paths`，模型只修改/测试，绝不 stage/commit 或写 Git 元数据；Controller 审计后仅更新限定 task source ref。不得扩大 sandbox、从改动推断授权、静默绕过 hook/filter/签名等政策；详见 [提交与恢复合同](controller-commit.md)。
+- Controller 写权限不证明模型 Git 权限。`model_commit` live 收据要求未由现有只读 P0 覆盖的 `model_git_commit`；`controller_commit` 要求真实原生对象/CAS 探针。两者均不能由布尔 ready 代替，且免费探针不宣称真实模型/Controller 整链已通过。
 
 ## 开始与控制
 

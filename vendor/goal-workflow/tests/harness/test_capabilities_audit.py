@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_local_audit as fixtures
-from harness.capabilities import record_capabilities, require_capabilities, binding, REQUIRED_LIVE, ZH_CHAIN
+from harness.capabilities import record_capabilities, require_capabilities, binding, REQUIRED_LIVE, ZH_CHAIN, required_capabilities
 from harness.state import Blocked
 
 
@@ -53,7 +53,7 @@ class CapabilitiesAudit(unittest.TestCase):
                           "Sources: base.txt, feature branch feature.txt.\n"
                           "Commands and completion boundaries reviewed; no production use claimed.\n")
         self.commit("operator review evidence fixture")
-        observed = {"capabilities": {name: {"status": "verified", "fixture": "mocked"} for name in REQUIRED_LIVE}}
+        observed = {"capabilities": {name: {"status": "verified", "fixture": "mocked"} for name in required_capabilities(self.config)}}
         with self.controller() as controller:
             with patch("harness.p0.probe", return_value=observed):
                 unapproved = record_capabilities(controller, self.config, "live", semantic_review="semantic-review.md")

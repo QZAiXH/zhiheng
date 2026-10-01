@@ -17,11 +17,12 @@ concurrency:
   cancel-in-progress: true
 jobs:
   runtime:
-    name: harness-${{ matrix.os }}
+    name: harness-${{ matrix.os }}-${{ matrix.suite }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, macos-15-intel]
+        suite: [core, local, github, knowledge]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -56,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           uv run --locked --project vendor/goal-workflow/skills/harness-init/assets/project \
-            python -m unittest discover -s vendor/goal-workflow/tests/harness -v
+            python tools/run-harness-tests.py --suite "${{ matrix.suite }}"
       - name: Record evidence boundary
         if: always()
         shell: bash
@@ -68,6 +69,7 @@ jobs:
             echo '- This job does not establish real Codex model execution, WSL execution, or live GitHub merge-rule acceptance'
             echo "- Commit: $GITHUB_SHA"
             echo "- Runner: $RUNNER_OS / $RUNNER_ARCH"
+            echo "- Test shard: ${{ matrix.suite }}; all four shards are required"
           } >> "$GITHUB_STEP_SUMMARY"
   review_portability:
     name: review-${{ matrix.os }}
@@ -96,3 +98,36 @@ jobs:
           test "$result" = 124 || status=1
           python3 -m unittest discover -s tests/harness -p 'test_review*.py' -v || status=1
           exit "$status"
+  all_platforms:
+    name: harness-all-platforms
+    if: ${{ always() }}
+    needs: [runtime, review_portability]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Require every OS and functional test shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test '${{ needs.runtime.result }}' = success
+          test '${{ needs.review_portability.result }}' = success
+      - name: Keep incomplete independent verification visible
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          import sys
+          path = Path('vendor/goal-workflow/docs/evidence/controller-commit-test-scope.json')
+          if path.exists():
+              scope = json.loads(path.read_text())
+              paused = scope.get('paused_test_ids', [])
+              independent = scope.get('independent_security_review', '')
+              if paused or 'incomplete' in independent.lower():
+                  print(f'::error::{len(paused)} cases deferred; independent verification is incomplete. Functional passes do not establish full acceptance.')
+                  sys.exit(1)
+          PYCODE

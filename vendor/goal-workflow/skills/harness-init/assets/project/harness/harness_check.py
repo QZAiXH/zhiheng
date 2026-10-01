@@ -166,6 +166,25 @@ class Validator:
             return None
         return target
 
+    def allowed_paths(self, value, path):
+        """Only explicit file names authorize controller-owned Git writes."""
+        seen = set()
+        for i, item in enumerate(self.array(value, path, 1, MAX_ACCEPTANCE)):
+            label = "%s[%d]" % (path, i)
+            if not isinstance(item, str):
+                self.string(item, label)
+                continue
+            self.safe_path(item, label)
+            if (any(char in item for char in "*?[]!:") or item.startswith("-")
+                    or item.casefold() == ".loop-state.json" or any(
+                    part.casefold() == ".git" for part in item.split("/"))):
+                self.fail(label, "must be an exact literal file path, without Git metadata, globs or pathspec magic")
+            key = unicodedata.normalize("NFC", item).casefold()
+            if any(key == previous or key.startswith(previous + "/") or previous.startswith(key + "/")
+                   for previous in seen):
+                self.fail(label, "duplicate or portable-colliding allowed path")
+            seen.add(key)
+
     def preflight(self):
         self.errors = []
         self.root = None
@@ -177,6 +196,10 @@ class Validator:
         if type(b.get("version")) is not int or b.get("version") != VERSION:
             self.fail("version", "must be integer 1")
         c = self.config = self.obj(b.get("config"), "config")
+        host = self.obj(c.get("host", {}), "config.host")
+        commit_mode = host.get("commit_mode", "model_commit")
+        if commit_mode not in ("model_commit", "controller_commit"):
+            self.fail("config.host.commit_mode", "must be model_commit (default) or controller_commit")
         mode = c.get("mode")
         if mode not in ("local", "github"):
             self.fail("config.mode", "must explicitly be local or github; no mode inference")
@@ -242,6 +265,8 @@ class Validator:
             self.tasks[tid] = task
             graph[tid] = self.ids(task.get("dependencies"), path + ".dependencies", maximum=MAX_TASKS)
             self.ids(task.get("acceptance_ids"), path + ".acceptance_ids", 1)
+            if commit_mode == "controller_commit" or "allowed_paths" in task:
+                self.allowed_paths(task.get("allowed_paths"), path + ".allowed_paths")
             reports = self.obj(task.get("reports"), path + ".reports")
             for name in ("note", "walkthrough", "delivery"):
                 self.safe_path(reports.get(name), path + ".reports." + name, unique=True)

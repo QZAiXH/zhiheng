@@ -21,6 +21,13 @@ ZH_CHAIN = ("zh", "zh-context", "zh-plan", "zh-implement", "zh-debug", "zh-revie
             "note-it", "walkthrough", "ship-it")
 
 
+def required_capabilities(config):
+    mode = config.get("host", {}).get("commit_mode", "model_commit")
+    if mode not in ("model_commit", "controller_commit"):
+        raise Blocked("host.commit_mode must be model_commit or controller_commit")
+    return REQUIRED_LIVE + (("controller_commit",) if mode == "controller_commit" else ("model_git_commit",))
+
+
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -140,7 +147,7 @@ def record_capabilities(controller, config, tier, semantic_review=None, authoriz
     # Execute observations here. Never import caller-written 'success' JSON as P0 proof.
     observed = probe(config, controller=controller)
     capabilities = observed.get("capabilities", {})
-    unverified = [name for name in REQUIRED_LIVE if capabilities.get(name, {}).get("status") != "verified"]
+    unverified = [name for name in required_capabilities(config) if capabilities.get(name, {}).get("status") != "verified"]
     if config["mode"] == "github" and capabilities.get("github_authenticated_capabilities", {}).get("status") != "verified":
         unverified.append("github_authenticated_capabilities")
     semantic = None
@@ -175,6 +182,12 @@ def record_capabilities(controller, config, tier, semantic_review=None, authoriz
                 raw_logs[descriptor["path"]] = sha(descriptor["path"])
     if github_probe.get("report_path") and Path(github_probe["report_path"]).is_file():
         raw_logs[github_probe["report_path"]] = sha(github_probe["report_path"])
+    commit_probe = observed.get("controller_commit_probe", {})
+    for item in commit_probe.get("logs", {}).values():
+        if isinstance(item, dict) and item.get("path") and Path(item["path"]).is_file():
+            raw_logs[item["path"]] = sha(item["path"])
+    if commit_probe.get("report_path") and Path(commit_probe["report_path"]).is_file():
+        raw_logs[commit_probe["report_path"]] = sha(commit_probe["report_path"])
     receipt["raw_logs"] = raw_logs
     path = controller.common / "harness.capabilities.json"
     atomic_json(path, receipt)
@@ -193,10 +206,17 @@ def require_capabilities(controller, config, *, delivery=False, simulate_deliver
         raise Blocked("P0 capability receipt stale: repository, mode, config, host, skill or dependency lock changed")
     if any(not Path(path).is_file() or sha(path) != digest for path, digest in receipt.get("raw_logs", {}).items()):
         raise Blocked("P0 raw capability evidence missing or changed")
+    if (config.get("host", {}).get("commit_mode", "model_commit") == "controller_commit"
+            and receipt.get("observations", {}).get("capabilities", {}).get("controller_commit", {}).get("status") != "verified"):
+        raise Blocked("native controller_commit capability proof is required for controller_commit mode")
     if receipt["tier"] == "simulation":
         simulation_scope(controller)
         if delivery and not simulate_delivery:
             raise Blocked("simulation receipt cannot authorize real delivery; explicit isolated simulation delivery required")
-    elif receipt.get("status") != "ready" or receipt.get("unverified"):
-        raise Blocked("real P0 capability gaps remain: " + ", ".join(receipt.get("unverified", [])))
+    else:
+        unverified = sorted(set(receipt.get("unverified", [])) | {
+            name for name in required_capabilities(config)
+            if receipt.get("observations", {}).get("capabilities", {}).get(name, {}).get("status") != "verified"})
+        if receipt.get("status") != "ready" or unverified:
+            raise Blocked("real P0 capability gaps remain: " + ", ".join(unverified))
     return receipt

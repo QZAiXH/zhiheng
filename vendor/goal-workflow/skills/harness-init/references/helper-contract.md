@@ -48,6 +48,7 @@ Extra fields are extension metadata and grant no authority. Unknown limits are s
 - `environment`: nonempty `host`, `model`, `os`, `git`, `runtime`, `skills_revision`, `skills_path`, `dependency_lock_sha256`, `stop_method`, `lock_backend`. Record host/version together (initial target: actual Codex CLI version). The dependency-lock field is a lowercase 64-hex SHA-256. These are observations to verify independently, not proof that stop or lock capabilities work
 - `limits`: every limit below, with no implicit defaults
 - `checks`: one or more required check definitions
+- Optional `host.commit_mode`: enum `model_commit` (legacy default when absent) or `controller_commit`. A new `goal-harness init` draft explicitly recommends the latter but authorizes no task paths or execution. See [controller commit](controller-commit.md)
 
 Local and GitHub limits: `command_seconds`, `stop_grace_seconds`, `implementation_seconds`, `review_seconds`, `repair_attempts`, `task_seconds`, `task_attempts`. GitHub also requires `request_seconds`, `query_attempts`, `ci_wait_seconds`, `merge_queue_wait_seconds`. All values must be finite and strictly positive; `*_attempts` must be integers, not booleans. `repair_attempts` is at most 2, preserving the source plan's repair cap. Limits are only validated here, never enforced by a timer or executor.
 
@@ -75,6 +76,8 @@ A minimal task:
 IDs (tasks, runs, attempts, checks and acceptance entries) use `[A-Za-z][A-Za-z0-9._-]{0,127}`. Numeric platform issue numbers are not canonical task IDs; e.g. use `gh-123`. IDs are case-sensitive and must be unique in their scope. File/title changes do not require changing the ID. Dependencies must be explicit unique IDs, all present in `tasks`; `graphlib.TopologicalSorter` rejects self-cycles and longer cycles. Missing external/page-boundary dependencies block rather than disappear. A DAG does not prove dependency completion or delivery into the downstream baseline.
 
 The three report mappings are mandatory and globally unique across tasks. Paths must be normalized portable repository-relative paths, without absolute paths, `..`, `.`, empty components, backslashes, drive/URI colons, control characters, trailing dots/spaces, or Windows device names. NFC-normalized, case-folded paths are compared to avoid common cross-platform collisions; file/directory ancestor collisions also fail. Existing symlink components and non-regular files fail. Mapping paths need not exist yet. Path safety is a read-time check only, not a filesystem sandbox or guarantee against later path replacement.
+
+`controller_commit` tasks additionally require `allowed_paths`: 1..500 unique exact portable repository-relative file names. Directory paths, globs, pathspec magic, leading option syntax, Git metadata and Controller state are refused, as are current symlinks and portable collisions. New file names may be listed before creation. Report mappings grant no implicit write scope. Existing `model_commit` tasks can omit this field; if provided it is validated. Scope is part of the complete task fingerprint and approved contract, not inferred from actual changes.
 
 ### Checkpoint snapshot
 
@@ -216,7 +219,7 @@ Task files are regular UTF-8 `.md` files, 1 byte through 1 MiB each, with at mos
 - `config.ready`：P0 已经按实际宿主与项目核实后的操作条件；不得通过任意填写 true 替代原始探针记录。当前真实宿主验收缺口见验收矩阵
 - `config.host.implementation_argv`、`review_argv`：参数数组，不经 shell 展开。允许 `{worktree}`、`{task_id}`、`{prompt}`、`{input}`、`{output}`；review 另有 `{schema}`。使用已验证的实际 Codex 路径与参数
 - Codex review 示例数组：`["codex", "exec", "--sandbox", "read-only", "--json", "--cd", "{worktree}", "--output-schema", "{schema}", "--output-last-message", "{output}", "{prompt}"]`。实际宿主帮助不支持的参数不得照抄；这里只展示当前经过帮助核查的形状
-- 实现宿主应使用已验证的隔离工作区写入权限，不能用 bypass sandbox/approval；`run --implement` 建立新的源工作树并让宿主在该分支完成提交
+- 实现宿主应使用已验证的隔离工作区写入权限，不能用 bypass sandbox/approval；`run --implement` 建立新的源工作树。`model_commit` 由宿主提交且须证明其 Git 权限；`controller_commit` 则只让宿主修改/测试精确允许文件，提交由 Controller 审计后执行
 - `config.knowledge`：`executable` 为固定 Serena 1.7.0 原生命令绝对路径；`python_executable` 为同一 Serena 环境的 Python（注册桥接需要）；`serena_home` 为明确的项目隔离 Serena 用户目录。不要复用未知个人全局记忆
 - `task.source`、`task.target`：真实 Git 分支；`task.spec`：仓库相对、非符号链接的规范文件；`task.durable_evidence`：已入库的来源文件列表；`task.reports`：唯一 note/walkthrough/delivery 路径映射
 - `config.checks[].kind == "test"` 时实际执行入口还需 `junit`：候选工作树内全新的相对 JUnit XML 路径。既有报告不重用、不删除。执行零条、skip、失败、没有新报告均拒绝通过
@@ -234,7 +237,7 @@ Task files are regular UTF-8 `.md` files, 1 byte through 1 MiB each, with at mos
 
 `ready:true`只是期望配置，不能独自开启实际执行。先调用 `record-capabilities`：该入口直接运行组件/宿主探针，不接受调用者提供的成功JSON。收据绑定实际仓库公共目录、模式、配置/检查/预算、宿主可执行文件及脚本、Python/包版本、依赖锁、实际加载的SKILL.md和参考文件，以及留存的原始日志。`environment.skills_path`须是真实加载目录；以$zh为入口时设置`entry_skill:"zh"`并让该目录包含zh与增强依赖。
 
-live收据必须具有真实开始/独立审查/恢复/停止、原生知识读取和项目写入等证据，并提供已授权的、已入库的语义知识审阅记录。缺项保持blocked。配置`p0.run_host_drills:true`启用真实Codex演练，取消演练另显式启用`run_host_cancel_drill`，具体有限参数见p0-probe.md。
+live收据必须具有真实开始/独立审查/恢复/停止、原生知识读取和项目写入等证据，并提供已授权的、已入库的语义知识审阅记录。还须按提交模式具有 `controller_commit` 或 `model_git_commit`：前者为免费原生对象/CAS证明，后者在当前只读宿主P0中保持未验证，Controller写入不能代替。缺项保持blocked。配置`p0.run_host_drills:true`启用真实Codex演练，取消演练另显式启用`run_host_cancel_drill`，具体有限参数见p0-probe.md。
 
 simulation收据只允许系统临时目录内、无remote、已提交`.harness-simulation`且内容为`isolated-harness-fixture`的显式fixture。结果持续标记simulation；普通deliver和任何远端写操作不能使用它。隔离fixture交付必须另带`--simulation`，不代表生产交付验收。
 

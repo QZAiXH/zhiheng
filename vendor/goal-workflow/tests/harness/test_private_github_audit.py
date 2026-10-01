@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_github_probe as probes
 import test_capabilities_audit as receipts
 import test_github as adapters
-from harness.capabilities import record_capabilities, require_capabilities, REQUIRED_LIVE
+from harness.capabilities import record_capabilities, require_capabilities, required_capabilities
 from harness.runtime import Controller
 from harness.github import GitHubAdapter, AdapterError
 
@@ -64,7 +64,7 @@ class PrivateReceiptAudit(unittest.TestCase):
                                  "baseline_policy": "review_only", "required_checks": ["unit"]}
         (self.root / "semantic-review.md").write_text("# Explicit fixture operator review\nSources checked; mock P0 only.\n")
         self.commit("private capability fixture review")
-        capabilities = {name: {"status": "verified", "fixture": "mocked P0"} for name in REQUIRED_LIVE}
+        capabilities = {name: {"status": "verified", "fixture": "mocked P0"} for name in required_capabilities(self.config)}
         capabilities["github_authenticated_capabilities"] = {"status": "verified"}
         observed = {"capabilities": capabilities, "github_probe": {"status": "verified",
             "observations": {"repository": {"private": True}},

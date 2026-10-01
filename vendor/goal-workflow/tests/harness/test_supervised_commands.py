@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 import unittest
+import psutil
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_local_audit as fixtures
@@ -81,7 +82,16 @@ class SupervisedCommands(unittest.TestCase):
             for item in identities:
                 child = owned(item)
                 if child:
-                    child.kill()
+                    try:
+                        child.kill()
+                    except psutil.NoSuchProcess:
+                        # killpg may finish this exact PID/birth identity before
+                        # its individual cleanup signal reaches the kernel.
+                        pass
+            deadline = time.monotonic() + 3
+            while any(owned(item) for item in identities) and time.monotonic() < deadline:
+                time.sleep(0.01)
+            self.assertFalse(any(owned(item) for item in identities), "owned fixture processes survived cleanup")
 
     def test_platform_runner_child_survives_controller_crash_but_blocks_takeover(self):
         self._crash_and_assert_takeover_blocked(

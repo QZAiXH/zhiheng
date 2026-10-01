@@ -2,15 +2,56 @@
 
 快照日期：2026-10-01 UTC。依据：用户提供的集成计划 v0.5 第 7 节；首版宿主为 Codex CLI；用户指定保留 `$zh` 为主入口，目标平台为 macOS + Linux/WSL（不承诺原生 Windows）。此报告是滚动记录，不能替代最后一次发行物冻结后的复跑。
 
-## 最终冻结验证
+## 当前可选 Controller 提交：仅普通功能子集完成
 
-**当前实现完整400/400通过，0跳过，649.989秒；163个代码/脚本/测试/docs文件SHA零漂移。** 开启固定真实Serena，覆盖最新ready、编号读取解析、首次wait预算、GitHub五项CLI夹具及local三组场景。[完整日志](evidence/final-400-tests.log)、[输入指纹](evidence/final-400-input-sha256.json)、[零漂移](evidence/final-400-drift.json)。运行结束后仅追加本报告和证据副本；没有新增真实模型或网络操作。
+用户已明确批准模型编辑/测试、Controller 限定任务分支提交的可选分工。`controller_commit` 已实现；缺失模式仍保留 `model_commit` 兼容，新初始化模板显式推荐前者。没有关闭模型 sandbox、扩大其 writable roots，或把 worktree 当作 OS 安全边界。
 
-此400项证明当前分层实现与隔离模拟整链；真实Mac已有四步及P0部分分项，旧整体P0收据仍blocked；实际GitHub人工平台验证另列。完整真实双模式P5和原版/增强成本收益对比仍未完成，不能宣称整个源计划全部验收通过。
+- **普通功能 37 项通过**，不是无筛选全量验收：28 项普通单元/CLI 接线测试通过，21.923 秒；另 9 项端到端夹具通过，0 跳过，770.826 秒。[28 项日志](evidence/controller-commit-functional-28.log)、[9 项日志](evidence/controller-commit-functional-9.log)、[汇总](evidence/controller-commit-functional-summary.json)
+- 9 场景包含 local 三组、GitHub 三组、两项数据保留反例与原生知识三任务链。Git、Serena、产品 CLI 和检查进程为真实执行；模型、语义审阅、GitHub 与网络运输明确模拟。11 次 Controller source commit 已核对，5,542 个归档日志指纹及 837 个能力原始日志绑定已核验；未新增真实模型或外部平台操作
+- 45 个相关技能/包/夹具输入在本轮前后 SHA 完全相同：[运行前指纹](evidence/controller-commit-functional-input-sha256.json)、[运行后指纹](evidence/controller-commit-functional-input-sha256-after.json)、[零漂移](evidence/controller-commit-functional-drift.json)。Controller 模块 SHA256：`09715226c3add4294701a364cf3e329a23aaaa283bfe9ddec9284ac29e015fc5`
+- **另 28 项保留但暂停，独立安全复核未完成。** [精确允许/暂停清单](evidence/controller-commit-test-scope.json)记录四个新增模块共 65 项，仅允许 37 项。测试源与断言没有删除或弱化；本轮通过不能证明暂停边界通过，也不能标为生产安全或整个计划完成
+- 新协议拒绝不支持的 hooks/filters/signing、特殊索引/文件和范围外修改；提交身份、literal allowed_paths、固定父提交/tree、原生 expected-old CAS、未知结果及索引恢复均保留记录。实现工作区使用受限 no-checkout/raw-blob 初始化；这不等价于完整 Git checkout/commit 语义。仓库含特殊策略时保持 blocked
+
+### 原生知识写回与后续加载的实际范围
+
+同一普通 local 夹具先完成业务交付 D，再单独审批依赖该 D 的知识任务。知识候选引用 D 中已提交的 `solution.py`、`tests/test_business.py` 和原任务 walkthrough，使用原生 Serena 写 topic、更新 core 链接，再由 Controller 提交并重新检查/审阅、交付知识 D。第三个业务任务的新 worktree 在修改前原生读取 core→topic，其 HEAD 等于知识 D，且无关记忆保留。
+
+候选生成/语义审阅是确定性模拟；记忆内容仅总结实现和已提交测试的断言定义，明确测试源文件不是历史测试执行凭据。没有用需求 SPEC、尚未提交的未来报告或已过期 CI 产物证明“已测试通过”。该链证明原生 promotion/持久来源/后续读回，不证明真实模型总结质量、知识收益或真实两模式 P5。
+
+### 目前应怎样运行回归
+
+在 `zhiheng` 发行仓库根使用 `tools/run-harness-tests.py`，以锁定 Python 分别运行 `--suite core`、`--suite local`、`--suite github`、`--suite knowledge`。`--list` 只用于 collection/分组核对；存在暂停项时 `--suite all` 拒绝执行。不要无筛选执行全部 unittest，也不要把暂停项转交其他环境运行。
+
+启动器仅为合成 fixture 测试进程显式选择 `GIT_CONFIG_NOSYSTEM=1`、`GIT_CONFIG_GLOBAL=os.devnull`，保留临时仓库本地配置并记录环境；不编辑用户配置文件，不更改生产 Git 策略。普通功能分片可分别通过，但汇总仍须标示暂停项和独立复核未完成。
+
+模型侧 Git 权限不能从 Controller IO/CAS 探针推断；`model_commit` 当前缺实际权限证据时 live P0 保持 blocked。新模式仍须当前宿主自身证据；旧快照 receipt 不可移用于新字节。受限提交会对新增范围外缓存停靠，不擅自清理用户文件。只读提交对账仍需原任务/配置绑定及查询预算；预算耗尽或配置更换时保留事实并转人工，不重置预算或重发提交。
+
+以下 406/400/365 等均为**历史快照结果**，不覆盖当前新增协议，更不能抵消暂停项。选入本文的新日志只来自合成 fixture，未包含用户 Mac 原始日志；[公开材料检查记录](evidence/controller-commit-public-artifact-scan.json)保留来源与指纹。
+
+## Mac 实机当前状态（按快照区分）
+
+- **350f178**：真实四项 P0 全部 verified，新 live capability receipt 为 ready。此前 **4c4f131** 因编号读取解析误报的旧 receipt 仍为 blocked，未覆盖或伪改旧记录；两次实际执行与收据不能混写。
+- 随后第五次实现模型真实读取 `$zh`、共享路由与 `zh-implement`，但新 implementation worktree 尚未注册 Serena，原生 memory read 被阻塞；H=T，无业务改动、无 D。新增自动注册修复已通过真实原生五项及406整套，尚未以真实模型重验成功闭环。
+- 免费官方 workspace sandbox 探针中 `git add` 因 common Git目录 `index.lock: Operation not permitted` 失败，`git commit` 未执行。用户随后批准了可选 Controller 限定提交职责；当前普通功能子集见上文，真实模型＋新提交协议闭环尚未重验。未更改权限或绕过sandbox。
+- d538856 的 [Actions 36830812570](https://github.com/QZAiXH/zhiheng/actions/runs/36830812570)：Linux 与 ARM 成功；Intel 后续出现两项 fixture 失败（已退出进程的清理竞态、原生知识假host诊断/预算不足以归因）。当前仅修测试清理与显式原生步骤预算，普通本地 4+5 项已通过，未把旧 Intel 失败改写为通过；新版平台普通分片待验。
+
+- 另有免费官方 workspace sandbox 组件检查：在预先准备/注册的临时 fixture 中，原生 maintenance/core/topic 读取及一条项目 memory 写入/读回共 5 次 exit 0，stderr 为空、字节相等，总 3.007 秒；未新增模型调用或 writable roots。它仅证明该已准备环境的记忆读写权限，不证明安装、首次注册、LSP/MCP 启动或真实模型知识闭环。原 receipt/checkpoint 未更改。
+
+## 历史工作区原生知识修复冻结验证（406 项）
+
+**406/406通过，0跳过，948.933秒，167文件SHA零漂移。** [完整日志](evidence/final-406-tests.log)、[输入指纹](evidence/final-406-input-sha256.json)、[零漂移](evidence/final-406-drift.json)。新增实现worktree在启动宿主前由Controller监督原生Serena注册与已提交spec/core就绪检查；真实原生五项验证实现/审查两工作区读取maintenance/core/topic/nested、恢复注册字节保留、错误阻断宿主。宿主仍明确模拟，无新真实模型调用。
+
+本轮同时通过local三组、GitHub四业务＋两运输隔离（共六项），Mac TMPDIR别名回归包括拒绝任意remote别名。以下400/365记录为更早快照；406及其指纹仅证明当时版本，不包含当前可选提交协议；真实P0/P5边界仍照下文，测试数不能替代实际模型/平台验收。
+
+## 前次冻结验证
+
+**此前实现完整400/400通过，0跳过，649.989秒；163个代码/脚本/测试/docs文件SHA零漂移。** 开启固定真实Serena，覆盖最新ready、编号读取解析、首次wait预算、GitHub五项CLI夹具及local三组场景。[完整日志](evidence/final-400-tests.log)、[输入指纹](evidence/final-400-input-sha256.json)、[零漂移](evidence/final-400-drift.json)。运行结束后仅追加本报告和证据副本；没有新增真实模型或网络操作。
+
+此400项证明当时的分层实现与隔离模拟整链；真实Mac已有四步及P0部分分项，旧4c4f131整体P0收据仍blocked，新350f178 live收据已ready；实际GitHub人工平台验证另列。完整真实双模式P5和原版/增强成本收益对比仍未完成，不能宣称整个源计划全部验收通过。
 
 ## 结论
 
-已实现并在隔离夹具中验证若干核心控制、证据、Git、安装及原生 Serena 接缝。当前不能称 P0–P5 完成：云端真实 Codex 启动受阻，用户 Mac 上 Codex 0.159.2 / gpt-6.1-sol low 的真实实现、独立审查、exact-session续接和fresh-context交接四步已执行成功；真实 GitHub 人工平台三组任务与严格保护正向合并已验，但产品自动控制器结合真实模型的两模式 P0/P5、完整知识语义闭环及成本对比尚未完成。单元通过、模拟平台或结构就绪不等于完整流程可用。
+已实现并在隔离夹具中验证若干核心控制、证据、Git、安装及原生 Serena 接缝。当前不能称 P0–P5 完成：云端真实 Codex 启动受阻，用户 Mac 上 Codex 0.159.2 / gpt-6.1-sol low 的真实实现、独立审查、exact-session续接和fresh-context交接四步已执行成功；真实 GitHub 人工平台三组任务与严格保护正向合并已验，但产品自动控制器结合真实模型的两模式完整P5、知识语义闭环及成本对比尚未完成；350f178实机P0 ready后的第五次实现仍阻塞。单元通过、模拟平台或结构就绪不等于完整流程可用。
 
 ## 证据等级
 
@@ -46,7 +87,7 @@
 
 实际 Codex 0.159.2，gpt-6.1-sol，low。四个实际模型进程 exit 0：实现修复 calculator.py 并实际复跑两测试；独立审查另会话；返回确切原会话恢复两项 AC；新上下文读取交接与代码并跑测试。耗时依次 29.167 / 30.474 / 18.141 / 49.534 秒，合计 127.317 秒。完整 17 项安装与原生 Serena 版本、注册、记忆读写、引用检查也实际通过。
 
-这次交接被新会话指出缺精确测试命令和审查日志定位，脚本已补齐并完成fake回归及最终整套验证，没有再付费重复该四步；语义 onboarding、宿主激活、原生取消及完整 P0/P5 不能由四步 exit 0 推导。后续原生P0分项：start verified 12.947秒、review blocked 20.396秒（模型正确指出110≠90，nl逐字读取识别误报）、resume verified 18.744秒、cancel verified 23.709秒；18个PID+出生时间确认停止，第二次检查零遗留。旧receipt保持blocked，修复parser仅真实trace离线回放及反例通过，没有新live ready。17 skills在repo enabled；Serena五memory经操作员语义核对、codex context MCP激活及读回通过，但未证明模型实际调用$zh/MCP。公开 review usage 为 0 不代表零费用，resume usage 为累计；诊断中各步有输出记录 input/cache/output 为 53934/43904/344、35700/30336/350、19749/17792/60、99711/90752/631，并另有零输出响应，不能相加作为精确账单。
+这次交接被新会话指出缺精确测试命令和审查日志定位，脚本已补齐并完成fake回归及最终整套验证，没有再付费重复该四步；语义 onboarding、宿主激活、原生取消及完整 P0/P5 不能由四步 exit 0 推导。后续原生P0分项：start verified 12.947秒、review blocked 20.396秒（模型正确指出110≠90，nl逐字读取识别误报）、resume verified 18.744秒、cancel verified 23.709秒；18个PID+出生时间确认停止，第二次检查零遗留。这是旧4c4f131记录：receipt保持blocked，parser最初仅离线回放通过；后续350f178重新真实执行四项全部verified并生成新live ready，详见本报告顶部。17 skills在repo enabled；Serena五memory经操作员语义核对、codex context MCP激活及读回通过，后续第五次实现已证明模型读取$zh及路由；未证明完整业务闭环或模型MCP调用。公开 review usage 为 0 不代表零费用，resume usage 为累计；诊断中各步有输出记录 input/cache/output 为 53934/43904/344、35700/30336/350、19749/17792/60、99711/90752/631，并另有零输出响应，不能相加作为精确账单。
 
 
 - 第四冻结轮：**362/362 通过，0 跳过，348.256 秒**，真实固定 Serena 环境启用；[日志](evidence/freeze-fourth-tests.log)、[141 输入文件 SHA](evidence/freeze-fourth-input-sha256.json)、[零漂移](evidence/freeze-fourth-drift.json)。随后修复 commit-sensitive 任务最终 D≠C 即使同树也不能交付的边界，新增三项模拟平台回归，平台门禁 15/15 通过；因此第四快照不是该最后修复的全套证明，第五/最终第六轮才覆盖。
@@ -107,11 +148,11 @@
 
 | 阶段 | 当前范围 | 状态/剩余退出条件 |
 |---|---|---|
-| P0 | 固定源版本、环境与工具探针、CLI 能力与原生知识入口 | 部分；云端真实 Codex 受阻；用户 Mac 实现/审查/续接/新会话四步已验，原生停止分项已验、操作员语义核对已做；完整P0 receipt仍blocked，模型$zh/MCP调用未证实，GitHub 普通读写/CI 已探针验证；严格规则与人工受保护合并已验；未建立两模式真实任务基线与工期测量 |
+| P0 | 固定源版本、环境与工具探针、CLI 能力与原生知识入口 | 部分；云端真实 Codex 受阻；用户 Mac 实现/审查/续接/新会话四步已验，原生停止分项已验、操作员语义核对已做；350f178新live P0 receipt已ready，模型已读$zh/路由，MCP实际调用与真实业务闭环未证实，GitHub 普通读写/CI 已探针验证；严格规则与人工受保护合并已验；未建立两模式真实任务基线与工期测量 |
 | P1 | review helper 退出码、审查失败分支、依赖与文档路由 | 隔离回归已运行；真实 Codex独立review四步探针已验；完整修复循环待验；原生平台依赖及人工交付链已验 |
 | P2 | 初始化、自包含资产、合同、运行/状态锁、限额、报告定位 | 隔离控制与安装测试；实际 Codex 技能发现/加载、完整 onboarding 和环境声明仍待验 |
 | P3 | 共享串行入口、本地候选/检查/审查门禁、GitHub 适配、证据 | 真实 Git + 模拟 host/platform；真实两模式模型任务闭环与交付前知识语义更新仍待验；本地可选 push 已在真实 bare remote 夹具验证 |
-| P4 | 崩溃、遗孤、CAS、对账、预算、持久依据 | 本地故障测试已运行；真实宿主取消/平台未知操作和清理后知识可核实的完整场景待验 |
+| P4 | 崩溃、遗孤、CAS、对账、预算、持久依据 | 本地故障测试已运行；真实宿主取消已验；平台未知操作与清理后知识完整组合场景待验 |
 | P5 | 安装升级/回退；同tree与业务字节的双模式三组CLI模拟链及指标 | 模拟链已通过且有单次local/GitHub耗时与命令数；真实Codex双模式、原版/增强收益及成本/人工对比未完成，P5仍未通过 |
 | P6 | 并行 graph、资源隔离与组合验证 | 后续可选，依赖 P5；本次不启动，不计为已实现 |
 
@@ -133,7 +174,7 @@
 | A08 | 本地提交成功或可选推送成功后进程中断 | 恢复时核对已有提交和引用，不重复生成提交或误报交付 | `local_audit.test_successful_remote_push_with_old_intent_is_reconciled; local_audit.test_nonnumeric_id_candidate_and_authorized_ff_delivery; runtime_audit.test_crash_recovery_preserves_attempt_and_consumed_budget` | R | 真实本地 bare remote 已成功但保留旧 intent 的恢复已验；精确引用对账复用并更新 observed，不重推 |
 | A09 | 目标分支已合入但 checkpoint 未更新 | 查询实际 Git/平台状态，正确推进，不重复合入 | `cli_e2e.test_dependency_handoff_then_native_delivery_boundary_reconciliation; workflow_audit.test_cli_reconcile_is_idempotent_after_actual_delivery; workflow_audit.test_cli_reconcile_cannot_promote_tampered_evidence` | R+N+M-host | 真实本地 Git已交付但checkpoint未更新的CLI对账、重复对账和假证据拒绝已验；真实平台合并尚未发生 |
 | A10 | checkpoint 损坏或发生过期修订号回写 | 不覆盖有效状态；明确报告冲突或进入恢复流程；运行互斥另按下表验收 | `runtime_audit.test_stale_revision_and_attempt_cannot_write; runtime_audit.test_mode_mismatch_and_corruption_preserve_checkpoint` | R | 隔离真实 CAS/坏文件保留已验 |
-| A11 | 重新打开会话，只提供交接文件 | 能复原验收条件、决策理由、未决问题和下一步，无需重读整段聊天 | `无真实 Codex 新会话成功记录` | B-host | CLI 会话启动前失败；仅交接文件的新会话恢复未执行 |
+| A11 | 重新打开会话，只提供交接文件 | 能复原验收条件、决策理由、未决问题和下一步，无需重读整段聊天 | `用户Mac真实四步：fresh-context交接读取代码并运行tests` | 真实host | 两项AC新会话恢复已验；当次指出精确测试命令/review日志定位缺口，脚本已修且模拟回归通过，未再付费重演该四步 |
 | A12 | 提出无证据或与现有规范冲突的知识候选 | 保留候选与冲突，不能直接写成永久事实 | `knowledge.test_temporary_untracked_external_and_traversal_rejected; workflow_audit.test_native_not_ready_cannot_reach_checks_or_review` | R+M-host | 持久依据结构拒绝已验；规范冲突的模型语义判定未验 |
 | A13 | Serena 重命名、断链及只读记忆 | 验证原生引用更新及只读项边界；断链报告进入验收失败，不能只看 CLI 退出码 | `durable_cleanup.test_native_rename_propagates_mem_reference; durable_cleanup.test_guarded_native_edit_and_rename_preserve_neighbors; durable_cleanup.test_native_tool_readonly_boundary_is_respected; knowledge.test_native_lifecycle_preservation_and_broken_reference` | N+R | 原生 rename 引用传播、受控 edit/rename、只读拒绝和断链转换均实测；不宣称对直接文件编辑形成权限隔离 |
 | A14 | 重复初始化或项目已有维护模板 | 已有模板和记忆不被覆盖；全局与项目模板的有效来源明确 | `init_project.test_user_config_is_preserved_and_needs_review; knowledge.test_native_lifecycle_preservation_and_broken_reference` | R+N | 重复初始化/自定义维护模板保留已验；个人全局模板优先级仍需实际宿主确认 |
@@ -178,12 +219,12 @@
 
 ## 目标平台边界
 
-Linux/WSL 使用 POSIX 原生锁/进程与本地文件系统；Linux及macOS ARM/Intel已在实际 Actions通过，WSL未独立执行。macOS首轮失败保留历史，修复后的真实rerun与Mac用户宿主四步成功分列；原生停止已分项验证，完整P0 receipt仍blocked。单纯模拟 sys.platform 或分支覆盖不得写为 macOS 实测。`$zh` 是对外主入口；goal-workflow 上游技能作为内部流程组件，不改变用户已选入口。
+Linux/WSL 使用 POSIX 原生锁/进程与本地文件系统；历史版本的 Linux 及 macOS ARM/Intel 曾在实际 Actions 通过，WSL 未独立执行。当前可选提交协议的新版平台普通功能子集需按明确允许清单单独验收，暂停项不计通过。macOS首轮失败保留历史，修复后的真实rerun与Mac用户宿主四步成功分列；原生停止已分项验证，350f178新live P0 receipt已ready，业务实现仍因原生worktree/提交权限边界未完成。单纯模拟 sys.platform 或分支覆盖不得写为 macOS 实测。`$zh` 是对外主入口；goal-workflow 上游技能作为内部流程组件，不改变用户已选入口。
 
 ## 继续验收需要的条件
 
-1. 用户Mac真实四步及17安装已通过，原生P0部分因读取解析误报保持blocked，取消已分项验证；仍需核实完整live receipt和模型$zh/MCP真实调用；不重跑已完成昂贵四步，也不放宽系统安全策略。
+1. 用户Mac真实四步及17安装已通过，350f178原生P0 live ready及取消已验证，模型已读$zh/路由；用户已批准可选提交职责方案；还需完成新协议真实实现/交付闭环，不能更改权限；不重跑已完成昂贵四步，也不放宽系统安全策略。
 2. 已授权 GitHub 沙盒 QZAiXH/zhiheng 的普通 gh 路径已工作；不需再次登录或选择仓库。测试分支严格保护、人工实际合并、D与受检内容关联和Issue收尾已验；真实merge queue/merge_group尚未验，如需修改队列规则须单独授权。不要把实现 PR #3 的 Actions 当完整模式验收。
 3. 同基线双模式模拟三组与文件/时间/命令数已记录；继续完成真实模型/平台两模式及原版/增强首次通过率、返工、人工、耗时和成本比较，不把模拟差值当生产收益。
-4. 发行前冻结文件、保存完整测试日志和版本指纹，再复跑。安装/升级/回退测试在临时目录中成功不证明用户已有安装或历史 checkpoint 已迁移。
+4. 发行前冻结文件、保存允许功能子集的日志和版本指纹，再按明确清单复跑；暂停项和独立安全复核未完成不得隐藏。安装/升级/回退测试在临时目录中成功不证明用户已有安装或历史 checkpoint 已迁移。
 5. 尚未有证据的功能应继续实现/测试，或明确记录阻塞并请求所需帮助；不能以手册描述、schema 合格、模拟返回或原生组件探针充当 P5 发布证明。

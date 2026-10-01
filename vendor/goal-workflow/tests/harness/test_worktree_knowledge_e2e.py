@@ -12,6 +12,7 @@ from pathlib import Path
 import subprocess
 import sys
 import textwrap
+import time
 import unittest
 
 _FIXTURE_PATH = Path(__file__).with_name("test_cli_e2e.py")
@@ -33,6 +34,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 
 mode, task, output, serena, serena_python, audit, expected_path = sys.argv[1:]
 root = Path.cwd().resolve()
@@ -41,7 +43,11 @@ assert os.environ.get("SERENA_HOME") == expected["serena_home"]
 env = dict(os.environ)
 env.pop("PYTHONPATH", None)
 def native(*args):
+    started = time.monotonic()
     result = subprocess.run([serena, *args], cwd=root, env=env, capture_output=True, text=True, timeout=15)
+    with Path(audit).open("a") as stream:
+        stream.write(json.dumps({"phase": "native_command", "mode": mode, "argv": list(args),
+            "elapsed_seconds": time.monotonic() - started, "exit_code": result.returncode}) + "\n")
     assert result.returncode == 0, result.stderr
     return result.stdout
 
@@ -84,13 +90,50 @@ sys.argv = sys.argv[:4]
 class WorktreeKnowledgeE2E(unittest.TestCase):
     # Reuse setup/helpers only; do not inherit or rerun the original test cases.
     git = _FIXTURE.CliE2E.git
-    cli = _FIXTURE.CliE2E.cli
     task = _FIXTURE.CliE2E.task
     save_bundle = _FIXTURE.CliE2E.save_bundle
     state = _FIXTURE.CliE2E.state
 
+    def cli(self, command, *args, okay=True):
+        started = time.monotonic()
+        try:
+            argv = [sys.executable, "-m", "harness.cli", command, "--bundle", str(self.bundle_path)]
+            if command not in ("preflight", "evidence"):
+                argv.extend(["--run", "e2e-run"])
+            # Two native-heavy fake-host stages plus bounded Controller setup.
+            result = subprocess.run(argv + list(args), env=self.env, capture_output=True,
+                                    text=True, timeout=2 * self.native_host_budget + 60)
+            if okay:
+                self.assertEqual(0, result.returncode, result.stdout + "\n" + result.stderr)
+                return json.loads(result.stdout)
+            self.assertNotEqual(0, result.returncode, result.stdout + "\n" + result.stderr)
+            return result
+        except (AssertionError, subprocess.TimeoutExpired) as exc:
+            # Keep diagnostic bytes in test output before TemporaryDirectory
+            # cleanup. This fixture contains no model/provider credentials.
+            details = {"command": command, "args": args, "elapsed_seconds": time.monotonic() - started,
+                       "limits": self.bundle["config"]["limits"], "attempts": [], "host_reads": self.observations()}
+            checkpoint = self.repo / ".loop-state.json"
+            if checkpoint.exists():
+                for row in json.loads(checkpoint.read_text()).get("attempts", []):
+                    if str(self.host) in row.get("argv", []):
+                        item = dict(row)
+                        for field in ("log", "stderr_log"):
+                            if row.get(field) and Path(row[field]).is_file():
+                                item[field + "_content"] = Path(row[field]).read_text(errors="replace")
+                        details["attempts"].append(item)
+            rendered = json.dumps(details, ensure_ascii=False, indent=2)
+            print("NATIVE_WORKTREE_FAILURE_DIAGNOSTICS=" + rendered, flush=True)
+            raise AssertionError(str(exc) + "\n" + rendered) from exc
+
     def setUp(self):
         _FIXTURE.CliE2E.setUp(self)
+        # Six native CLI reads/checks plus one native registry Python process,
+        # each capped at 15 s, and 15 s for deterministic fixture assertions.
+        # This is a fake-host fixture budget, never a real-model setting.
+        self.native_host_budget = 7 * 15 + 15
+        self.bundle["config"]["limits"].update(implementation_seconds=self.native_host_budget,
+                                                  review_seconds=self.native_host_budget)
         self.env["SERENA_HOME"] = str(self.home)
         self.adapter = SerenaAdapter(self.repo, SERENA, self.home, python_executable=SERENA_PYTHON)
         sources = ["README.md", "docs/spec.md"]

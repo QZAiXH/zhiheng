@@ -16,6 +16,8 @@ description: Initialize, run, validate, recover, and hand off the goal-workflow 
 5. 用原生 Serena v1.7.0 完成注册、onboarding、实际项目阅读与记忆写入。维护模板不代表完成梳理。`core`、相关主题、项目命令和约束必须实际可读；原生引用分析明确无断链才通过，不能只看退出码。见 [知识与决策](references/knowledge.md)。保留已有知识，重要取舍沿用已附来源的 MADR 4.0.0 模板。
 6. 在实际 Codex CLI 中演练执行、独立审查、停止/子进程退出和新会话续接；记录原始证据。仅 `--version`/`--help` 或 JSON 声明不足。缺少能力时停靠并指出需要用户完成的具体步骤。
 
+提交职责见 [Controller 提交边界](references/controller-commit.md)。已有配置省略 `host.commit_mode` 时仍为 `model_commit`；新初始化草稿明确推荐 `controller_commit`，但必须逐任务批准精确 `allowed_paths`。此模式下模型只修改/测试，绝不 stage/commit 或改 Git 元数据，由 Controller 审计后只更新本次任务 source 分支；sandbox 不变。旧通用技能的模型提交要求在此模式下不执行。
+
 ## 命令与边界
 
 命令均通过技能资产内 `goal-harness` 执行。`--bundle` 为配置与任务的执行快照，格式见 helper-contract。不要将命令中的占位符原样运行。
@@ -30,6 +32,8 @@ description: Initialize, run, validate, recover, and hand off the goal-workflow 
 - `deliver --bundle <file> --task <id> --run <run-id> --target-worktree <path> --authorize`：仅用于已明确授权的本地交付；复核证据、源/目标和清洁工作区后只做 fast-forward
 - `reconcile --bundle <file> --task <id> --run <run-id>`：查询实际 Git 状态；物理已合入与证明有效分别记录
 - `recover --bundle <file> --run <run-id>`：核实已记录执行已停止；未知身份、仍活跃执行或远端未知结果必须阻塞，不删除旧锁强行接管
+- `commit-reconcile --bundle <file> --run <run-id> --task <id> --operation <id>`：只读核对已有 Controller 提交的实际结果；收据过期仍可查事实，但不能授予执行权限或重试 CAS
+- `commit-recover-index --bundle <file> --run <run-id> --task <id> --operation <id> --authorize`：新鲜能力收据下仅完成已证明 CAS 成功后的 index 同步，不修改工作区文件或创建新提交
 - `closeout --bundle <file> --task <id> --run <run-id>`：交付后核对任务交接和已提交的持久依据，再推进 completed
 - `push --bundle <file> --task <id> --run <run-id> --authorize`：本地默认关闭；仅显式配置指定 remote/ref 且获授权才执行，超时先查远端实际引用
 - `github --bundle <file> --run <run-id> <action> --args '<JSON>'`：GitHub 原生查询/对账/授权交付；参数遵循适配器实际帮助与代码，不猜接口。verify核对实际PR、受检对象和CI；ready须本次授权和新鲜证据，未知结果仅reconcile-ready查询，不能重发；complete-issue依据实际交付回写任务；wait-checks持久保存等待预算；cancel核实远端操作停止。所有有副作用操作先记录意图，结果未知不得重复创建或合并

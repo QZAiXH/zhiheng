@@ -51,6 +51,28 @@ def _entered_controller(controller, root):
             and controller.run_lock.is_locked and Path(controller.root).resolve() == root)
 
 
+def _execution_stopped(controller):
+    """Never dispatch a later capability after an unknown prior project stop."""
+    try:
+        prior = controller.state.read().get("active")
+        if prior and (not prior.get("stopped") or any(owned(item) for item in prior.get("processes", []))):
+            return False
+        if controller.journal.exists():
+            prior = json.loads(controller.journal.read_text())
+            if not prior.get("stopped") or any(owned(item) for item in prior.get("processes", [])):
+                return False
+        return True
+    except (Blocked, OSError, ValueError, KeyError):
+        return False
+
+
+def _finish(report, observed):
+    report["observed_environment_sha256"] = fingerprint(observed)
+    report["automation_readiness"]["gaps"] = sorted(
+        name for name, capability in report["capabilities"].items() if capability["status"] == "blocked")
+    return report
+
+
 def _execute(controller, argv, name, timeout):
     if controller.journal.exists():
         prior = json.loads(controller.journal.read_text())
@@ -119,6 +141,9 @@ def probe(config, controller=None):
         root = Path(value).resolve()
         if not isinstance(config.get("host", {}), dict):
             raise Blocked("host must be an object")
+        commit_mode = config.get("host", {}).get("commit_mode", "model_commit")
+        if commit_mode not in ("model_commit", "controller_commit"):
+            raise Blocked("host.commit_mode must be model_commit or controller_commit")
     except (Blocked, ValueError, TypeError, OSError) as exc:
         capabilities["configuration"] = _cap("blocked", str(exc))
         report["automation_readiness"]["gaps"] = ["configuration"]
@@ -135,6 +160,14 @@ def probe(config, controller=None):
     except OSError as exc:
         capabilities["repository_read"] = _cap("blocked", str(exc))
     capabilities["repository_write"] = _cap("blocked", "A project write probe requires its entered Controller.")
+    capabilities["controller_commit"] = _cap(
+        "blocked" if commit_mode == "controller_commit" else "not_applicable",
+        "Controller commit requires an entered matching project Controller and a native object/ref-CAS probe."
+        if commit_mode == "controller_commit" else "host.commit_mode defaults to model_commit; controller-owned commits are disabled.")
+    capabilities["model_git_commit"] = _cap(
+        "blocked" if commit_mode == "model_commit" else "not_applicable",
+        "Model-side Git staging/commit permissions have not been observed. Controller writes, native CAS, version/help and read-only host drills do not prove model sandbox Git access."
+        if commit_mode == "model_commit" else "The configured model edits/tests only; controller-owned commits have their own native capability gate.")
     executables = options.get("executables", {})
     if not isinstance(executables, dict):
         capabilities["configuration"] = _cap("blocked", "p0.executables must be an object")
@@ -289,7 +322,23 @@ def probe(config, controller=None):
                 else:
                     report["preserved_probe_directory"] = str(temporary)
                     capabilities["temporary_controller_cleanup"] = _cap("blocked", "Execution stop is unconfirmed; probe files were preserved for reconciliation.")
+    if not safe_cleanup:
+        return _finish(report, observed)
     if _entered_controller(controller, root):
+        if commit_mode == "controller_commit":
+            try:
+                from .p0_controller_commit import probe_controller_commit
+                commit_probe = probe_controller_commit(controller, command_seconds)
+                report["controller_commit_probe"] = commit_probe
+                capabilities["controller_commit"] = _cap(commit_probe["status"], commit_probe["detail"],
+                    report_path=commit_probe["report_path"], report_sha256=commit_probe["report_sha256"],
+                    scope=commit_probe["scope"], proves_model_controller_split=False,
+                    host_boundary=commit_probe.get("host_boundary", {"status": "not_observed"}))
+            except (Blocked, OSError, ValueError) as exc:
+                capabilities["controller_commit"] = _cap("blocked", str(exc))
+        if not _execution_stopped(controller):
+            capabilities["project_execution_stop"] = _cap("blocked", "Prior project probe stop is unconfirmed; no further capability dispatch is allowed.")
+            return _finish(report, observed)
         try:
             token = uuid.uuid4().hex
             log = controller.common / "harness-p0" / (token + ".log")
@@ -302,6 +351,9 @@ def probe(config, controller=None):
                 "Actual locked repository common-directory write/read/delete probe; does not assert every working-tree path is writable.", record=result)
         except (Blocked, OSError, ValueError) as exc:
             capabilities["repository_write"] = _cap("blocked", str(exc))
+        if not _execution_stopped(controller):
+            capabilities["project_execution_stop"] = _cap("blocked", "Repository write probe stop is unconfirmed; no further capability dispatch is allowed.")
+            return _finish(report, observed)
         knowledge = config.get("knowledge", {})
         if isinstance(knowledge, dict) and knowledge.get("executable") and knowledge.get("serena_home"):
             try:
@@ -323,7 +375,5 @@ def probe(config, controller=None):
             capabilities["serena_native_probe"] = _cap("blocked", "Pinned executable and dedicated serena_home were not configured.")
     else:
         capabilities["serena_native_probe"] = _cap("blocked", "Native Serena calls may write cache/config; provide the actual entered matching project controller.")
-    report["observed_environment_sha256"] = fingerprint(observed)
-    report["automation_readiness"]["gaps"] = sorted(name for name, capability in capabilities.items() if capability["status"] == "blocked")
     # This implementation intentionally cannot erase HOST_GAPS via caller-supplied readiness JSON.
-    return report
+    return _finish(report, observed)

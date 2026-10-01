@@ -176,13 +176,15 @@ def main(argv=None):
     init.add_argument("--repo", required=True)
     init.add_argument("--mode", choices=["local", "github"], required=True)
     init.add_argument("--dry-run", action="store_true")
-    for name in ("preflight", "evidence", "validate", "deliver", "recover", "reconcile", "github", "run", "reports", "closeout", "push", "probe", "tasks", "approve-contract", "migrate", "knowledge", "record-capabilities"):
+    for name in ("preflight", "evidence", "validate", "deliver", "recover", "reconcile", "github", "run", "reports", "closeout", "push", "probe", "tasks", "approve-contract", "migrate", "knowledge", "record-capabilities", "commit-reconcile", "commit-recover-index"):
         p = sub.add_parser(name)
         p.add_argument("--bundle", required=True)
-        if name in ("validate", "deliver", "recover", "reconcile", "run", "github", "reports", "closeout", "push", "approve-contract", "migrate", "knowledge", "record-capabilities"):
+        if name in ("validate", "deliver", "recover", "reconcile", "run", "github", "reports", "closeout", "push", "approve-contract", "migrate", "knowledge", "record-capabilities", "commit-reconcile", "commit-recover-index"):
             p.add_argument("--run", required=True)
-        if name in ("validate", "deliver", "reconcile", "reports", "closeout", "push", "approve-contract"):
+        if name in ("validate", "deliver", "reconcile", "reports", "closeout", "push", "approve-contract", "commit-reconcile", "commit-recover-index"):
             p.add_argument("--task", required=True)
+        if name in ("commit-reconcile", "commit-recover-index"):
+            p.add_argument("--operation", required=True, help="exact recorded Controller commit operation identity")
         if name == "validate":
             p.add_argument("--attempt", required=True)
         if name == "run":
@@ -190,7 +192,7 @@ def main(argv=None):
             p.add_argument("--implement", action="store_true", help="start configured implementation host in isolated worktree")
         if name == "reports":
             p.add_argument("--results", required=True, help="actual observed draft report results JSON")
-        if name in ("push", "approve-contract", "migrate"):
+        if name in ("push", "approve-contract", "migrate", "commit-recover-index"):
             p.add_argument("--authorize", action="store_true")
         if name == "deliver":
             p.add_argument("--target-worktree", required=True)
@@ -435,6 +437,23 @@ def main(argv=None):
             with Controller(config["repository_root"], config["mode"], args.run, config_limits(config)) as controller:
                 if args.command == "run":
                     result = run_serial(controller, config, bundle["tasks"], args.attempt, args.implement)
+                elif args.command in ("commit-reconcile", "commit-recover-index"):
+                    from .controller_commit import operation_worktree, reconcile as reconcile_commit, recover_index
+                    path = operation_worktree(controller, args.operation)
+                    if args.command == "commit-recover-index":
+                        if not args.authorize:
+                            raise Blocked("index recovery requires explicit authorization for this recorded task commit")
+                        require_capabilities(controller, config)
+                        from .workflow import require_approved_contract
+                        require_approved_contract(controller, config, task)
+                        result = recover_index(controller, config, task, path, args.operation)
+                        state = controller.state.read()
+                        commits = state["tasks"].setdefault(task["id"], {}).setdefault("controller_commits", [])
+                        if not any(row.get("operation_id") == result["operation_id"] for row in commits):
+                            commits.append(result)
+                            controller.state.write(state, state["revision"])
+                    else:
+                        result = reconcile_commit(controller, config, task, path, args.operation)
                 elif args.command == "approve-contract":
                     result = approve_contract(controller, config, task, args.authorize)
                 elif args.command == "reports":

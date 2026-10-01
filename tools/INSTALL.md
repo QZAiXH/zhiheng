@@ -51,3 +51,14 @@ python3 tools/install-harness.py --destination /path/to/project --skills harness
 依实际技能加载位置读取 harness-init 的说明，用其 assets/project 的 uv.lock 安装工具。配置 local/github、限额、检查命令、目标分支和持久证据；完成原生 Serena 接入与 Codex P0 探针后再执行任务。能力收据和实际证据未齐时阻塞，不靠 ready:true 放行。
 
 macOS、Linux 与 WSL 需要分别实际验证原生锁、文件系统和停止路径。Windows 原生、网络共享文件系统等未验路径不自动支持。WSL 优先使用其 Linux 文件系统工作区。真实模型/平台未验证的项目不能靠模拟报告解锁交付。
+
+## 执行环境与权限
+
+worktree 是代码工作目录/分支的隔离，不是容器或操作系统安全边界。多数 Git refs 与默认仓库配置仍在多个 worktree 之间共享，见 [Git 官方说明](https://git-scm.com/docs/git-worktree)。共享开发环境可用于可信的专用开发机；仍需区分任务端口、项目依赖和测试数据库，并保留锁、证据和目标分支核验。
+
+Codex 宿主决定文件/网络权限，安装技能不会改变个人权限配置。应显式选择并实际验证权限档，参见 [Codex 官方权限说明](https://learn.chatgpt.com/docs/permissions)。正常 workspace 档可能保护 Git 元数据；不能从控制器可写 Git 推断模型也可写。扩大权限前必须明确影响范围，worktree 不能保护工作目录之外的个人数据。
+
+- 模型提交路径：只在实际宿主已证明具备所需 Git 写能力时使用
+- 控制器提交路径：模型保留既定沙箱；按本次批准的文件名单，由控制器执行受限提交。该路径有自身仓库策略限制和验证要求，不能据此假定支持所有 Git hooks、filters 或签名配置
+
+换用共享环境不代表其它审核限制消失。无论哪种路径，都不能把尚未执行的检查标记为通过；当前版本的真实与模拟覆盖范围以验收报告为准。

@@ -1,0 +1,285 @@
+{
+  "capability_raw_log_bindings_verified": 837,
+  "capability_receipts": [
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_blocks_host_commit_and_retains_commit",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_blocks_prohibited_file_and_retains_dirty_data",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_github_dependencies_full_cli_chain",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_github_exception_full_cli_chain",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_github_tiny_full_cli_chain",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_local_dependency_delivery_reconcile",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_local_exception_full_cli_chain",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_local_native_knowledge_promotion_chain",
+      "status": "simulation_only",
+      "tier": "simulation"
+    },
+    {
+      "runtime_sha256": "2c8ccf38e7bd9bd2c5eb502bcc6f095be76ff00c6f67713b2d90edd43884459e",
+      "scenario": "test_controller_commit_local_tiny_full_cli_chain",
+      "status": "simulation_only",
+      "tier": "simulation"
+    }
+  ],
+  "commit_mode": "controller_commit",
+  "controller_attempts_archived": 2740,
+  "controller_source_commits_proven": 11,
+  "elapsed_seconds": 770.826,
+  "failures": 0,
+  "frozen_input_files": 45,
+  "independent_security_review_completed": false,
+  "indexed_raw_logs_sha256_verified": 5542,
+  "input_hashes_unchanged": true,
+  "interpretation": "No live model/GitHub/network acceptance, malicious-host isolation proof, or speed/cost advantage claim",
+  "knowledge_chain": {
+    "business_D": "f77865f79069567ed2494a1aac8528f15970c206",
+    "consumer_D": "af0f579292172f19bc6f8d517aae49e7e7f12dca",
+    "consumer_native_readback": {
+      "HEAD": "cfdec9870a7b198ced8e727ab0162d9d1e924edd",
+      "business_D": "f77865f79069567ed2494a1aac8528f15970c206",
+      "core_sha256": "1d54018dcba4382ddb3f889ff7fed236b63f76d23fc7b6bd775b96aa39ab087a",
+      "event": "read_prior_knowledge_before_business_edits",
+      "knowledge_D": "cfdec9870a7b198ced8e727ab0162d9d1e924edd",
+      "mode": "implement",
+      "pid": 7092,
+      "root": "/tmp/harness-cli-e2e-4kfnshrl/repo/.git/harness-worktrees/dependent-implementation-knowledge-business-consumer-2",
+      "simulation": true,
+      "task": "dependent",
+      "topic_sha256": "c035dab42bd3659ec64064d0c1b9fd3e2ef3c9f6556e81fcb3b24e2adba27fe5"
+    },
+    "core_sha256": "1d54018dcba4382ddb3f889ff7fed236b63f76d23fc7b6bd775b96aa39ab087a",
+    "knowledge_D": "cfdec9870a7b198ced8e727ab0162d9d1e924edd",
+    "native_host_budget_seconds": 120,
+    "source_references": [
+      "solution.py",
+      "tests/test_business.py",
+      "docs/reports/base/walkthrough.md"
+    ],
+    "tier": "SIMULATED candidate/semantic review; native Git and Serena promotion/readback",
+    "topic_sha256": "c035dab42bd3659ec64064d0c1b9fd3e2ef3c9f6556e81fcb3b24e2adba27fe5",
+    "unrelated_memories_preserved": true
+  },
+  "matching_local_github_business_outputs": {
+    "base": {
+      "solution.py": "ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772",
+      "tests/test_business.py": "1b649a19797aeb57c33067592e4c470a5c087d6abb255df2c96c3b38e24cb09d"
+    },
+    "dependent": {
+      "solution.py": "598cf29dad5df068ceaaecaaed66d3d76dd9a1864d8a0573e7376b70009ac636",
+      "tests/test_business.py": "00d5b7b1f78821aadc5e034e2d23c87b4b0d3379296402151e9cfa6e82f09046"
+    },
+    "exception": {
+      "solution.py": "0965fff321bc1a02c5026e85877aa7671a5317b344b1bf6faf1bbc89f222a55a",
+      "tests/test_business.py": "84d5e2edb3d206e2e5df1ae31ac00d6b47f9889fb97fad12082374aa8110d054"
+    },
+    "tiny": {
+      "solution.py": "ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772",
+      "tests/test_business.py": "1b649a19797aeb57c33067592e4c470a5c087d6abb255df2c96c3b38e24cb09d"
+    }
+  },
+  "negative_preservation_cases_proven": 2,
+  "other_paused_tests_executed": false,
+  "passed": 9,
+  "scenarios": [
+    {
+      "archived_raw_logs": 91,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 46,
+      "controlled_spent_seconds": 18.538538572007383,
+      "controller_commits_proven": 0,
+      "elapsed_seconds": 30.36,
+      "final_task_statuses": {},
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 1,
+      "scenario": "test_controller_commit_blocks_host_commit_and_retains_commit",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 91,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 46,
+      "controlled_spent_seconds": 17.485834131995944,
+      "controller_commits_proven": 0,
+      "elapsed_seconds": 27.01,
+      "final_task_statuses": {},
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 1,
+      "scenario": "test_controller_commit_blocks_prohibited_file_and_retains_dirty_data",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 1753,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 863,
+      "controlled_spent_seconds": 136.16304622697862,
+      "controller_commits_proven": 2,
+      "elapsed_seconds": 208.453,
+      "final_task_statuses": {
+        "base": "completed",
+        "dependent": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_github_dependencies_full_cli_chain",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 904,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 437,
+      "controlled_spent_seconds": 73.67873761599913,
+      "controller_commits_proven": 1,
+      "elapsed_seconds": 110.131,
+      "final_task_statuses": {
+        "exception": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_github_exception_full_cli_chain",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 904,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 437,
+      "controlled_spent_seconds": 71.33225953003421,
+      "controller_commits_proven": 1,
+      "elapsed_seconds": 108.068,
+      "final_task_statuses": {
+        "tiny": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_github_tiny_full_cli_chain",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 472,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 239,
+      "controlled_spent_seconds": 46.90768101001231,
+      "controller_commits_proven": 2,
+      "elapsed_seconds": 63.96,
+      "final_task_statuses": {
+        "base": "completed",
+        "dependent": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_local_dependency_delivery_reconcile",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 255,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 129,
+      "controlled_spent_seconds": 24.410475528016832,
+      "controller_commits_proven": 1,
+      "elapsed_seconds": 36.603,
+      "final_task_statuses": {
+        "exception": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_local_exception_full_cli_chain",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 799,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 405,
+      "controlled_spent_seconds": 114.05698725000548,
+      "controller_commits_proven": 3,
+      "elapsed_seconds": 146.894,
+      "final_task_statuses": {
+        "base": "completed",
+        "dependent": "completed",
+        "knowledge": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_local_native_knowledge_promotion_chain",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    },
+    {
+      "archived_raw_logs": 273,
+      "capability_receipt_status": "simulation_only",
+      "commit_mode": "controller_commit",
+      "comparison_scope": "new optional mode correctness only; no speed/cost advantage claim",
+      "controlled_commands": 138,
+      "controlled_spent_seconds": 24.61813824800265,
+      "controller_commits_proven": 1,
+      "elapsed_seconds": 39.133,
+      "final_task_statuses": {
+        "tiny": "completed"
+      },
+      "live_network_calls": 0,
+      "model_calls": 0,
+      "preservation_negatives_proven": 0,
+      "scenario": "test_controller_commit_local_tiny_full_cli_chain",
+      "tier": "SIMULATED-host-platform-network/native-Git/native-Serena"
+    }
+  ],
+  "scope": "Author functional fixtures: deterministic simulated hosts/platform/network; native Git, pinned Serena and product CLI",
+  "skips": 0,
+  "tests": 9
+}

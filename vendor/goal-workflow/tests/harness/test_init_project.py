@@ -71,6 +71,9 @@ class InitProjectTests(unittest.TestCase):
         self.assertEqual("local", config["mode"])
         self.assertNotIn("github", config)
         self.assertEqual([], config["checks"])
+        self.assertEqual({"commit_mode": "controller_commit"}, config["host"])
+        self.assertIn("task.allowed_paths", config["missing_p0"])
+        self.assertIn("approved_contract", config["missing_p0"])
         self.assertFalse(manifest["ready"])
         self.assertEqual(hashlib.sha256(config_bytes).hexdigest(),
                          manifest["generated_files"][".harness/config.json"]["sha256"])

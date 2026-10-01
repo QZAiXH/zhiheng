@@ -297,12 +297,17 @@ def draft_config(mode: str) -> tuple[dict, Path]:
     else:
         import harness_check
     config = harness_check.scaffold(mode)["config"]
+    # New Codex drafts recommend role separation explicitly. Existing bundles
+    # without commit_mode retain legacy model_commit behavior; this incomplete
+    # draft authorizes neither file paths nor execution.
+    config["host"] = {"commit_mode": "controller_commit"}
     config["ready"] = False
     config["missing_p0"] = (
         ["repository_id"]
         + ["environment." + name for name in harness_check.ENV_FIELDS]
         + ["limits." + name for name in config["limits"]]
-        + ["checks", "host_execution_and_stop_drill", "independent_review_drill",
+        + ["checks", "task.allowed_paths", "approved_contract", "controller_commit_native_probe",
+           "host_execution_and_stop_drill", "independent_review_drill",
            "serena_native_onboarding_and_core_read", "durable_evidence_retention",
            "target_baseline_policy", "mode_end_to_end_pilot"]
         + (["github." + name for name in config["github"]] if mode == "github" else [])

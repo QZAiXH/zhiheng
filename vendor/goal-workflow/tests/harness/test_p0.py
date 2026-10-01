@@ -78,7 +78,7 @@ class P0ProbeTests(unittest.TestCase):
             self.assertEqual(result["capabilities"]["configuration"]["status"], "blocked")
 
     def test_mode_and_host_structure_fail_closed(self):
-        for update in ({"mode": None}, {"host": []}, {"repository_root": "relative"}):
+        for update in ({"mode": None}, {"host": []}, {"host": {"commit_mode": "automatic"}}, {"repository_root": "relative"}):
             config = copy.deepcopy(self.config)
             config.update(update)
             self.assertEqual(probe(config)["capabilities"]["configuration"]["status"], "blocked")

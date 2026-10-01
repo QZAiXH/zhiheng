@@ -148,6 +148,12 @@ def validate_task(controller, config, task, attempt_id):
                         knowledge=knowledge, verification_tier=capability["tier"],
                         capability_binding_sha256=fingerprint(capability["binding"]),
                         status="verified" if config["mode"] == "local" else "validating")
+        commit_receipts = controller.state.read()["tasks"].get(task["id"], {}).get("controller_commits", [])
+        matching_commit = [row for row in commit_receipts if row.get("H") == candidate["H"]
+                           and row.get("status") == "committed" and row.get("actor") == "controller"]
+        evidence["source_commit_actor"] = "controller" if matching_commit else "external_or_model"
+        if matching_commit:
+            evidence["controller_commit"] = matching_commit[-1]
         common = {"run_id": controller.state.run_id, "attempt_id": attempt_id, "binding": binding}
         def report(path):
             return {"path": str(Path(path).relative_to(controller.state.path.parent)), "sha256": file_fingerprint(path)}
@@ -215,6 +221,35 @@ def verified_evidence(controller, task, config=None, allow_local_only=False):
     return evidence
 
 
+def commit_mode(config):
+    mode = config.get("host", {}).get("commit_mode", "model_commit")
+    if mode not in ("model_commit", "controller_commit"):
+        raise Blocked("unknown host.commit_mode")
+    return mode
+
+
+def _prepare_controlled_commit(controller, config, task, path, operation_id):
+    if commit_mode(config) != "controller_commit":
+        return None
+    from .controller_commit import prepare
+    return prepare(controller, config, task, path, operation_id)
+
+
+def _finish_controlled_commit(controller, config, task, path, snapshot):
+    if snapshot is None:
+        return None
+    # Host/runtime/skill drift during editing cannot inherit the earlier receipt.
+    require_capabilities(controller, config)
+    require_approved_contract(controller, config, task)
+    from .controller_commit import commit
+    receipt = commit(controller, config, task, path, snapshot)
+    data = controller.state.read()
+    entry = data["tasks"].setdefault(task["id"], {})
+    entry.setdefault("controller_commits", []).append(receipt)
+    controller.state.write(data, data["revision"])
+    return receipt
+
+
 def implement_task(controller, config, task, attempt_id, feedback=""):
     """Run the configured host in an isolated source worktree, retaining failures."""
     safe_id(task["id"]); safe_id(attempt_id)
@@ -222,6 +257,10 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
         raise Blocked("P0 not ready; no implementation executor started")
     require_capabilities(controller, config)
     require_approved_contract(controller, config, task)
+    mode = commit_mode(config)
+    if mode == "controller_commit":
+        from .controller_commit import policy_check
+        policy_check(controller)
     branch = task["source"]
     try:
         controller.git("show-ref", "--verify", "--quiet", "refs/heads/" + branch.removeprefix("refs/heads/"))
@@ -231,7 +270,11 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
             raise
     path = controller.common / "harness-worktrees" / (task["id"] + "-implementation-" + attempt_id)
     path.parent.mkdir(exist_ok=True)
-    controller.git("worktree", "add", "-b", branch, str(path), task["target"])
+    if mode == "controller_commit":
+        from .controller_commit import add_task_worktree
+        add_task_worktree(controller, config, task, path)
+    else:
+        controller.git("worktree", "add", "-b", branch, str(path), task["target"])
     knowledge_config = config.get("knowledge", {})
     if not knowledge_config.get("executable") or not knowledge_config.get("serena_home"):
         raise Blocked("pinned Serena executable and dedicated serena_home are required")
@@ -243,12 +286,17 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
         raise Blocked("implementation worktree native knowledge readiness is incomplete")
     run_dir = controller.common / "harness-runs" / controller.state.run_id / task["id"] / (attempt_id + "-implementation")
     run_dir.mkdir(parents=True, exist_ok=False)
+    snapshot = _prepare_controlled_commit(controller, config, task, path, attempt_id + "-implementation")
+    commit_instruction = ("Do not stage or commit, modify Git metadata/configuration, or change branches. "
+                          "Edit/test only the explicit allowed_paths. The Controller will audit and commit eligible changes. "
+                          if mode == "controller_commit" else
+                          "Commit your changes on the current branch when implementation is ready. ")
     spec = _safe_local_path(controller.root, task["spec"]).read_text()
     prompt = ("Implement only this task in the current isolated worktree. Read applicable project rules, "
               "then project core knowledge and needed topic references. Preserve complete acceptance criteria. "
-              "Prepare required walkthrough and stable evidence/knowledge changes before your final commit. "
-              "Do not push, open PR, merge, deploy, or claim independent verification. Commit your changes "
-              "on the current branch when implementation is ready; report missing knowledge/requirements.\n"
+              "Prepare required walkthrough and stable evidence/knowledge changes before completion. "
+              "Do not push, open PR, merge, deploy, or claim independent verification. "
+              + commit_instruction + "Report missing knowledge/requirements.\n"
               + json.dumps(task, ensure_ascii=False) + "\nSPEC:\n" + spec + "\nPrior feedback:\n" + feedback)
     prompt_path = run_dir / "prompt.txt"
     prompt_path.write_text(prompt)
@@ -259,14 +307,25 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
                                 timeout=config["limits"]["implementation_seconds"], scope="implementation")
     if result["exit_code"] != 0 or result["reason"]:
         raise Blocked("implementation failed; worktree and raw logs preserved")
+    commit_receipt = _finish_controlled_commit(controller, config, task, path, snapshot)
+    if commit_receipt is not None:
+        # The restricted protocol already proved exact HEAD/tree/index and
+        # unchanged worktree bytes; do not repeat unguarded index inspection.
+        return {"source": branch, "worktree": str(path), "H": commit_receipt["H"],
+                "execution": result, "commit_actor": "controller", "commit_receipt": commit_receipt}
     if controller.git("status", "--porcelain", cwd=path):
         raise Blocked("implementation left uncommitted/untracked files; inspect and commit explicitly")
     if controller.git("rev-parse", "HEAD", cwd=path) == controller.git("rev-parse", task["target"]):
         raise Blocked("implementation produced no committed change")
-    return {"source": branch, "worktree": str(path), "H": controller.git("rev-parse", "HEAD", cwd=path), "execution": result}
+    return {"source": branch, "worktree": str(path), "H": controller.git("rev-parse", "HEAD", cwd=path), "execution": result, "commit_actor": "controller" if snapshot is not None else "model",
+            "commit_receipt": commit_receipt}
 
 
 def repair_task(controller, config, task, worktree, attempt_id, feedback):
+    mode = commit_mode(config)
+    if mode == "controller_commit":
+        require_capabilities(controller, config)
+        require_approved_contract(controller, config, task)
     path = Path(worktree).resolve()
     if Path(controller.git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=path)) != controller.common:
         raise Blocked("repair worktree belongs to another repository")
@@ -281,9 +340,13 @@ def repair_task(controller, config, task, worktree, attempt_id, feedback):
     state = controller.state.write(state, state["revision"])
     directory = controller.common / "harness-runs" / controller.state.run_id / task["id"] / (attempt_id + "-repair")
     directory.mkdir(parents=True, exist_ok=False)
+    snapshot = _prepare_controlled_commit(controller, config, task, path, attempt_id + "-repair")
+    commit_instruction = ("Do not stage or commit, change branches or Git metadata/configuration. "
+                          "Edit/test only allowed_paths; the Controller audits and commits eligible corrections."
+                          if mode == "controller_commit" else "Commit the final correction on this source branch.")
     prompt = ("Repair only the current task's observed failures. Do not weaken acceptance/check configuration, "
               "push, merge or deploy. Inspect the original logs cited below, update code/knowledge/reports as needed "
-              "and commit the final correction on this source branch.\nTask:\n" + json.dumps(task, ensure_ascii=False)
+              + commit_instruction + "\nTask:\n" + json.dumps(task, ensure_ascii=False)
               + "\nObserved failure:\n" + feedback)
     values = {"worktree": str(path), "task_id": task["id"], "prompt": prompt,
               "input": str(directory / "prompt.txt"), "output": str(directory / "host-result.txt")}
@@ -291,8 +354,13 @@ def repair_task(controller, config, task, worktree, attempt_id, feedback):
     result = controller.execute(render_argv(config["host"]["implementation_argv"], values), path,
                                 attempt_id + "-repair", directory / "host.log",
                                 timeout=config["limits"]["implementation_seconds"], scope="implementation")
-    if result["exit_code"] != 0 or result["reason"] or controller.git("status", "--porcelain", cwd=path):
-        raise Blocked("repair failed or left uncommitted files; preserve worktree")
+    if result["exit_code"] != 0 or result["reason"]:
+        raise Blocked("repair execution failed; preserve worktree")
+    commit_receipt = _finish_controlled_commit(controller, config, task, path, snapshot)
+    if commit_receipt is not None:
+        return dict(result, commit_actor="controller", commit_receipt=commit_receipt)
+    if controller.git("status", "--porcelain", cwd=path):
+        raise Blocked("repair left uncommitted files; preserve worktree")
     return result
 
 
