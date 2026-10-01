@@ -289,6 +289,40 @@ class GitHubAdapter:
             raise AdapterError('Created PR not yet observable; reconcile before retry')
         return existing
 
+    @staticmethod
+    def _review_readiness(pr, number):
+        if pr.get('number') != int(number) or pr.get('state') != 'open' or pr.get('merged') is not False:
+            raise AdapterError('Review readiness requires this exact open, unmerged PR')
+        if not isinstance(pr.get('draft'), bool):
+            raise AdapterError('PR draft state is unknown')
+        return 'draft' if pr['draft'] else 'ready'
+
+    def ready_for_review(self, number, authorized=False):
+        """Promote a draft once; only a fresh native read confirms readiness.
+
+        Without authorization this is read-only, also used by reconcile-ready.
+        A timeout is an unknown write outcome: requery, never retry the write.
+        """
+        before = self.read_pr(number)
+        status = self._review_readiness(before, number)
+        if status == 'ready' or not authorized:
+            return {'status': status, 'pr': int(number), 'observed': before}
+        failure = None
+        try:
+            self._command(['pr', 'ready', str(int(number)), '--repo', self.repo_arg], False)
+        except AdapterError as exc:
+            failure = str(exc)
+        try:
+            after = self.read_pr(number)
+            if self._review_readiness(after, number) == 'ready':
+                return {'status': 'ready', 'pr': int(number), 'observed': after}
+        except AdapterError as exc:
+            return {'status': 'unknown', 'pr': int(number), 'reason': str(exc),
+                    'operation': 'ready_for_review'}
+        return {'status': 'unknown', 'pr': int(number), 'observed': after,
+                'reason': failure or 'Draft-to-ready transition is not yet observable',
+                'operation': 'ready_for_review'}
+
     def inspect_rules(self, branch, mechanism='rulesets'):
         """Read actual enforced baseline rules; never treat inaccessible as absent."""
         required, strict, queue = set(), False, False
@@ -312,6 +346,8 @@ class GitHubAdapter:
                 'rules_verified': bool(required and (strict or queue))}
 
     def request_merge(self, number, evidence, current_target_sha, authorized=False):
+        if self._review_readiness(self.read_pr(number), number) != 'ready':
+            raise AdapterError('Draft PR must be explicitly made ready before merge')
         state = self.reconcile(number, evidence, current_target_sha)
         if state['status'] != 'verified' or not authorized:
             raise AdapterError('Merge requires current verified evidence and explicit authorization')
@@ -338,6 +374,8 @@ class GitHubAdapter:
             raise AdapterError('Required checks incomplete')
         if self.reconcile(number, evidence, current_target_sha)['status'] != 'verified':
             raise AdapterError('PR changed before merge request')
+        if self._review_readiness(self.read_pr(number), number) != 'ready':
+            raise AdapterError('PR returned to draft before merge request')
         # --match-head-commit plus server strict/queue rules close the source/base race.
         try:
             args = ['pr', 'merge', str(number), '--repo', self.repo_arg, '--auto',
@@ -611,6 +649,8 @@ def github_action(config, action, args, run=None, persist=None, cancelled=lambda
                                    args['budget'], persist, queue=args.get('queue', False), cancelled=cancelled)
     if action == 'complete-issue':
         return adapter.complete_issue(args['task_id'], args['delivery'], args.get('body', ''), args.get('authorized') is True)
+    if action == 'ready': return adapter.ready_for_review(args['number'], args.get('authorized') is True)
+    if action == 'reconcile-ready': return adapter.ready_for_review(args['number'], False)
     if action == 'create-pr':
         return adapter.ensure_pr(args['head'], args['base'], args['title'], args['body'], args.get('authorized') is True)
     if action == 'merge':

@@ -93,6 +93,8 @@ def github_verified_args(controller, config, bundle, action, args):
         proof.update(group)
     built = dict(args, evidence=proof, current_target_sha=current_target)
     if action == "merge":
+        if pr.get("state") != "open" or pr.get("draft") is not False:
+            raise Blocked("automatic merge requires an open, explicitly ready PR; draft/unknown status remains handoff")
         policy = config.get("github", {}).get("merge_policy") or config.get("github", {}).get("baseline_policy")
         policy = {"strict_checks": "strict", "merge_queue": "queue"}.get(policy, policy)
         if policy not in ("strict", "queue"):
@@ -106,7 +108,7 @@ def github_verified_args(controller, config, bundle, action, args):
         actual_commit = adapter._api(f"repos/{adapter.repository}/git/commits/{checked_sha}")
         if actual_commit.get("tree", {}).get("sha") != evidence["tree"]:
             raise Blocked("GitHub checked candidate tree differs from locally verified combination")
-        if task.get("tests_depend_on_commit_metadata"):
+        if task.get("tests_depend_on_commit_metadata") and checked_sha != evidence["C"]:
             raise Blocked("commit-sensitive checks require validation of actual GitHub candidate commit")
     if action == "reconcile" and pr.get("merged"):
         remote = config.get("github", {}).get("remote")
@@ -199,7 +201,7 @@ def main(argv=None):
             p.add_argument("--semantic-review")
             p.add_argument("--authorize-semantic-review", action="store_true")
         if name == "github":
-            p.add_argument("action", choices=["tasks", "graph", "read", "dependencies", "find-pr", "checks", "reconcile", "rules", "push-source", "create-pr", "merge", "verify", "complete-issue", "reconcile-issue", "wait-checks", "cancel", "commit-tree", "merge-group", "remote-state"])
+            p.add_argument("action", choices=["tasks", "graph", "read", "dependencies", "find-pr", "checks", "reconcile", "rules", "push-source", "create-pr", "ready", "reconcile-ready", "merge", "verify", "complete-issue", "reconcile-issue", "wait-checks", "cancel", "commit-tree", "merge-group", "remote-state"])
             p.add_argument("--args", default="{}", help="JSON action arguments; mutation requires authorized=true")
         if name == "knowledge":
             p.add_argument("action", choices=["create", "register", "maintenance", "onboarding", "read-core", "references", "readiness", "write", "edit", "rename"])
@@ -295,6 +297,27 @@ def main(argv=None):
                     if action_args.get("base", base) != base or action_args.get("head", label) not in (head, label):
                         raise Blocked("PR creation source/destination differs from approved task")
                     action_args.update(base=base, head=label)
+                if args.action in ("ready", "reconcile-ready"):
+                    if args.action == "ready" and action_args.get("authorized") is not True:
+                        raise Blocked("ready requires explicit authorization; use reconcile-ready for observation")
+                    from .github import GitHubAdapter
+                    task = select_task(bundle, action_args.get("task_id"))
+                    proof = None
+                    if args.action == "ready":
+                        proof = verified_evidence(controller, task, config, allow_local_only=True)
+                        local.check_fresh(controller.root, proof, controller.root / task["spec"], config["checks"], config["environment"], controller)
+                    try:
+                        adapter = GitHubAdapter(config, controlled_runner(controller))
+                        pr = adapter.read_pr(action_args["number"])
+                        require_pr_destination(config, task, pr)
+                        if proof is not None and (pr["head"]["sha"] != proof["H"] or adapter.branch_head(pr["base"]["ref"]) != proof["T"]):
+                            raise Blocked("ready transition requires fresh exact source and target evidence")
+                        if pr.get("state") != "open" or type(pr.get("draft")) is not bool:
+                            raise Blocked("ready transition requires known open PR and draft state")
+                    except AdapterError as exc:
+                        raise Blocked(str(exc)) from exc
+                    if args.action == "reconcile-ready":
+                        action_args["authorized"] = False
                 if args.action in ("merge", "reconcile"):
                     try:
                         action_args = github_verified_args(controller, config, bundle, args.action, action_args)
@@ -318,7 +341,7 @@ def main(argv=None):
                         action_args["authorized"] = False
                     state = controller.state.read()
                 operation = {"action": args.action, "args": action_args, "status": "intent"}
-                mutating = args.action in ("create-pr", "merge", "cancel", "complete-issue")
+                mutating = args.action in ("create-pr", "ready", "merge", "cancel", "complete-issue")
                 if mutating:
                     require_capabilities(controller, config, delivery=True)
                     state = controller.state.read()
@@ -333,7 +356,7 @@ def main(argv=None):
                         def persist(budget):
                             nonlocal state
                             state = controller.state.read()
-                            state["platform_waits"][key] = budget
+                            state.setdefault("platform_waits", {})[key] = budget
                             state = controller.state.write(state, state["revision"])
                         result = github_action(config, args.action, action_args, run=controlled_runner(controller), persist=persist)
                     else:
@@ -371,6 +394,17 @@ def main(argv=None):
                         state["tasks"][task_id].update(status="delivered", D=result["delivered_sha"],
                                                        platform_delivery=result, pr=number)
                     controller.state.write(state, state["revision"])
+                elif args.action == "reconcile-ready" and isinstance(result, dict) and result.get("status") == "ready":
+                    matches = [o for o in state["remote_operations"] if o.get("action") == "ready"
+                               and o.get("args", {}).get("number") == action_args.get("number")
+                               and o.get("args", {}).get("task_id") == action_args.get("task_id")
+                               and o.get("status") in ("intent", "unknown")]
+                    if len(matches) > 1:
+                        raise Blocked("multiple unresolved ready transitions require explicit reconciliation")
+                    for op in matches:
+                        op.update(status="observed", result=result)
+                    if matches:
+                        controller.state.write(state, state["revision"])
                 elif args.action == "find-pr" and isinstance(result, dict) and result.get("number"):
                     matches = [o for o in state["remote_operations"] if o.get("action") == "create-pr"
                                and o.get("args", {}).get("head") == action_args.get("head")

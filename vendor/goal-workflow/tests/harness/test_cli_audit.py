@@ -37,6 +37,20 @@ class CliAudit(unittest.TestCase):
                         code = cli.main(self.args)
             return code, called.call_count
 
+    def test_first_wait_persists_budget_after_supervised_revision_change(self):
+        self.args[5] = "wait-checks"
+        self.args[-1] = json.dumps({"number": 1, "expected_sha": "a" * 40})
+        def adapter(_config, action, args, *, run, persist):
+            self.assertEqual(action, "wait-checks")
+            self.assertEqual(args["budget"], {})
+            run([sys.executable, "-c", "print('simulated poll')"], 2)
+            persist({"attempts": 1, "spent_seconds": 0.1})
+            return {"status": "pass"}
+        code, count = self.invoke(adapter)
+        self.assertEqual((code, count), (0, 1))
+        state = json.loads((self.root / ".loop-state.json").read_text())
+        self.assertEqual(state["platform_waits"]["1:" + "a" * 40]["attempts"], 1)
+
     def test_fabricated_merge_json_without_verified_task_never_calls_adapter(self):
         self.args[-1] = json.dumps({"authorized": True, "number": 1, "task_id": "absent",
                                    "evidence": {"status": "pass", "baseline_verified": True},

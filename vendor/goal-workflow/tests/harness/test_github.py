@@ -34,7 +34,7 @@ def issue(n, body='', state='open', repo='o/r'):
 
 def pr():
     return {'number': 8, 'head': {'sha': 'source', 'label': 'o:feature'},
-            'base': {'sha': 'target', 'ref': 'main'}, 'state': 'open', 'merged': False}
+            'base': {'sha': 'target', 'ref': 'main'}, 'state': 'open', 'merged': False, 'draft': False}
 
 
 class GitHubTests(unittest.TestCase):

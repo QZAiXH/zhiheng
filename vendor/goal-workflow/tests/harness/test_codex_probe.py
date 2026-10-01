@@ -50,7 +50,7 @@ elif 'independent review session' in prompt:
  event({'type':'thread.started','thread_id':sid})
  if not settings.get('omit_reads'):
   event({'type':'item.completed','item':{'type':'command_execution','status':'completed','exit_code':0,
-       'command':'cat fixture.py acceptance.md','aggregated_output':source+'\n'+spec}})
+       'command':'cat fixture.py acceptance.md','aggregated_output':source+spec}})
  text=json.dumps({'acceptance_id':'AC-discount','status':'passed' if settings.get('miss_bug') else 'failed',
        'actual':110,'expected':90,'finding':'The addition at line 2 raises the subtotal instead of subtracting the discount.',
        'location':'fixture.py:2'})

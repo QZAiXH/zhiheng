@@ -10,6 +10,7 @@ import time
 import re
 import secrets
 import shutil
+import shlex
 import uuid
 from pathlib import Path
 
@@ -33,8 +34,9 @@ def parse_events(raw):
         raise ProbeFailed("Host log is not UTF-8") from exc
     thread_ids, messages, reads, command_outputs = [], [], set(), []
     completed = False
+    successful_commands = []
     diagnostics = []
-    for line in text.splitlines():
+    for event_index, line in enumerate(text.splitlines(), 1):
         if not line.strip():
             continue
         try:
@@ -68,6 +70,8 @@ def parse_events(raw):
                 emitted = item.get("aggregated_output", item.get("output", ""))
                 if isinstance(emitted, str):
                     command_outputs.append(emitted)
+                    successful_commands.append({"command": item.get("command", ""), "output": emitted,
+                                                "event_index": event_index})
                 command = item.get("command", "")
                 if isinstance(command, str):
                     for filename in ("fixture.py", "acceptance.md"):
@@ -76,7 +80,101 @@ def parse_events(raw):
     if not thread_ids or len(set(thread_ids)) != 1 or not completed or not messages:
         raise ProbeFailed("Missing unique native session ID, completed turn, or final agent message")
     return {"thread_id": thread_ids[0], "final": messages[-1].strip(),
-            "read_files": sorted(reads), "command_output": "\n".join(command_outputs), "diagnostics": diagnostics[:10]}
+            "read_files": sorted(reads), "command_output": "\n".join(command_outputs),
+            "successful_commands": successful_commands, "diagnostics": diagnostics[:10]}
+
+
+
+def _read_commands(command, filenames):
+    """Conservatively recognize plain cat/nl reads, never arbitrary shell output."""
+    try:
+        outer = shlex.split(command)
+        if len(outer) == 3 and Path(outer[0]).name in ("sh", "bash", "zsh") and outer[1] in ("-c", "-lc"):
+            command = outer[2]
+        lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>()")
+        lexer.whitespace_split = True
+        tokens = list(lexer)
+    except (ValueError, TypeError):
+        return []
+    segments, part = [], []
+    for token in tokens:
+        if token in (";", "&&"):
+            if not part:
+                return []
+            segments.append(part); part = []
+        else:
+            part.append(token)
+    if part:
+        segments.append(part)
+    reads = []
+    for argv in segments:
+        if not argv:
+            return []
+        executable = argv[0]
+        if executable not in ("cat", "/bin/cat", "/usr/bin/cat", "nl", "/bin/nl", "/usr/bin/nl"):
+            return []
+        mode = "raw" if executable.endswith("cat") else "numbered"
+        operands = argv[1:]
+        if mode == "numbered":
+            if len(operands) != 2 or operands[0] != "-ba":
+                return []
+            operands = operands[1:]
+        elif operands and operands[0] == "--":
+            operands = operands[1:]
+        if not operands:
+            return []
+        for filename in operands:
+            filename = filename.removeprefix("./")
+            if filename not in filenames:
+                return []
+            reads.append((filename, mode))
+    return reads
+
+
+def validate_read_content(events, expected):
+    """Match complete file bodies within the exact successful read event.
+
+    Raw evidence is retained unchanged. Only the native nl -ba prefix (spaces,
+    consecutive decimal numbers starting at 1, then one TAB) can be removed;
+    code indentation, text, line order and line endings must match exactly.
+    """
+    matched = {}
+    for event in events.get("successful_commands", []):
+        command, output = event.get("command"), event.get("output")
+        if not isinstance(command, str) or not isinstance(output, str):
+            continue
+        reads = _read_commands(command, set(expected))
+        lines = output.splitlines(keepends=True)
+        cursor, observed, valid = 0, {}, bool(reads)
+        for filename, mode in reads:
+            wanted = expected[filename].splitlines(keepends=True)
+            fragment = lines[cursor:cursor + len(wanted)]
+            if not wanted or len(fragment) != len(wanted):
+                valid = False
+                break
+            if mode == "raw":
+                valid = fragment == wanted
+            else:
+                for number, (line, content) in enumerate(zip(fragment, wanted), 1):
+                    prefix, tab, body = line.partition("\t")
+                    if (tab != "\t" or not re.fullmatch(r" *[1-9][0-9]*", prefix)
+                            or int(prefix) != number or body != content):
+                        valid = False
+                        break
+            if not valid:
+                break
+            observed[filename] = {"event_index": event.get("event_index"), "command": command,
+                                  "format": mode, "output_start_line": cursor + 1,
+                                  "content_sha256": hashlib.sha256(expected[filename].encode()).hexdigest()}
+            cursor += len(wanted)
+        # Ordered read operands must account for ALL bytes of this event. No
+        # sliding substring, duplicate/trailing lines or cross-file reassignment.
+        if valid and cursor == len(lines):
+            matched.update(observed)
+    missing = sorted(set(expected) - set(matched))
+    if missing:
+        raise ProbeFailed("Successful read events did not preserve complete exact content for: " + ", ".join(missing))
+    return matched
 
 
 def _canonical_artifact_path(value):
@@ -253,7 +351,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
     result["fixture_sha256"] = hashlib.sha256(fixture.encode()).hexdigest()
     result["acceptance_sha256"] = hashlib.sha256(acceptance.encode()).hexdigest()
     review_prompt = ("This is a separate independent review session for a synthetic P0 fixture. "
-                     "Use a read-only shell command to read fixture.py and acceptance.md from this worktree; do not modify files. "
+                     "Use cat fixture.py acceptance.md, or nl -ba fixture.py; cat acceptance.md, to read both complete files from this worktree; do not modify files. "
                      "Decide whether the actual implementation satisfies AC-discount. Return exactly one JSON object with keys "
                      "acceptance_id, status (passed or failed), actual (number for the specified call), expected (number), "
                      "finding (specific explanation), and location (file and line). No Markdown or other text.")
@@ -261,10 +359,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
         events, log = run("review", prefix + [review_prompt])
         if events["thread_id"] == session_id:
             raise ProbeFailed("Review reused the implementation session rather than starting an independent process/session")
-        if set(events["read_files"]) != {"fixture.py", "acceptance.md"}:
-            raise ProbeFailed("The public execution events do not establish successful reads of both fixture and acceptance files")
-        if fixture.strip() not in events["command_output"] or acceptance.strip() not in events["command_output"]:
-            raise ProbeFailed("Successful command events did not preserve the actual fixture and acceptance content")
+        read_evidence = validate_read_content(events, {"fixture.py": fixture, "acceptance.md": acceptance})
         assessment = json.loads(events["final"])
         if not isinstance(assessment, dict):
             raise ProbeFailed("Review final response was not a JSON object")
@@ -276,7 +371,7 @@ def run_host_drills(controller, executable, output_dir, *, project_root,
                 or not re.search(r"fixture\.py.*(?:line\s*)?2\b", str(assessment.get("location", "")))):
             raise ProbeFailed("Fresh review did not correctly identify the known failed acceptance and line-2 defect")
         capabilities["host_independent_review"] = {"status": "verified", "detail": "A fresh real read-only session read both files and detected the known synthetic failing acceptance.",
-                                                   "session_id": events["thread_id"], "assessment": assessment, "log": log}
+                                                   "session_id": events["thread_id"], "assessment": assessment, "read_evidence": read_evidence, "log": log}
     except (Blocked, OSError, ValueError, KeyError, TypeError) as exc:
         capabilities["host_independent_review"]["detail"] = str(exc)
 
