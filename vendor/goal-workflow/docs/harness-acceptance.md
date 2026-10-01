@@ -2,6 +2,12 @@
 
 快照日期：2026-10-01 UTC。依据：用户提供的集成计划 v0.5 第 7 节；首版宿主为 Codex CLI；用户指定保留 `$zh` 为主入口，目标平台为 macOS + Linux/WSL（不承诺原生 Windows）。此报告是滚动记录，不能替代最后一次发行物冻结后的复跑。
 
+## 最终冻结验证
+
+**当前实现完整400/400通过，0跳过，649.989秒；163个代码/脚本/测试/docs文件SHA零漂移。** 开启固定真实Serena，覆盖最新ready、编号读取解析、首次wait预算、GitHub五项CLI夹具及local三组场景。[完整日志](evidence/final-400-tests.log)、[输入指纹](evidence/final-400-input-sha256.json)、[零漂移](evidence/final-400-drift.json)。运行结束后仅追加本报告和证据副本；没有新增真实模型或网络操作。
+
+此400项证明当前分层实现与隔离模拟整链；真实Mac已有四步及P0部分分项，旧整体P0收据仍blocked；实际GitHub人工平台验证另列。完整真实双模式P5和原版/增强成本收益对比仍未完成，不能宣称整个源计划全部验收通过。
+
 ## 结论
 
 已实现并在隔离夹具中验证若干核心控制、证据、Git、安装及原生 Serena 接缝。当前不能称 P0–P5 完成：云端真实 Codex 启动受阻，用户 Mac 上 Codex 0.159.2 / gpt-6.1-sol low 的真实实现、独立审查、exact-session续接和fresh-context交接四步已执行成功；真实 GitHub 人工平台三组任务与严格保护正向合并已验，但产品自动控制器结合真实模型的两模式 P0/P5、完整知识语义闭环及成本对比尚未完成。单元通过、模拟平台或结构就绪不等于完整流程可用。
@@ -29,7 +35,7 @@
 
 ## 实际运行记录
 
-**最终实现字节冻结回归：365/365 通过，0 跳过，292.201 秒，151 文件 SHA 零漂移。** 已覆盖最后显式 `--disable multi_agent` 与 handoff 精确 cwd/测试 argv/实际 review 日志引用补丁，以及真实固定 Serena、三组本地 CLI 夹具和 D/C metadata门禁。见[最终日志](evidence/final-tests-tests.log)、[输入指纹](evidence/final-tests-input-sha256.json)、[零漂移](evidence/final-tests-drift.json)。后续只追加本报告与证据副本，没有更改实现/脚本/测试。仍不能把分层365项等同于365个真实模型/平台场景。
+**此前第六冻结回归：365/365 通过，0 跳过，292.201 秒，151 文件 SHA 零漂移。** 已覆盖最后显式 `--disable multi_agent` 与 handoff 精确 cwd/测试 argv/实际 review 日志引用补丁，以及真实固定 Serena、三组本地 CLI 夹具和 D/C metadata门禁。见[最终日志](evidence/final-tests-tests.log)、[输入指纹](evidence/final-tests-input-sha256.json)、[零漂移](evidence/final-tests-drift.json)。后续只追加本报告与证据副本，没有更改实现/脚本/测试。仍不能把分层365项等同于365个真实模型/平台场景。
 
 产品 4c4f131 的 [实际 Actions 36821405306](https://github.com/QZAiXH/zhiheng/actions/runs/36821405306) 六个job全部成功。最后host补丁产品62745d5已推送，[该快照Actions 36822258293](https://github.com/QZAiXH/zhiheng/actions/runs/36822258293)六job全部成功；后续ready/parser/wait/GitHub E2E字节尚未推送CI；外层28项已通过。该CI与真实模型P0/P5是不同验收层。
 

@@ -397,45 +397,77 @@ class GitHubCliE2E(unittest.TestCase):
 @unittest.skipUnless(local_fixture.GIT, "Native Git is required for fixture isolation proof")
 class FixtureTransportIsolation(unittest.TestCase):
     def test_only_exact_bare_transport_can_run(self):
-        with tempfile.TemporaryDirectory(prefix="harness-cli-e2e-") as directory:
-            base = Path(directory)
-            repo, bare, bin_path = base / "repo", base / "remote.git", base / "bin"
-            bin_path.mkdir()
-            env = {"PATH": str(bin_path), "HOME": str(base), "GIT_CONFIG_NOSYSTEM": "1",
-                   "GIT_CONFIG_GLOBAL": os.devnull, "GIT_ALLOW_PROTOCOL": "file",
-                   "HARNESS_GITHUB_FIXTURE_ROOT": str(base),
-                   "HARNESS_GITHUB_FIXTURE_NATIVE_GIT": local_fixture.GIT}
-            def git(*args):
-                return subprocess.run([local_fixture.GIT, *args], env=env, capture_output=True, text=True, check=True)
-            git("init", "--quiet", "-b", "main", str(repo))
-            git("-C", str(repo), "config", "user.name", "Fixture")
-            git("-C", str(repo), "config", "user.email", "fixture@example.invalid")
-            (repo / "file").write_text("fixture")
-            git("-C", str(repo), "add", ".")
-            git("-C", str(repo), "commit", "--quiet", "-m", "baseline")
-            git("clone", "--quiet", "--bare", str(repo), str(bare))
-            (base / "SIMULATED_GITHUB_ONLY").write_text("no-network; no-model; simulation-only\n")
-            shim = bin_path / "git"
-            shim.write_text("#!" + sys.executable + "\n" + HELPER.read_text())
-            shim.chmod(0o700)
-            git("-C", str(repo), "remote", "add", "origin", URL)
-            for args in (("fetch", "--no-tags", "origin", "main"),
-                         ("ls-remote", "--refs", URL, "refs/heads/main"),
-                         ("push", "--porcelain", URL, "HEAD:refs/heads/feature")):
-                subprocess.run([str(shim), "-C", str(repo), *args], env=env, capture_output=True, text=True, check=True)
-            rows = [json.loads(line) for line in (base / "transport-audit.jsonl").read_text().splitlines()]
-            self.assertEqual(["fetch", "ls-remote", "push"], [row["command"] for row in rows])
-            for row in rows:
-                self.assertIn(str(bare), row["actual_argv"])
-                self.assertNotIn(URL, row["actual_argv"])
-                self.assertNotIn("origin", row["actual_argv"])
-                self.assertEqual("file", row["allowed_protocols"])
-            for destination in ("https://github.com/other/repo.git", str(base / "other.git"), "other-remote"):
-                blocked = subprocess.run([str(shim), "-C", str(repo), "ls-remote", destination],
-                                         env=env, capture_output=True, text=True)
-                self.assertNotEqual(0, blocked.returncode)
-                self.assertIn("unapproved", blocked.stderr)
-            self.assertEqual(3, len((base / "transport-audit.jsonl").read_text().splitlines()))
+        self.exercise_transport()
+
+    def test_root_alias_does_not_authorize_remote_aliases(self):
+        self.exercise_transport(root_alias=True)
+
+    def exercise_transport(self, root_alias=False):
+        # A nested temporary producer root catches accidental reliance on the
+        # subprocess default /tmp even on Linux; macOS often uses /var/folders.
+        with tempfile.TemporaryDirectory(prefix="transport-parent-") as parent:
+            with tempfile.TemporaryDirectory(prefix="harness-cli-e2e-", dir=parent) as directory:
+                base = Path(directory).resolve()
+                visible = base
+                if root_alias:
+                    visible = base.parent / (base.name + "-alias")
+                    visible.symlink_to(base, target_is_directory=True)
+                    self.addCleanup(visible.unlink, missing_ok=True)
+                repo, bare, bin_path = base / "repo", base / "remote.git", base / "bin"
+                bin_path.mkdir()
+                env = {"PATH": str(bin_path), "HOME": str(base), "GIT_CONFIG_NOSYSTEM": "1",
+                       "GIT_CONFIG_GLOBAL": os.devnull, "GIT_ALLOW_PROTOCOL": "file",
+                       # Preserve the producer's canonical namespace explicitly
+                       # when constructing a credential-free child environment.
+                       "TMPDIR": str(base.parent),
+                       "HARNESS_GITHUB_FIXTURE_ROOT": str(visible),
+                       "HARNESS_GITHUB_FIXTURE_NATIVE_GIT": local_fixture.GIT}
+                def checked(argv):
+                    result = subprocess.run(argv, env=env, capture_output=True, text=True)
+                    self.assertEqual(0, result.returncode,
+                                     "argv=" + repr(argv) + "\nstdout=" + result.stdout + "\nstderr=" + result.stderr)
+                    return result
+                def git(*args):
+                    return checked([local_fixture.GIT, *args])
+                observed_temp = checked([sys.executable, "-c", "import tempfile; print(tempfile.gettempdir())"])
+                self.assertEqual(base.parent, Path(observed_temp.stdout.strip()).resolve())
+                git("init", "--quiet", "-b", "main", str(repo))
+                git("-C", str(repo), "config", "user.name", "Fixture")
+                git("-C", str(repo), "config", "user.email", "fixture@example.invalid")
+                (repo / "file").write_text("fixture")
+                git("-C", str(repo), "add", ".")
+                git("-C", str(repo), "commit", "--quiet", "-m", "baseline")
+                git("clone", "--quiet", "--bare", str(repo), str(bare))
+                (base / "SIMULATED_GITHUB_ONLY").write_text("no-network; no-model; simulation-only\n")
+                shim = bin_path / "git"
+                shim.write_text("#!" + sys.executable + "\n" + HELPER.read_text())
+                shim.chmod(0o700)
+                git("-C", str(repo), "remote", "add", "origin", URL)
+                invoked_shim, invoked_repo = visible / "bin/git", visible / "repo"
+                for args in (("fetch", "--no-tags", "origin", "main"),
+                             ("ls-remote", "--refs", URL, "refs/heads/main"),
+                             ("push", "--porcelain", URL, "HEAD:refs/heads/feature")):
+                    checked([str(invoked_shim), "-C", str(invoked_repo), *args])
+                rows = [json.loads(line) for line in (base / "transport-audit.jsonl").read_text().splitlines()]
+                self.assertEqual(["fetch", "ls-remote", "push"], [row["command"] for row in rows])
+                for row in rows:
+                    self.assertIn(str(bare), row["actual_argv"])
+                    self.assertNotIn(URL, row["actual_argv"])
+                    self.assertNotIn("origin", row["actual_argv"])
+                    self.assertEqual("file", row["allowed_protocols"])
+                same_alias = base / "same-remote-alias.git"
+                same_alias.symlink_to(bare, target_is_directory=True)
+                other = base / "other.git"
+                git("clone", "--quiet", "--bare", str(repo), str(other))
+                other_alias = base / "other-remote-alias.git"
+                other_alias.symlink_to(other, target_is_directory=True)
+                for destination in ("https://github.com/other/repo.git", str(other), "other-remote",
+                                    str(same_alias), str(other_alias)):
+                    blocked = subprocess.run([str(invoked_shim), "-C", str(invoked_repo), "ls-remote", destination],
+                                             env=env, capture_output=True, text=True)
+                    self.assertNotEqual(0, blocked.returncode)
+                    self.assertIn("unapproved", blocked.stderr)
+                self.assertEqual(3, len((base / "transport-audit.jsonl").read_text().splitlines()))
 
 
 if __name__ == "__main__":
