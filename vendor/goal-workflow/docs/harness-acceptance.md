@@ -4,6 +4,12 @@
 
 ## 当前可选 Controller 提交：仅普通功能子集完成
 
+### 2026-10-01 初始化夹具后台维护竞态
+
+快照 `2238b5b` 的 Mac ARM core 普通分片出现两项初始化测试失败：dry-run 在调用 initializer 前读取完整目录快照时，`.git/objects/maintenance.lock` 已消失；保留用户配置测试也只观察到该空锁消失。准备阶段 baseline commit 启动 Git 自动后台维护是高可信归因，但没有进程 trace，因此不声称已经直接追踪到创建锁的进程。
+
+最小修正仅对测试 baseline commit 命令附加 `-c maintenance.auto=false -c gc.auto=0`。生产代码、用户/仓库持久配置、完整快照读取与相等断言均未改变，没有忽略错误或删除锁。[本轮明确选择的 test_init_project 模块日志](evidence/initializer-maintenance-fixture-focused.log)记录 Linux 普通回归通过；新夹具字节仍待 Mac CI 复跑，不能用旧平台结果替代。
+
 ### 2026-10-01 Mac 普通夹具路径修正
 
 发行快照 `3e0f0ec` 的 Mac ARM 普通 local/GitHub 分片有 7 项停在提交日志匹配断言。夹具用临时目录的非 canonical 路径，与 Controller 规范路径逐字比较；这些用例此前已通过实际 H、父提交、干净工作区及改动范围断言，但后续交付链未因此视为通过。本次只将测试辅助返回值改为 `resolve()`，并补充失败时的 source/argv 诊断；生产运行时完全未改，原有提交数量和证据断言全部保留。

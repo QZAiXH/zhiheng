@@ -34,7 +34,10 @@ class InitProjectTests(unittest.TestCase):
         self.root = Path(self.temp.name).resolve() / "repo"
         self.root.mkdir()
         self.git("init", "--quiet")
-        self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+        # Keep fixture preparation synchronous: background maintenance can race
+        # the full byte-for-byte snapshot, including before initializer invocation.
+        self.git("-c", "maintenance.auto=false", "-c", "gc.auto=0",
+                 "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                  "commit", "--quiet", "--allow-empty", "-m", "test baseline")
         self.common = self.root / ".git"
 
