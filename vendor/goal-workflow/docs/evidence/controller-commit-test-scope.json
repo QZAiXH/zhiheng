@@ -40,7 +40,9 @@
     "test_controller_commit_e2e.ControllerCommitLocalE2E.test_controller_commit_local_dependency_delivery_reconcile",
     "test_controller_commit_e2e.ControllerCommitLocalE2E.test_controller_commit_local_exception_full_cli_chain",
     "test_controller_commit_e2e.ControllerCommitLocalE2E.test_controller_commit_local_native_knowledge_promotion_chain",
-    "test_controller_commit_e2e.ControllerCommitLocalE2E.test_controller_commit_local_tiny_full_cli_chain"
+    "test_controller_commit_e2e.ControllerCommitLocalE2E.test_controller_commit_local_tiny_full_cli_chain",
+    "test_controller_commit_e2e.ControllerFixturePaths.test_worktree_discovery_returns_canonical_path",
+    "test_controller_commit_e2e.ControllerFixturePaths.test_journal_matching_keeps_exact_canonical_directory"
   ],
   "paused_test_ids": [
     "test_controller_commit.RestrictedCommit.test_actual_index_lock_is_preserved_and_retry_only_syncs",
@@ -78,8 +80,8 @@
     "/tmp/controller_commit_budget_probe.py"
   ],
   "counts": {
-    "discovered": 65,
-    "allowed": 37,
+    "discovered": 67,
+    "allowed": 39,
     "paused": 28
   }
 }

@@ -4,12 +4,19 @@
 
 ## 当前可选 Controller 提交：仅普通功能子集完成
 
+### 2026-10-01 Mac 普通夹具路径修正
+
+发行快照 `3e0f0ec` 的 Mac ARM 普通 local/GitHub 分片有 7 项停在提交日志匹配断言。夹具用临时目录的非 canonical 路径，与 Controller 规范路径逐字比较；这些用例此前已通过实际 H、父提交、干净工作区及改动范围断言，但后续交付链未因此视为通过。本次只将测试辅助返回值改为 `resolve()`，并补充失败时的 source/argv 诊断；生产运行时完全未改，原有提交数量和证据断言全部保留。
+
+新增 2 项纯 mock/data 路径回归，与明确选定的 local tiny、GitHub tiny 普通链共 4 项通过，0 跳过；[本轮日志](evidence/controller-fixture-canonical-focused.log)。Mac 最新字节仍待真实平台复跑。允许清单现为 39 项，暂停仍为 28 项，共 67 项；没有执行暂停用例或重新开展受阻审查。下文 37 项及其 45 个输入指纹均是修正前的历史快照证据，不能作为本次新夹具字节的完整通过证明。
+
+
 用户已明确批准模型编辑/测试、Controller 限定任务分支提交的可选分工。`controller_commit` 已实现；缺失模式仍保留 `model_commit` 兼容，新初始化模板显式推荐前者。没有关闭模型 sandbox、扩大其 writable roots，或把 worktree 当作 OS 安全边界。
 
 - **普通功能 37 项通过**，不是无筛选全量验收：28 项普通单元/CLI 接线测试通过，21.923 秒；另 9 项端到端夹具通过，0 跳过，770.826 秒。[28 项日志](evidence/controller-commit-functional-28.log)、[9 项日志](evidence/controller-commit-functional-9.log)、[汇总](evidence/controller-commit-functional-summary.json)
 - 9 场景包含 local 三组、GitHub 三组、两项数据保留反例与原生知识三任务链。Git、Serena、产品 CLI 和检查进程为真实执行；模型、语义审阅、GitHub 与网络运输明确模拟。11 次 Controller source commit 已核对，5,542 个归档日志指纹及 837 个能力原始日志绑定已核验；未新增真实模型或外部平台操作
 - 45 个相关技能/包/夹具输入在本轮前后 SHA 完全相同：[运行前指纹](evidence/controller-commit-functional-input-sha256.json)、[运行后指纹](evidence/controller-commit-functional-input-sha256-after.json)、[零漂移](evidence/controller-commit-functional-drift.json)。Controller 模块 SHA256：`09715226c3add4294701a364cf3e329a23aaaa283bfe9ddec9284ac29e015fc5`
-- **另 28 项保留但暂停，独立安全复核未完成。** [精确允许/暂停清单](evidence/controller-commit-test-scope.json)记录四个新增模块共 65 项，仅允许 37 项。测试源与断言没有删除或弱化；本轮通过不能证明暂停边界通过，也不能标为生产安全或整个计划完成
+- **另 28 项保留但暂停，独立安全复核未完成。** [精确允许/暂停清单](evidence/controller-commit-test-scope.json)当前记录四个新增模块共 67 项，仅允许 39 项；该次历史执行为 37 项。测试源与断言没有删除或弱化；本轮通过不能证明暂停边界通过，也不能标为生产安全或整个计划完成
 - 新协议拒绝不支持的 hooks/filters/signing、特殊索引/文件和范围外修改；提交身份、literal allowed_paths、固定父提交/tree、原生 expected-old CAS、未知结果及索引恢复均保留记录。实现工作区使用受限 no-checkout/raw-blob 初始化；这不等价于完整 Git checkout/commit 语义。仓库含特殊策略时保持 blocked
 
 ### 原生知识写回与后续加载的实际范围

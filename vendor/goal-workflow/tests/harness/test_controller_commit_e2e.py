@@ -20,6 +20,7 @@ import sys
 import textwrap
 import time
 import unittest
+from unittest import mock
 
 import test_cli_e2e as local_fixture
 import test_github_cli_e2e as github_fixture
@@ -186,7 +187,7 @@ class ControllerCommitAssertions:
     def implementation_worktree(self, name):
         paths = list((self.repo / ".git/harness-worktrees").glob(name + "-implementation-*"))
         self.assertEqual(1, len(paths), paths)
-        return paths[0]
+        return paths[0].resolve()
 
     def assert_controller_capability(self):
         receipt = json.loads((self.repo / ".git/harness.capabilities.json").read_text())
@@ -230,12 +231,17 @@ class ControllerCommitAssertions:
         self.assertFalse(self.controlled_source_commands(name, "add"))
         self.assertFalse(self.controlled_source_commands(name, "commit"))
         commits = self.controlled_source_commands(name, "commit-tree")
-        self.assertEqual(1, len(commits), "source commit must be owned and journaled by the controller")
+        journal_paths = [row.get("argv", []) for row in self.state()["attempts"]
+                         if row.get("argv", [])[:2] == ["git", "-C"]]
+        diagnostic = f"canonical source={str(source)!r}; journal Git argv={journal_paths!r}"
+        self.assertEqual(1, len(commits),
+                         "source commit must be owned and journaled by the controller; " + diagnostic)
         self.assertEqual(0, commits[0]["exit_code"])
         self.assertTrue(commits[0]["stopped"])
         self.assertIsNone(commits[0]["reason"])
         updates = self.controlled_source_commands(name, "update-ref")
-        self.assertEqual(1, len(updates), "source reference update must be owned and journaled by the controller")
+        self.assertEqual(1, len(updates),
+                         "source reference update must be owned and journaled by the controller; " + diagnostic)
         self.assertIn(head, updates[0]["argv"])
         self.assertIn(evidence["T"], updates[0]["argv"])
         self.assertIn("refs/heads/" + task["source"], updates[0]["argv"])
@@ -707,6 +713,28 @@ class ControllerCommitGitHubE2E(ControllerCommitAssertions, unittest.TestCase):
         self.assertEqual("completed", self.cli("run", "--attempt", "controller-github-chain-finished")["status"])
         self.assertEqual(2, len(self.audit_rows("native-business-test")))
         self.assertEqual(2, len(self.audit_rows("merge")))
+
+
+class ControllerFixturePaths(ControllerCommitAssertions, unittest.TestCase):
+    """Pure mock/data checks for fixture path representation, with no Git or I/O."""
+
+    def test_worktree_discovery_returns_canonical_path(self):
+        self.repo = Path("/var/fixture/repo")
+        discovered = mock.Mock()
+        canonical = Path("/private/var/fixture/repo/.git/harness-worktrees/task-implementation-1")
+        discovered.resolve.return_value = canonical
+        with mock.patch.object(Path, "glob", return_value=iter([discovered])):
+            self.assertEqual(canonical, self.implementation_worktree("task"))
+        discovered.resolve.assert_called_once_with()
+
+    def test_journal_matching_keeps_exact_canonical_directory(self):
+        canonical = Path("/private/var/fixture/repo/.git/harness-worktrees/task-implementation-1")
+        matching = {"argv": ["git", "-C", str(canonical), "-c", "core.fsmonitor=false", "commit-tree", "tree"]}
+        other = {"argv": ["git", "-C", str(canonical) + "-other", "commit-tree", "tree"]}
+        wrong_operation = {"argv": ["git", "-C", str(canonical), "update-ref", "ref"]}
+        self.state = lambda: {"attempts": [other, wrong_operation, matching]}
+        with mock.patch.object(self, "implementation_worktree", return_value=canonical):
+            self.assertEqual([matching], self.controlled_source_commands("task", "commit-tree"))
 
 
 if __name__ == "__main__":
