@@ -1,0 +1,642 @@
+{
+  "status": "three common-baseline arithmetic groups completed as native GitHub manual/operator fixtures; real-host core CLI and strict gate acceptance remain separate",
+  "business_baseline_id": "goal-harness-arithmetic-v1",
+  "common_github_commit": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+  "manifest": {
+    "business_baseline_id": "goal-harness-arithmetic-v1",
+    "source": "tests/harness/test_cli_e2e.py",
+    "source_sha256": "1b44d57229b739bd636170031bb29efc35e8b33faff3b9b14da7a66c71f09eab",
+    "logical_files": {
+      "solution.py": "65a3fd7bdabc7305f51c054bf5b2cf281729a2e4da5fd2f5fa3a478ff17daaf2",
+      "tests/run_business.py": "0029589ee0aeb4d0798ebb74a915d5f43dfe29166b7a91456664e2508f15fe24",
+      "docs/spec.md": "778d01e8dd2aa701aa12f8ba8fa91c797b28b30a6f56e5ed8523727e428c9839"
+    },
+    "groups": {
+      "tiny": "add(2,3)=5; add(-2,3)=1",
+      "exception": "divide(8,2)=4; divide(1,0) raises ValueError zero divisor",
+      "dependency": [
+        "base: add",
+        "dependent: double_sum(2,3)=10, requires delivered base"
+      ]
+    },
+    "evidence_tier": "native GitHub + deterministic fixture, not real Codex E2E"
+  },
+  "groups": {
+    "tiny": {
+      "source_sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+      "local_unittest": "passed",
+      "github_ci": "passed",
+      "delivered": true,
+      "adapter_checks": "pass",
+      "pr_url": "https://github.com/QZAiXH/zhiheng/pull/7",
+      "candidate_tree": "6b803fad67bc33f41c28a966f35d812ad575322f",
+      "target_sha": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "delivery_mode": "manual/operator sandbox",
+      "issue_closed": true,
+      "delivered_sha": "fa121b94508f98f5d0a26bf337216bca8b487342",
+      "delivered_tree": "6b803fad67bc33f41c28a966f35d812ad575322f",
+      "target_reachable": true
+    },
+    "exception": {
+      "source_sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+      "local_unittest": "passed",
+      "github_ci": "passed",
+      "delivered": true,
+      "adapter_checks": "pass",
+      "pr_url": "https://github.com/QZAiXH/zhiheng/pull/8",
+      "candidate_tree": "513c555da091c89d3b001290e55b5f05f2e1074a",
+      "target_sha": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "delivery_mode": "manual/operator sandbox",
+      "delivered_sha": "9549531a13d24aa2094eebaa6f5169c5632de91e",
+      "delivered_tree": "513c555da091c89d3b001290e55b5f05f2e1074a",
+      "target_reachable": true,
+      "issue_closed": true
+    },
+    "base": {
+      "source_sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+      "local_unittest": "passed",
+      "github_ci": "passed",
+      "delivered": true,
+      "adapter_checks": "pass",
+      "pr_url": "https://github.com/QZAiXH/zhiheng/pull/9",
+      "candidate_tree": "da30bcf1f6072d634654e839102300ae9c1271d6",
+      "target_sha": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "delivery_mode": "manual/operator sandbox",
+      "delivered_sha": "04dbb2b708ad9b5138351d71269271f46a864f38",
+      "delivered_tree": "da30bcf1f6072d634654e839102300ae9c1271d6",
+      "target_reachable": true,
+      "issue_closed": true
+    },
+    "dependent": {
+      "source_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+      "github_ci": "passed",
+      "local_unittest": "passed",
+      "adapter_checks": "pass",
+      "delivered": true,
+      "delivery_mode": "manual/operator sandbox",
+      "delivered_sha": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b",
+      "candidate_tree": "82eaeb85e12952f30857f70e1abd5fb558030c84",
+      "delivered_tree": "82eaeb85e12952f30857f70e1abd5fb558030c84",
+      "target_reachable": true,
+      "issue_closed": true
+    }
+  },
+  "dependency_negative": {
+    "implementation": "deterministic fixture from local test_cli_e2e.py",
+    "expected_error": "dependency absent from baseline",
+    "actual_log": "dependent-premature.log",
+    "git_worktree_clean": true,
+    "not_claimed": "core CLI live host gating or native GitHub dependency test"
+  },
+  "remote_effects": [
+    "fixture-common-20261001 branch pushed",
+    "fixture-tiny-head-20261001 branch pushed",
+    "fixture-exception-head-20261001 branch pushed",
+    "fixture-chain-first-20261001 branch pushed"
+  ],
+  "denied_call_effects": [],
+  "boundary": "Arithmetic fixture PRs7,8,9,11 manually/operator merged and verified on isolated targets; no product automatic merge or live P0 receipt. Arithmetic exercise did not change repository settings or main; later separately approved smoke protection belongs to strict-smoke evidence.",
+  "adapter_pr_checks": {
+    "7": {
+      "url": "https://github.com/QZAiXH/zhiheng/pull/7",
+      "source": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+      "target": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "candidate": "3a7cd1ea0b30022326360c2fb94fa4aaa6b8040b",
+      "candidate_tree": "6b803fad67bc33f41c28a966f35d812ad575322f",
+      "checks": {
+        "status": "pass",
+        "checked_sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+        "checks": {
+          "goal-harness-arithmetic": {
+            "status": "pass",
+            "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816230422/job/110221762436",
+            "sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260"
+          }
+        }
+      },
+      "merged": false
+    },
+    "8": {
+      "url": "https://github.com/QZAiXH/zhiheng/pull/8",
+      "source": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+      "target": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "candidate": "708cfa58f6d7f744939d5a0651d6865f312f507a",
+      "candidate_tree": "513c555da091c89d3b001290e55b5f05f2e1074a",
+      "checks": {
+        "status": "pass",
+        "checked_sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+        "checks": {
+          "goal-harness-arithmetic": {
+            "status": "pass",
+            "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816238379/job/110221788218",
+            "sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd"
+          }
+        }
+      },
+      "merged": false
+    },
+    "9": {
+      "url": "https://github.com/QZAiXH/zhiheng/pull/9",
+      "source": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+      "target": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "candidate": "8c82bea3c065c1d4967bd12c06038bc9b5d0a207",
+      "candidate_tree": "da30bcf1f6072d634654e839102300ae9c1271d6",
+      "checks": {
+        "status": "pass",
+        "checked_sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+        "checks": {
+          "goal-harness-arithmetic": {
+            "status": "pass",
+            "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816247821/job/110221817300",
+            "sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320"
+          }
+        }
+      },
+      "merged": false
+    },
+    "11": {
+      "url": "https://github.com/QZAiXH/zhiheng/pull/11",
+      "source": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+      "target": "04dbb2b708ad9b5138351d71269271f46a864f38",
+      "candidate": "41f1705de8eadb9f5289226f42928fd768241b29",
+      "candidate_tree": "82eaeb85e12952f30857f70e1abd5fb558030c84",
+      "checks": {
+        "status": "pass",
+        "checked_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+        "checks": {
+          "goal-harness-arithmetic": {
+            "status": "pass",
+            "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36818832255/job/110229757376",
+            "sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe"
+          }
+        }
+      },
+      "merged": false
+    }
+  },
+  "adapter_dependencies": {
+    "issue": 10,
+    "dependencies": [
+      {
+        "id": "github:github.com:QZAiXH/zhiheng#6",
+        "number": 6,
+        "repository": "QZAiXH/zhiheng",
+        "title": "[Acceptance fixture] Dependency prerequisite add",
+        "body": "Business baseline: goal-harness-arithmetic-v1 at fixture-common-20261001. Prerequisite task implements add with positive and negative input assertions. Dependent double_sum must not be released merely because this Issue closes or PR looks green: require verified actual delivery. Native GitHub fixture; no live Codex P0 claim. Target only fixture-chain-base-20261001.",
+        "state": "open",
+        "state_reason": null,
+        "url": "https://github.com/QZAiXH/zhiheng/issues/6",
+        "source": "native"
+      }
+    ],
+    "without_delivery": [
+      false
+    ],
+    "closed_issue_is_insufficient": [
+      false
+    ],
+    "verified_only_is_insufficient": [
+      false
+    ]
+  },
+  "runs": [
+    {
+      "conclusion": "success",
+      "headSha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+      "jobs": [
+        {
+          "completedAt": "2026-10-01T04:40:50Z",
+          "conclusion": "success",
+          "databaseId": 110221762436,
+          "name": "goal-harness-arithmetic",
+          "startedAt": "2026-10-01T04:40:46Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Record candidate identity",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Business assertions",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816230422/job/110221762436"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816230422"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+      "jobs": [
+        {
+          "completedAt": "2026-10-01T04:40:55Z",
+          "conclusion": "success",
+          "databaseId": 110221788218,
+          "name": "goal-harness-arithmetic",
+          "startedAt": "2026-10-01T04:40:52Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Record candidate identity",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Business assertions",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816238379/job/110221788218"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816238379"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+      "jobs": [
+        {
+          "completedAt": "2026-10-01T04:41:04Z",
+          "conclusion": "success",
+          "databaseId": 110221817300,
+          "name": "goal-harness-arithmetic",
+          "startedAt": "2026-10-01T04:40:59Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Record candidate identity",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Business assertions",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816247821/job/110221817300"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36816247821"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+      "jobs": [
+        {
+          "completedAt": "2026-10-01T05:14:44Z",
+          "conclusion": "success",
+          "databaseId": 110229757376,
+          "name": "goal-harness-arithmetic",
+          "startedAt": "2026-10-01T05:14:40Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Record candidate identity",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Business assertions",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36818832255/job/110229757376"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36818832255"
+    }
+  ],
+  "issues": {
+    "tiny": 4,
+    "exception": 5,
+    "base": 6,
+    "dependent": 10
+  },
+  "pull_requests": {
+    "tiny": 7,
+    "exception": 8,
+    "base": 9,
+    "dependent": 11
+  },
+  "manual_operator_deliveries": {
+    "7": {
+      "mode": "explicit operator/manual sandbox delivery; not automatic-gate or real-host core CLI acceptance",
+      "pr": 7,
+      "url": "https://github.com/QZAiXH/zhiheng/pull/7",
+      "source_sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+      "prior_target_sha": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "checked_sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+      "candidate_sha": "3a7cd1ea0b30022326360c2fb94fa4aaa6b8040b",
+      "candidate_tree": "6b803fad67bc33f41c28a966f35d812ad575322f",
+      "delivered_sha": "fa121b94508f98f5d0a26bf337216bca8b487342",
+      "delivered_tree": "6b803fad67bc33f41c28a966f35d812ad575322f",
+      "actual_target_sha": "fa121b94508f98f5d0a26bf337216bca8b487342",
+      "delivered_reachable": true,
+      "adapter_reconciliation": {
+        "source_sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+        "target_sha": "fa121b94508f98f5d0a26bf337216bca8b487342",
+        "checked_sha": "9a0d72aa29cdbe1b6ce46699b2de726c9393b260",
+        "delivered_sha": "fa121b94508f98f5d0a26bf337216bca8b487342",
+        "status": "delivered",
+        "reason": "Actual merged content matches verified candidate",
+        "verified_delivery": true,
+        "pr": 7
+      },
+      "dependency_delivery_record": {
+        "status": "delivered",
+        "verified_delivery": true,
+        "delivered_sha": "fa121b94508f98f5d0a26bf337216bca8b487342"
+      }
+    },
+    "8": {
+      "mode": "explicit operator/manual sandbox delivery; not automatic-gate or real-host core CLI acceptance",
+      "pr": 8,
+      "url": "https://github.com/QZAiXH/zhiheng/pull/8",
+      "source_sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+      "prior_target_sha": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "checked_sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+      "candidate_sha": "708cfa58f6d7f744939d5a0651d6865f312f507a",
+      "candidate_tree": "513c555da091c89d3b001290e55b5f05f2e1074a",
+      "delivered_sha": "9549531a13d24aa2094eebaa6f5169c5632de91e",
+      "delivered_tree": "513c555da091c89d3b001290e55b5f05f2e1074a",
+      "actual_target_sha": "9549531a13d24aa2094eebaa6f5169c5632de91e",
+      "delivered_reachable": true,
+      "adapter_reconciliation": {
+        "source_sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+        "target_sha": "9549531a13d24aa2094eebaa6f5169c5632de91e",
+        "checked_sha": "fb54ddb24548b31ff101dd9f16f2bd35ea6ffddd",
+        "delivered_sha": "9549531a13d24aa2094eebaa6f5169c5632de91e",
+        "status": "delivered",
+        "reason": "Actual merged content matches verified candidate",
+        "verified_delivery": true,
+        "pr": 8
+      },
+      "dependency_delivery_record": {
+        "status": "delivered",
+        "verified_delivery": true,
+        "delivered_sha": "9549531a13d24aa2094eebaa6f5169c5632de91e"
+      }
+    },
+    "9": {
+      "mode": "explicit operator/manual sandbox delivery; not automatic-gate or real-host core CLI acceptance",
+      "pr": 9,
+      "url": "https://github.com/QZAiXH/zhiheng/pull/9",
+      "source_sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+      "prior_target_sha": "e1154cc0f6a51c909efb59f9a8bfbbeba801d31a",
+      "checked_sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+      "candidate_sha": "8c82bea3c065c1d4967bd12c06038bc9b5d0a207",
+      "candidate_tree": "da30bcf1f6072d634654e839102300ae9c1271d6",
+      "delivered_sha": "04dbb2b708ad9b5138351d71269271f46a864f38",
+      "delivered_tree": "da30bcf1f6072d634654e839102300ae9c1271d6",
+      "actual_target_sha": "04dbb2b708ad9b5138351d71269271f46a864f38",
+      "delivered_reachable": true,
+      "adapter_reconciliation": {
+        "source_sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+        "target_sha": "04dbb2b708ad9b5138351d71269271f46a864f38",
+        "checked_sha": "73f4ce2ff452b9fe79c1601144b3854a91d04320",
+        "delivered_sha": "04dbb2b708ad9b5138351d71269271f46a864f38",
+        "status": "delivered",
+        "reason": "Actual merged content matches verified candidate",
+        "verified_delivery": true,
+        "pr": 9
+      },
+      "dependency_delivery_record": {
+        "status": "delivered",
+        "verified_delivery": true,
+        "delivered_sha": "04dbb2b708ad9b5138351d71269271f46a864f38"
+      }
+    },
+    "11": {
+      "mode": "explicit operator/manual sandbox delivery; not automatic-gate or real-host core CLI acceptance",
+      "pr": 11,
+      "url": "https://github.com/QZAiXH/zhiheng/pull/11",
+      "source_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+      "prior_target_sha": "04dbb2b708ad9b5138351d71269271f46a864f38",
+      "checked_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+      "candidate_sha": "41f1705de8eadb9f5289226f42928fd768241b29",
+      "candidate_tree": "82eaeb85e12952f30857f70e1abd5fb558030c84",
+      "delivered_sha": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b",
+      "delivered_tree": "82eaeb85e12952f30857f70e1abd5fb558030c84",
+      "actual_target_sha": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b",
+      "delivered_reachable": true,
+      "adapter_reconciliation": {
+        "source_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+        "target_sha": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b",
+        "checked_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+        "delivered_sha": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b",
+        "status": "delivered",
+        "reason": "Actual merged content matches verified candidate",
+        "verified_delivery": true,
+        "pr": 11
+      },
+      "dependency_delivery_record": {
+        "status": "delivered",
+        "verified_delivery": true,
+        "delivered_sha": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b"
+      }
+    }
+  },
+  "manual_merge_outcome_recovery": {
+    "pr": 7,
+    "reported_tool_outcome": "rejection/EOF after side effect",
+    "read_only_observation": "merged",
+    "retry_attempted": false,
+    "delivery_verified": true
+  },
+  "dependency_after_delivery": {
+    "actual_dependencies": [
+      {
+        "id": "github:github.com:QZAiXH/zhiheng#6",
+        "number": 6,
+        "repository": "QZAiXH/zhiheng",
+        "title": "[Acceptance fixture] Dependency prerequisite add",
+        "body": "Business baseline: goal-harness-arithmetic-v1 at fixture-common-20261001. Prerequisite task implements add with positive and negative input assertions. Dependent double_sum must not be released merely because this Issue closes or PR looks green: require verified actual delivery. Native GitHub fixture; no live Codex P0 claim. Target only fixture-chain-base-20261001.",
+        "state": "closed",
+        "state_reason": "completed",
+        "url": "https://github.com/QZAiXH/zhiheng/issues/6",
+        "source": "native"
+      }
+    ],
+    "verified_delivery": {
+      "status": "delivered",
+      "verified_delivery": true,
+      "delivered_sha": "04dbb2b708ad9b5138351d71269271f46a864f38"
+    },
+    "release_allowed": true,
+    "closure_without_delivery_still_blocked": true
+  },
+  "dependent_pr_creation": {
+    "created_or_recovered": {
+      "number": 11,
+      "html_url": "https://github.com/QZAiXH/zhiheng/pull/11",
+      "state": "open",
+      "draft": true
+    },
+    "idempotent_second_number": 11,
+    "source_sha": "bc8f25dd556f2c3ee435ea387242a5313e0abfbe",
+    "target_sha": "04dbb2b708ad9b5138351d71269271f46a864f38"
+  },
+  "final_issue_states": [
+    {
+      "html_url": "https://github.com/QZAiXH/zhiheng/issues/10",
+      "number": 10,
+      "state": "closed",
+      "state_reason": "completed"
+    },
+    {
+      "html_url": "https://github.com/QZAiXH/zhiheng/issues/6",
+      "number": 6,
+      "state": "closed",
+      "state_reason": "completed"
+    },
+    {
+      "html_url": "https://github.com/QZAiXH/zhiheng/issues/5",
+      "number": 5,
+      "state": "closed",
+      "state_reason": "completed"
+    },
+    {
+      "html_url": "https://github.com/QZAiXH/zhiheng/issues/4",
+      "number": 4,
+      "state": "closed",
+      "state_reason": "completed"
+    }
+  ],
+  "remaining_boundaries": [
+    "No product automatic merge gate was invoked or bypassed",
+    "No live P0 receipt was created",
+    "Full core CLI real-Codex-host E2E remains unverified",
+    "Strict/queue server enforcement is not established by manual operator merges"
+  ],
+  "smoke_held": {
+    "baseRefName": "goal-harness/smoke-base-20261001",
+    "headRefOid": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "actual_target_sha": "bc35041bfd3b180a884ec0925f3d3db9171396f2"
+  },
+  "final_dependency_ancestor_check": {
+    "ancestor": "04dbb2b708ad9b5138351d71269271f46a864f38",
+    "descendant": "f689606da6a6ebabea92a69c9df26ceb6ea7d79b",
+    "command": "git merge-base --is-ancestor D9 D11",
+    "exit_code": 0
+  },
+  "later_strict_smoke": "Separately approved protected smoke now completed; see strict-summary.json. Arithmetic groups remain manual/operator unprotected exercises.",
+  "smoke_held_is_historical": true
+}

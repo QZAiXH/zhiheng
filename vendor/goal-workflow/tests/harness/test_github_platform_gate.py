@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from harness.cli import github_platform_verify
+from harness.cli import github_platform_verify, github_verified_args
 from harness.runtime import Controller
 from harness.state import Blocked
 
@@ -71,4 +71,31 @@ class PlatformGateTests(unittest.TestCase):
     def test_wrong_source_repository_same_sha_is_rejected(self):
         self.adapter.read_pr.return_value['head']['repo']['full_name']='other/repo'
         with self.assertRaises(Blocked):self.invoke()
+    def reconcile(self, sensitive, delivered):
+        self.task['tests_depend_on_commit_metadata']=sensitive
+        self.config['github']['remote']='origin'
+        self.adapter.read_pr.return_value.update(merged=True,merge_commit_sha=delivered)
+        with Controller(self.root,'github','run-one',self.limits) as controller:
+            state=controller.state.read()
+            state['tasks']['task-one']={'status':'verified','platform_evidence':{'checked_sha':self.proof['C']}}
+            controller.state.write(state,state['revision'])
+            with patch('harness.cli.verified_evidence',return_value=self.proof), patch('harness.github.GitHubAdapter',return_value=self.adapter), patch.object(controller,'git',side_effect=['','target-after-merge','tree-fixture','']):
+                if sensitive and delivered != self.proof['C']:
+                    with self.assertRaisesRegex(Blocked,'commit-sensitive checks must be rerun'):
+                        github_verified_args(controller,self.config,self.bundle,'reconcile',{'task_id':'task-one','number':3})
+                    saved=controller.state.read()['tasks']['task-one']
+                    self.assertEqual(saved['status'],'verified')
+                    self.assertNotIn('D',saved)
+                    self.assertEqual(saved['physical_delivery'],{'commit':delivered,'tree':'tree-fixture','target':'target-after-merge','reachable':True,'verified_delivery':False,'reason':'commit-sensitive delivered object differs from validated candidate'})
+                else:
+                    result=github_verified_args(controller,self.config,self.bundle,'reconcile',{'task_id':'task-one','number':3})
+                    self.assertEqual(result['delivered_tree'],'tree-fixture')
+                    self.assertTrue(result['delivered_reachable'])
+                    self.assertNotIn('physical_delivery',controller.state.read()['tasks']['task-one'])
+    def test_metadata_sensitive_reconcile_preserves_physical_fact_without_delivery(self):
+        self.reconcile(True,'d'*40)
+    def test_metadata_sensitive_reconcile_accepts_exact_checked_commit(self):
+        self.reconcile(True,self.proof['C'])
+    def test_tree_sensitive_reconcile_allows_distinct_tree_equivalent_commit(self):
+        self.reconcile(False,'d'*40)
 if __name__=='__main__':unittest.main()

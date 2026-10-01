@@ -119,6 +119,17 @@ def github_verified_args(controller, config, bundle, action, args):
         actual_target = controller.git("rev-parse", "FETCH_HEAD")
         tree = controller.git("rev-parse", delivered + "^{tree}")
         controller.git("merge-base", "--is-ancestor", delivered, actual_target)
+        if task.get("tests_depend_on_commit_metadata") and delivered != evidence["C"]:
+            # Preserve the physical observation without unlocking task completion
+            # or downstream code: equal trees are insufficient for these checks.
+            state = controller.state.read()
+            saved = state["tasks"].setdefault(task["id"], {})
+            saved["physical_delivery"] = {"commit": delivered, "tree": tree,
+                                           "target": actual_target, "reachable": True,
+                                           "verified_delivery": False,
+                                           "reason": "commit-sensitive delivered object differs from validated candidate"}
+            controller.state.write(state, state["revision"])
+            raise Blocked("actual delivered commit differs from validated candidate; commit-sensitive checks must be rerun on D")
         built.update(current_target_sha=actual_target, delivered_tree=tree, delivered_reachable=True)
     return built
 
