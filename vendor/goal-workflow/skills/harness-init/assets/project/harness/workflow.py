@@ -232,6 +232,15 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
     path = controller.common / "harness-worktrees" / (task["id"] + "-implementation-" + attempt_id)
     path.parent.mkdir(exist_ok=True)
     controller.git("worktree", "add", "-b", branch, str(path), task["target"])
+    knowledge_config = config.get("knowledge", {})
+    if not knowledge_config.get("executable") or not knowledge_config.get("serena_home"):
+        raise Blocked("pinned Serena executable and dedicated serena_home are required")
+    native = SerenaAdapter(path, knowledge_config["executable"], knowledge_config["serena_home"],
+                           timeout_seconds=config["limits"]["command_seconds"],
+                           python_executable=knowledge_config.get("python_executable"), controller=controller)
+    native.register_existing()
+    if native.readiness([task["spec"], ".serena/memories/core.md"]).get("structural_ready") is not True:
+        raise Blocked("implementation worktree native knowledge readiness is incomplete")
     run_dir = controller.common / "harness-runs" / controller.state.run_id / task["id"] / (attempt_id + "-implementation")
     run_dir.mkdir(parents=True, exist_ok=False)
     spec = _safe_local_path(controller.root, task["spec"]).read_text()
