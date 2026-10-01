@@ -42,10 +42,12 @@ class ReviewHelperTests(unittest.TestCase):
     def test_review_timeout_is_failure(self):
         self.env['REVIEW_IT_TIMEOUT'] = '1'
         self.codex('sleep 30')
-        self.assertEqual(self.call().returncode, 124)
+        result = self.call()
+        self.assertEqual(result.returncode, 124, result.stdout + '\nSTDERR:\n' + result.stderr)
     def test_tests_timeout_is_failure(self):
         self.env['REVIEW_IT_TIMEOUT'] = '1'
-        self.assertEqual(self.call('--parallel-tests', 'sleep 30').returncode, 124)
+        result = self.call('--parallel-tests', 'sleep 30')
+        self.assertEqual(result.returncode, 124, result.stdout + '\nSTDERR:\n' + result.stderr)
     def test_slash_host_explicit_pending_not_success(self):
         r = subprocess.run(['bash', str(HELPER), '--agent', 'claude', '--mode', 'local'], cwd=self.root,
                            env=self.env, text=True, capture_output=True)

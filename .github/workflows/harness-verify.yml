@@ -69,3 +69,30 @@ jobs:
             echo "- Commit: $GITHUB_SHA"
             echo "- Runner: $RUNNER_OS / $RUNNER_ARCH"
           } >> "$GITHUB_STEP_SUMMARY"
+  review_portability:
+    name: review-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify timeout status and portable subprocess cleanup
+        shell: bash
+        run: |
+          set +e
+          cd vendor/goal-workflow
+          python3 skills/review-it/scripts/bounded-run.py --timeout 0.2 -- /bin/sleep 30
+          result=$?
+          echo "bounded-exit=$result; expected=124"
+          status=0
+          test "$result" = 124 || status=1
+          python3 -m unittest discover -s tests/harness -p test_review_helper.py -v || status=1
+          exit "$status"
