@@ -11,11 +11,30 @@ import json
 import re
 import subprocess
 import math
+import uuid
+from pathlib import Path
 from urllib.parse import quote, urlparse
 
 
 class AdapterError(RuntimeError):
     pass
+
+
+def controlled_runner(controller):
+    """Production bridge: native gh must share lock, process journal and budget."""
+    def run(argv, timeout):
+        token = 'gh-' + uuid.uuid4().hex
+        output = controller.common / 'harness-github' / (token + '.stdout')
+        record = controller.execute(argv, controller.root, token, output, timeout=timeout,
+                                    scope='github', separate_stderr=True)
+        stdout = output.read_text()
+        stderr = Path(record['stderr_log']).read_text()
+        if record['reason'] == 'timeout':
+            raise subprocess.TimeoutExpired(argv, timeout, output=stdout, stderr=stderr)
+        if record['reason']:
+            raise AdapterError('Controlled GitHub operation stopped: ' + record['reason'])
+        return subprocess.CompletedProcess(argv, record['exit_code'], stdout, stderr)
+    return run
 
 
 class GitHubAdapter:

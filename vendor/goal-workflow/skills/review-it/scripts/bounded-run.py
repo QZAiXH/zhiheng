@@ -15,35 +15,76 @@ import sys
 import time
 
 
+def live_group_members(pgid):
+    """Read native POSIX process state; zombies cannot run or receive signals.
+
+    Darwin can return EPERM from killpg for a group containing only zombies.
+    A permission error is *not* absence: inspect every group member and fail
+    closed if ps fails or reports a live member. /bin/ps is native on both
+    supported OSes and is not a GNU utility requirement.
+    """
+    result = subprocess.run(['/bin/ps', '-axo', 'pid=,pgid=,stat='],
+                            capture_output=True, text=True, timeout=2, check=True)
+    rows = result.stdout.splitlines()
+    if not rows:
+        raise RuntimeError('Cannot confirm process cleanup: empty native process listing')
+    members = []
+    for line in rows:
+        fields = line.split()
+        if len(fields) != 3 or not fields[0].isdigit() or not fields[1].isdigit():
+            raise RuntimeError('Cannot confirm process cleanup: malformed native process listing')
+        if int(fields[1]) == pgid and not fields[2].startswith('Z'):
+            members.append(int(fields[0]))
+    return members
+
+
 def group_alive(pgid):
     try:
         os.killpg(pgid, 0)
         return True
     except ProcessLookupError:
         return False
+    except PermissionError:
+        if not live_group_members(pgid):
+            return False
+        raise
+
+
+def signal_group(pgid, sig):
+    try:
+        os.killpg(pgid, sig)
+    except ProcessLookupError:
+        pass
+    except PermissionError:
+        if live_group_members(pgid):
+            raise
 
 
 def stop_group(process, grace=0.3):
     """Always stop the owned group, not just a possibly exited group leader."""
     pgid = process.pid
+    process.poll()  # Reap the direct child before probing zombie-group liveness.
     if group_alive(pgid):
-        try:
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
+        signal_group(pgid, signal.SIGTERM)
         until = time.monotonic() + grace
-        while time.monotonic() < until and group_alive(pgid):
-            process.poll()  # reap our direct child; descendants are reaped by init
+        while time.monotonic() < until:
+            process.poll()
+            if not group_alive(pgid):
+                break
             time.sleep(0.02)
         if group_alive(pgid):
-            try:
-                os.killpg(pgid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+            signal_group(pgid, signal.SIGKILL)
     try:
         process.wait(timeout=1)
     except subprocess.TimeoutExpired:
         raise RuntimeError('Owned command did not stop after SIGKILL')
+    # SIGKILL delivery is asynchronous. Verify live descendants have stopped;
+    # a zombie-only group is stopped even when Darwin killpg returns EPERM.
+    until = time.monotonic() + 1
+    while group_alive(pgid) and live_group_members(pgid):
+        if time.monotonic() >= until:
+            raise RuntimeError('Owned process group still has live members after cleanup')
+        time.sleep(0.02)
 
 
 def run(argv, timeout, parent_pid=None):

@@ -237,3 +237,23 @@ Task files are regular UTF-8 `.md` files, 1 byte through 1 MiB each, with at mos
 live收据必须具有真实开始/独立审查/恢复/停止、原生知识读取和项目写入等证据，并提供已授权的、已入库的语义知识审阅记录。缺项保持blocked。配置`p0.run_host_drills:true`启用真实Codex演练，取消演练另显式启用`run_host_cancel_drill`，具体有限参数见p0-probe.md。
 
 simulation收据只允许系统临时目录内、无remote、已提交`.harness-simulation`且内容为`isolated-harness-fixture`的显式fixture。结果持续标记simulation；普通deliver和任何远端写操作不能使用它。隔离fixture交付必须另带`--simulation`，不代表生产交付验收。
+
+
+### 实际测试命令与报告示例
+
+项目已使用 pytest 时，可配置以下检查（先确认项目原有测试命令，不额外安装业务依赖）：
+
+```json
+{
+  "id": "unit",
+  "kind": "test",
+  "argv": ["python", "-m", "pytest", "--junitxml=test-results/junit.xml"],
+  "timeout_seconds": 60,
+  "min_executed": 1,
+  "junit": "test-results/junit.xml"
+}
+```
+
+每个候选在独立新工作树执行，所以相同相对报告路径仍应是新文件。不得把上次 JUnit 报告提交进源分支或作为本次结果。报告不新鲜时先诊断来源，工具不会覆盖/删除已有文件来伪造新鲜度。
+
+所有流程内 Git 操作和 gh 调用也经过同一 Controller 的进程身份、停止、原始输出及累计预算记录；pre-lock 仓库定位只做有限只读查询。任务尝试数与控制命令计数分开，必要时可明确设置正整数 `limits.control_commands`，不清零已有消耗。

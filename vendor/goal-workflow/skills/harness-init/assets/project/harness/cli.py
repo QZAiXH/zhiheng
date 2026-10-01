@@ -18,7 +18,12 @@ def load(path):
 def config_limits(config):
     result = dict(config["limits"])
     # Commands are separately bounded; task-level retry budget is checked by workflow.
-    result["max_attempts"] = config["limits"]["task_attempts"] * (len(config["checks"]) + 2) * (config["limits"]["repair_attempts"] + 1)
+    # Include bounded Git/native/tool bookkeeping as well as task/review calls.
+    default = config["limits"]["task_attempts"] * (len(config["checks"]) + 32) * (config["limits"]["repair_attempts"] + 1)
+    default += config["limits"].get("query_attempts", 0) * 16
+    result["max_attempts"] = config["limits"].get("control_commands", default)
+    if type(result["max_attempts"]) is not int or result["max_attempts"] <= 0:
+        raise Blocked("control_commands must be a positive finite integer")
     return result
 
 
@@ -60,10 +65,10 @@ def require_pr_destination(config, task, pr):
 
 def github_verified_args(controller, config, bundle, action, args):
     """Build merge proof from stored execution and fresh platform/Git reads, not caller JSON."""
-    from .github import GitHubAdapter
+    from .github import GitHubAdapter, controlled_runner
     task = select_task(bundle, args.get("task_id"))
     evidence = verified_evidence(controller, task, config)
-    adapter = GitHubAdapter(config)
+    adapter = GitHubAdapter(config, controlled_runner(controller))
     pr = adapter.read_pr(args["number"])
     require_pr_destination(config, task, pr)
     current_target = adapter.branch_head(pr["base"]["ref"])
@@ -88,7 +93,7 @@ def github_verified_args(controller, config, bundle, action, args):
     if action == "merge":
         if current_target != evidence["T"]:
             raise Blocked("actual target branch advanced after local verification")
-        local.check_fresh(controller.root, evidence, controller.root / task["spec"], config["checks"], config["environment"])
+        local.check_fresh(controller.root, evidence, controller.root / task["spec"], config["checks"], config["environment"], controller)
         actual_commit = adapter._api(f"repos/{adapter.repository}/git/commits/{checked_sha}")
         if actual_commit.get("tree", {}).get("sha") != evidence["tree"]:
             raise Blocked("GitHub checked candidate tree differs from locally verified combination")
@@ -101,19 +106,19 @@ def github_verified_args(controller, config, bundle, action, args):
         delivered = pr.get("merge_commit_sha")
         if not delivered:
             raise Blocked("merged PR missing delivered commit")
-        git(controller.root, "fetch", "--no-tags", remote, pr["base"]["ref"])
-        actual_target = git(controller.root, "rev-parse", "FETCH_HEAD")
-        tree = git(controller.root, "rev-parse", delivered + "^{tree}")
-        git(controller.root, "merge-base", "--is-ancestor", delivered, actual_target)
+        controller.git("fetch", "--no-tags", remote, pr["base"]["ref"])
+        actual_target = controller.git("rev-parse", "FETCH_HEAD")
+        tree = controller.git("rev-parse", delivered + "^{tree}")
+        controller.git("merge-base", "--is-ancestor", delivered, actual_target)
         built.update(current_target_sha=actual_target, delivered_tree=tree, delivered_reachable=True)
     return built
 
 
 def github_platform_verify(controller, config, bundle, args):
-    from .github import GitHubAdapter
+    from .github import GitHubAdapter, controlled_runner
     task = select_task(bundle, args["task_id"])
     local_proof = verified_evidence(controller, task, config, allow_local_only=True)
-    adapter = GitHubAdapter(config)
+    adapter = GitHubAdapter(config, controlled_runner(controller))
     pr = adapter.read_pr(args["number"])
     require_pr_destination(config, task, pr)
     current_target = adapter.branch_head(pr["base"]["ref"])
@@ -224,7 +229,7 @@ def main(argv=None):
             from .contracts import evaluate_bundle
             result = evaluate_bundle(bundle, args.command)
         elif args.command == "github":
-            from .github import github_action, AdapterError
+            from .github import github_action, AdapterError, controlled_runner
             action_args = json.loads(args.args)
             with Controller(config["repository_root"], config["mode"], args.run, config_limits(config)) as controller:
                 if args.action == "verify":
@@ -237,7 +242,7 @@ def main(argv=None):
                 if args.action == "create-pr":
                     task = select_task(bundle, action_args.get("task_id"))
                     local_proof = verified_evidence(controller, task, config, allow_local_only=True)
-                    local.check_fresh(controller.root, local_proof, controller.root / task["spec"], config["checks"], config["environment"])
+                    local.check_fresh(controller.root, local_proof, controller.root / task["spec"], config["checks"], config["environment"], controller)
                     base, head, head_repository = github_destinations(config, task)
                     label = head_repository.split("/", 1)[0] + ":" + head
                     if action_args.get("base", base) != base or action_args.get("head", label) not in (head, label):
@@ -280,16 +285,20 @@ def main(argv=None):
                         action_args["budget"] = state.setdefault("platform_waits", {}).get(key, {})
                         def persist(budget):
                             nonlocal state
+                            state = controller.state.read()
                             state["platform_waits"][key] = budget
                             state = controller.state.write(state, state["revision"])
-                        result = github_action(config, args.action, action_args, persist=persist)
+                        result = github_action(config, args.action, action_args, run=controlled_runner(controller), persist=persist)
                     else:
-                        result = github_action(config, "complete-issue" if args.action == "reconcile-issue" else args.action, action_args)
+                        result = github_action(config, "complete-issue" if args.action == "reconcile-issue" else args.action, action_args,
+                                               run=controlled_runner(controller))
                 except AdapterError as exc:
                     if mutating:
+                        state = controller.state.read()
                         state["remote_operations"][-1].update(status="unknown", reason=str(exc))
                         controller.state.write(state, state["revision"])
                     raise Blocked(str(exc)) from exc
+                state = controller.state.read()
                 if mutating:
                     outcome = result.get("status") if isinstance(result, dict) else None
                     journal_status = "unknown" if outcome in ("delivery_unknown", "unknown") else "pending" if outcome in ("delivery_pending", "pending") else "observed"
@@ -368,7 +377,7 @@ def main(argv=None):
                 elif args.command == "reconcile":
                     saved = controller.state.read()["tasks"].get(task["id"], {})
                     evidence = json.loads(Path(saved["evidence"]).read_text())
-                    result = local.reconcile_delivery(controller.root, evidence, task["target"])
+                    result = local.reconcile_delivery(controller.root, evidence, task["target"], controller)
                     if result["status"] == "delivered":
                         try:
                             verified_evidence(controller, task, config)

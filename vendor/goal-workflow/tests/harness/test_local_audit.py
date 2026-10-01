@@ -17,7 +17,7 @@ from harness.local import prepare_candidate, run_checks, check_fresh, deliver, r
 from harness.state import Blocked
 
 LIMITS = {"command_seconds": 2.0, "total_seconds": 20.0,
-          "max_attempts": 20, "stop_grace_seconds": 0.3}
+          "max_attempts": 100, "stop_grace_seconds": 0.3}
 
 
 def git(root, *args):

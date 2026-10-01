@@ -156,6 +156,22 @@ class CapabilitiesAudit(unittest.TestCase):
             with self.assertRaisesRegex(Blocked, "raw capability evidence"):
                 require_capabilities(controller, self.config)
 
+    def test_github_probe_stream_dictionary_is_bound_to_receipt(self):
+        with self.controller() as controller:
+            stdout = self.root / ".git/copied-gh.stdout"
+            stderr = self.root / ".git/copied-gh.stderr"
+            stdout.write_text('{"fixture":"GitHub mocked observation"}\n')
+            stderr.write_text("diagnostic\n")
+            observed = {"capabilities": {}, "github_probe": {"logs": {"repo": {
+                "stdout": {"path": str(stdout)}, "stderr": {"path": str(stderr)}}}}}
+            with patch("harness.p0.probe", return_value=observed):
+                receipt = record_capabilities(controller, self.config, "simulation")
+            self.assertIn(str(stdout), receipt["raw_logs"])
+            self.assertIn(str(stderr), receipt["raw_logs"])
+            stderr.write_text("changed diagnostics")
+            with self.assertRaisesRegex(Blocked, "raw capability evidence"):
+                require_capabilities(controller, self.config)
+
     def test_installed_code_or_dependency_fingerprint_drift_is_rejected(self):
         with self.controller() as controller:
             self.record_simulation(controller)

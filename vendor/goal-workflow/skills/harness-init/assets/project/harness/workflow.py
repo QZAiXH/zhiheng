@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from .state import Blocked, atomic_json
 from .local import prepare_candidate, run_checks, check_fresh, fingerprint, file_fingerprint, safe_id
-from .runtime import git
+from .runtime import git, GitFailure
 from .contracts import schema_errors, check_fingerprint
 from graphlib import TopologicalSorter, CycleError
 from .knowledge import SerenaAdapter, verify_durable_evidence, _safe_local_path
@@ -20,8 +20,9 @@ def approve_contract(controller, config, task, authorized=False):
     if not authorized or not controller.entered:
         raise Blocked("contract baseline requires explicit review authorization and run lock")
     identity = contract_identity(controller, config, task)
+    target = controller.git("rev-parse", task["target"])
     state = controller.state.read()
-    entry = dict(identity, task_id=task["id"], target=git(controller.root, "rev-parse", task["target"]),
+    entry = dict(identity, task_id=task["id"], target=target,
                  revision=state["revision"])
     state.setdefault("contract_approvals", []).append(entry)
     state.setdefault("contracts", {})[task["id"]] = identity
@@ -94,9 +95,10 @@ def validate_task(controller, config, task, attempt_id):
         if prior.get("status") not in ("delivered", "completed") or not prior.get("D"):
             raise Blocked(f"dependency not delivered: {dep}")
         try:
-            git(controller.root, "merge-base", "--is-ancestor", prior["D"], task["target"])
+            controller.git("merge-base", "--is-ancestor", prior["D"], task["target"])
         except Blocked as exc:
             raise Blocked(f"dependency not in downstream baseline: {dep}") from exc
+    data = controller.state.read()
     old = data["tasks"].get(task["id"], {})
     rounds = old.get("validation_attempts", 0)
     if rounds >= config["limits"]["task_attempts"]:
@@ -136,7 +138,7 @@ def validate_task(controller, config, task, attempt_id):
         if len(results) != len(config["checks"]) or any(r["status"] != "passed" for r in results):
             raise Blocked("required checks failed or incomplete")
         assessment = review(controller, candidate, task, config, run_dir, attempt_id, knowledge)
-        check_fresh(controller.root, candidate, controller.root / task["spec"], config["checks"], config["environment"])
+        check_fresh(controller.root, candidate, controller.root / task["spec"], config["checks"], config["environment"], controller)
         final_capability = require_capabilities(controller, config)
         if fingerprint(final_capability["binding"]) != fingerprint(capability["binding"]):
             raise Blocked("actual capability environment changed during validation")
@@ -222,14 +224,14 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
     require_approved_contract(controller, config, task)
     branch = task["source"]
     try:
-        git(controller.root, "rev-parse", "--verify", branch)
+        controller.git("show-ref", "--verify", "--quiet", "refs/heads/" + branch.removeprefix("refs/heads/"))
         raise Blocked("source branch exists; use explicit resume after inspecting its worktree")
-    except Blocked as exc:
-        if "source branch exists" in str(exc):
+    except GitFailure as exc:
+        if exc.returncode != 1 or exc.reason:
             raise
     path = controller.common / "harness-worktrees" / (task["id"] + "-implementation-" + attempt_id)
     path.parent.mkdir(exist_ok=True)
-    git(controller.root, "worktree", "add", "-b", branch, str(path), task["target"])
+    controller.git("worktree", "add", "-b", branch, str(path), task["target"])
     run_dir = controller.common / "harness-runs" / controller.state.run_id / task["id"] / (attempt_id + "-implementation")
     run_dir.mkdir(parents=True, exist_ok=False)
     spec = _safe_local_path(controller.root, task["spec"]).read_text()
@@ -248,18 +250,18 @@ def implement_task(controller, config, task, attempt_id, feedback=""):
                                 timeout=config["limits"]["implementation_seconds"], scope="implementation")
     if result["exit_code"] != 0 or result["reason"]:
         raise Blocked("implementation failed; worktree and raw logs preserved")
-    if git(path, "status", "--porcelain"):
+    if controller.git("status", "--porcelain", cwd=path):
         raise Blocked("implementation left uncommitted/untracked files; inspect and commit explicitly")
-    if git(path, "rev-parse", "HEAD") == git(controller.root, "rev-parse", task["target"]):
+    if controller.git("rev-parse", "HEAD", cwd=path) == controller.git("rev-parse", task["target"]):
         raise Blocked("implementation produced no committed change")
-    return {"source": branch, "worktree": str(path), "H": git(path, "rev-parse", "HEAD"), "execution": result}
+    return {"source": branch, "worktree": str(path), "H": controller.git("rev-parse", "HEAD", cwd=path), "execution": result}
 
 
 def repair_task(controller, config, task, worktree, attempt_id, feedback):
     path = Path(worktree).resolve()
-    if Path(git(path, "rev-parse", "--path-format=absolute", "--git-common-dir")) != controller.common:
+    if Path(controller.git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=path)) != controller.common:
         raise Blocked("repair worktree belongs to another repository")
-    if git(path, "symbolic-ref", "--short", "HEAD") != task["source"]:
+    if controller.git("symbolic-ref", "--short", "HEAD", cwd=path) != task["source"]:
         raise Blocked("repair worktree branch changed")
     state = controller.state.read()
     entry = state["tasks"].setdefault(task["id"], {})
@@ -280,7 +282,7 @@ def repair_task(controller, config, task, worktree, attempt_id, feedback):
     result = controller.execute(render_argv(config["host"]["implementation_argv"], values), path,
                                 attempt_id + "-repair", directory / "host.log",
                                 timeout=config["limits"]["implementation_seconds"], scope="implementation")
-    if result["exit_code"] != 0 or result["reason"] or git(path, "status", "--porcelain"):
+    if result["exit_code"] != 0 or result["reason"] or controller.git("status", "--porcelain", cwd=path):
         raise Blocked("repair failed or left uncommitted files; preserve worktree")
     return result
 
@@ -302,7 +304,7 @@ def run_serial(controller, config, tasks, attempt_prefix, implement=False):
         existing = controller.state.read()["tasks"].get(task_id, {})
         if existing.get("status") in ("delivered", "completed"):
             # Even previously completed work must still be in current downstream baseline.
-            git(controller.root, "merge-base", "--is-ancestor", existing["D"], task["target"])
+            controller.git("merge-base", "--is-ancestor", existing["D"], task["target"])
             continue
         if existing.get("status") == "verified":
             results.append({"task_id": task_id, "status": "verified", "next_step": "explicit delivery and reconciliation required"})
@@ -314,7 +316,7 @@ def run_serial(controller, config, tasks, attempt_prefix, implement=False):
                 prior = controller.state.read()["tasks"].get(dep, {})
                 if prior.get("status") not in ("delivered", "completed") or not prior.get("D"):
                     raise Blocked(f"dependency not delivered: {dep}")
-                git(controller.root, "merge-base", "--is-ancestor", prior["D"], task["target"])
+                controller.git("merge-base", "--is-ancestor", prior["D"], task["target"])
             implementation = implement_task(controller, config, task, attempt)
         for repair in range(min(2, config["limits"]["repair_attempts"]) + 1):
             validation_attempt = attempt if repair == 0 else attempt + "-fix" + str(repair)
@@ -346,7 +348,7 @@ def closeout(controller, config, task, check_only=False):
     target = saved.get("platform_delivery", {}).get("target_sha") if config["mode"] == "github" else task["target"]
     if not target:
         raise Blocked("actual target delivery reference missing")
-    git(controller.root, "merge-base", "--is-ancestor", saved["D"], target)
+    controller.git("merge-base", "--is-ancestor", saved["D"], target)
     evidence = json.loads(Path(saved["evidence"]).read_text())
     if file_fingerprint(saved["evidence"]) != saved["evidence_sha256"] or evidence["task_fingerprint"] != fingerprint(task):
         raise Blocked("closeout proof changed")
@@ -357,15 +359,16 @@ def closeout(controller, config, task, check_only=False):
         evidence_root = controller.common / "harness-delivered" / (safe_id(task["id"]) + "-" + saved["D"])
         if not evidence_root.exists():
             evidence_root.parent.mkdir(exist_ok=True)
-            git(controller.root, "worktree", "add", "--detach", str(evidence_root), saved["D"])
-        elif git(evidence_root, "rev-parse", "HEAD") != saved["D"]:
+            controller.git("worktree", "add", "--detach", str(evidence_root), saved["D"])
+        elif controller.git("rev-parse", "HEAD", cwd=evidence_root) != saved["D"]:
             raise Blocked("delivered evidence worktree changed")
     refs = task.get("durable_evidence", []) + list(task.get("reports", {}).values())
-    durable = verify_durable_evidence(evidence_root, refs, commit=saved["D"])
+    durable = verify_durable_evidence(evidence_root, refs, commit=saved["D"], controller=controller)
     if check_only:
         return {"durable_evidence": durable, "D": saved["D"], "status": "delivery_handoff_verified"}
     if config["mode"] == "github" and saved.get("issue_completion", {}).get("status") != "completed":
         raise Blocked("native Issue completion still requires authorized completion/reconciliation")
+    state = controller.state.read()
     state["tasks"][task["id"]].update(status="completed", durable_evidence=durable,
                                      handoff="task record and committed knowledge/report references verified")
     controller.state.write(state, state["revision"])

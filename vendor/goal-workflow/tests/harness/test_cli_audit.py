@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_local_audit as fixtures
 from harness import cli
 from harness.runtime import Controller
+from harness.github import controlled_runner, AdapterError
 from filelock import FileLock, Timeout
 
 
@@ -45,7 +46,7 @@ class CliAudit(unittest.TestCase):
         self.assertEqual(count, 0)
 
     def test_github_mutation_holds_lock_and_persists_intent_first(self):
-        def adapter(*args):
+        def adapter(*args, **kwargs):
             with self.assertRaises(Timeout):
                 with FileLock(str(self.root / ".git/harness.run.lock"), timeout=0):
                     pass
@@ -62,7 +63,7 @@ class CliAudit(unittest.TestCase):
         self.assertEqual(count, 0)
 
     def test_unknown_return_value_blocks_repeat_mutation(self):
-        def unknown(*args):
+        def unknown(*args, **kwargs):
             return {"status": "delivery_unknown", "pr": 1,
                     "remote_operation": "merge_request_outcome_unknown"}
         code, count = self.invoke(unknown)
@@ -72,6 +73,36 @@ class CliAudit(unittest.TestCase):
         code, count = self.invoke(unknown)
         self.assertEqual(code, 1)
         self.assertEqual(count, 0)
+
+    def _invoke_with_actual_supervised_adapter_process(self, fail=False):
+        holder = {}
+        class CapturedController(Controller):
+            def __enter__(inner):
+                result = super().__enter__()
+                holder["controller"] = inner
+                return result
+        def adapter(*args, **kwargs):
+            result = kwargs["run"](
+                [sys.executable, "-c", "print('simulated gh response'); raise SystemExit(%d)" % (1 if fail else 0)], 2)
+            if result.returncode:
+                raise AdapterError("simulated failed external response")
+            return {"status": "delivery_pending", "pr": 1}
+        with patch.object(cli, "Controller", CapturedController):
+            return self.invoke(adapter)
+
+    def test_mutation_success_refreshes_cas_after_supervised_gh_process(self):
+        code, count = self._invoke_with_actual_supervised_adapter_process()
+        self.assertEqual((code, count), (0, 1))
+        state = json.loads((self.root / ".loop-state.json").read_text())
+        self.assertEqual(state["remote_operations"][-1]["status"], "pending")
+        self.assertEqual(state["attempts"][-1]["exit_code"], 0)
+
+    def test_mutation_failure_refreshes_cas_and_preserves_unknown(self):
+        code, count = self._invoke_with_actual_supervised_adapter_process(fail=True)
+        self.assertEqual((code, count), (1, 1))
+        state = json.loads((self.root / ".loop-state.json").read_text())
+        self.assertEqual(state["remote_operations"][-1]["status"], "unknown")
+        self.assertEqual(state["attempts"][-1]["exit_code"], 1)
 
 
 if __name__ == "__main__":

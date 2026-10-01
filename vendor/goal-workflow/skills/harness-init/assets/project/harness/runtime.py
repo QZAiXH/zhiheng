@@ -7,11 +7,19 @@ import subprocess
 import time
 import tempfile
 import hashlib
+import uuid
 from pathlib import Path
 import psutil
 from filelock import FileLock, Timeout
 from .state import Blocked, State, atomic_json
 from .init_project import require_local_linux, load_lock_backend, repository_lock, InitRefused
+
+
+class GitFailure(Blocked):
+    def __init__(self, message, record):
+        super().__init__(message)
+        self.returncode = record["exit_code"]
+        self.reason = record["reason"]
 
 
 class NativeRunLock:
@@ -121,6 +129,17 @@ class Controller:
         self.entered = False
         self.run_lock.release()
 
+    def git(self, *args, cwd=None, raw=False):
+        """Execute all in-workflow Git work under the same identity/budget journal."""
+        token = "git-" + uuid.uuid4().hex
+        log = self.common / "harness-git" / (token + ".stdout")
+        directory = Path(cwd) if cwd is not None else self.root
+        record = self.execute(["git", "-C", str(directory), *args], directory, token, log,
+                              separate_stderr=True)
+        if record["exit_code"] != 0 or record["reason"]:
+            raise GitFailure(Path(record["stderr_log"]).read_text().strip() or "controlled Git command failed", record)
+        return log.read_bytes() if raw else log.read_text().strip()
+
     @classmethod
     def reconcile_stopped(cls, root, mode, run_id, limits):
         """Conservative recovery: prove every recorded identity stopped; never kill by stale PID."""
@@ -168,9 +187,9 @@ class Controller:
         if not isinstance(argv, list) or not argv or not all(isinstance(x, str) for x in argv):
             raise Blocked("command must be an argv array")
         data = self.state.read()
-        if scope not in ("command", "implementation", "review"):
+        if scope not in ("command", "implementation", "review", "github"):
             raise Blocked("unknown bounded execution scope")
-        cap = self.limits.get(scope + "_seconds", self.limits["command_seconds"])
+        cap = self.limits.get("request_seconds" if scope == "github" else scope + "_seconds", self.limits["command_seconds"])
         timeout = min(timeout or cap, cap,
                       self.limits["total_seconds"] - data["spent_seconds"])
         if timeout <= 0 or data.get("commands_started", len(data["attempts"])) >= self.limits["max_attempts"]:

@@ -21,6 +21,9 @@
 
 ## 实际运行记录
 
+- 第二冻结轮：**301 项 unittest 执行通过、0 跳过，243.813 秒**，真实固定 Serena 环境开启；[日志](evidence/freeze-second-tests-20261001.log)、[113 个输入文件 SHA-256](evidence/freeze-second-input-sha256-20261001.json)、[零漂移复核](evidence/freeze-second-drift-20261001.json)。这仍是分层测试集合，不是 301 个真实模型/平台场景。随后发现并继续修复 gh/可变 Git 操作需统一进程监督的接缝，最终版本仍需再验
+- 本地小功能、异常路径、前后依赖三组完整 CLI 夹具包含真实 Git、P0组件收据、Serena、验证、授权交付和 closeout；宿主实现/审查是明确模拟，不能代替真实 Codex 任务验收
+
 - 独立聚合运行：2026-10-01，163 个 unittest 执行通过、0 跳过，47.292 秒，见 [完整日志](evidence/independent-tests-20261001.log)。该运行早于随后候选注册/串行入口等修改；不能作为最终冻结版本的测试证明，发行前须重跑。
 - 云端稳定 CLI 实际失败日志：[socket 检查阻塞](evidence/codex-stable-cloud-blocker.log)。可在受支持本机运行 [宿主验收脚本](codex-host-acceptance.md)。
 
@@ -43,6 +46,16 @@
 - [实际适配器结果与 SHA 记录](evidence/github-live-summary-20261001.json)：gh 2.46.0，失败/缺失检查阻断、空依赖读取、PR定位、严格规则 unsupported、实际基线移动后旧证据 stale
 - 实现发布：[draft PR #3](https://github.com/QZAiXH/zhiheng/pull/3)，此前快照 89751aff8dd22c43d55a4d98d3ef2a10a48dfce9；[初次 macOS/Linux Actions](https://github.com/QZAiXH/zhiheng/actions/runs/36814910293) 尚不能作为最终冻结版本结果，后续更新可能替代该 run
 
+
+### 与本地相同业务基线的真实 GitHub 夹具
+
+基线 `goal-harness-arithmetic-v1`，GitHub 起点 e1154cc0f6a51c909efb59f9a8bfbbeba801d31a；[详细 SHA/文件清单/适配器/CI 证据](evidence/github-arithmetic-20261001.json)。业务实现来自确定性测试夹具，不是实时 Codex 开发。
+
+- [PR #7 小函数](https://github.com/QZAiXH/zhiheng/pull/7)：真实 CI 与 adapter 检查通过
+- [PR #8 异常路径](https://github.com/QZAiXH/zhiheng/pull/8)：真实 CI 与 adapter 检查通过
+- [PR #9 依赖前置](https://github.com/QZAiXH/zhiheng/pull/9)：真实 CI 与 adapter 检查通过；Issue #10 的原生 blocked-by 关系实际指向 Issue #6
+- 未交付、仅 verified、仅 closed 的依赖放行逻辑仍拒绝；后两种状态判定属于基于真实读取结果的条件测试，不意味着 Issue 已实际关闭
+- 所有这些 PR 尚未合并，下游交付后执行还未验。真实保护/合并/D/Issue 收尾及实时 Codex 主流程依然是未完成项；不得把合并前 CI 绿填成 delivered/completed
 
 ### 首轮真实平台 CI（失败，待修复重跑）
 
@@ -78,11 +91,11 @@ macOS 路径兼容与便携进程 helper 的修复正在进行。只有实际修
 | A02 | 审查修复轮数耗尽仍有 Blocking 问题 | 转为 blocked，保存发现与下一步；不会继续走通过分支 | `workflow_audit.test_blocking_review_never_verifies; workflow_audit.test_exhausted_review_attempts_never_fallthrough` | M-host | 固定审查响应验证门禁；真实 Codex 审查/修复循环未验 |
 | A03 | 必需检查被跳过、报告缺失或测试意外执行零条 | 验收不完整；不能凭其他检查为绿而通过 | `local_audit.test_zero_skipped_and_missing_reports_fail; local_audit.test_stale_successful_junit_cannot_certify_new_command; contracts.test_tool_zero_evaluation_blocks` | R+S | 真实命令/XML 与结构门禁已验；业务测试覆盖需逐任务确定 |
 | A04 | 验证后源提交、目标基线、规范或检查配置变化 | 旧证据被判过期，重新验证受影响部分及最终组合 | `local_audit.test_target_moves_and_old_evidence_is_rejected; local_audit.test_stale_spec_checks_and_environment_fail; workflow_audit.test_reissued_capability_receipt_cannot_revive_old_task_evidence; github-live-summary-20261001.json` | R+M-host+G | 实际本地/远端目标漂移、合同/观察环境绑定拒绝已验；真实 GitHub 合并/队列最终竞态仍待验 |
-| A05 | GitHub 原生依赖或本地文件依赖尚未完成 | 两种模式分别验证：依赖任务不启动，能说明具体阻塞来源 | `tasks.test_missing_dependency_never_silently_dropped; github.test_native_plus_body_closed_and_cross_repository; contracts.test_valid_nontrivial_dependency_graph` | R+M-gh+S | 本地解析与平台响应模拟已验；真实前后依赖任务串行交付未验 |
+| A05 | GitHub 原生依赖或本地文件依赖尚未完成 | 两种模式分别验证：依赖任务不启动，能说明具体阻塞来源 | `tasks.test_missing_dependency_never_silently_dropped; github.test_native_plus_body_closed_and_cross_repository; cli_e2e.test_dependency_handoff_then_native_delivery_boundary_reconciliation` | R+N+M-host+M-gh | 本地完整串行夹具验证依赖未交付不得启动、交付进入基线后续跑；宿主模拟。真实原生依赖读取及前置任务 CI 已验；依赖组交付后端到端仍未验 |
 | A06 | 依赖在首批分页外、已关闭、不存在或成环 | 分别查询并解释；不漏读、不自动删除约束，closed 不直接等同交付成功 | `github.test_pagination_filters_prs; github.test_cycles_block_even_closed; tasks.test_cycles_and_self_dependencies; tasks.test_missing_dependency_never_silently_dropped` | M-gh+R | 分页/closed/缺失/环在夹具中验证；真实 API 分页未验 |
 | A07 | GitHub 创建 PR 成功后进程中断 | 恢复时核对并复用已有 PR，不重复创建 | `github.test_create_recovery_reuses_pr_after_timeout; cli_audit.test_unknown_return_value_blocks_repeat_mutation` | M-gh | 模拟已成功但响应超时与重复阻断；真实创建后中断未验 |
 | A08 | 本地提交成功或可选推送成功后进程中断 | 恢复时核对已有提交和引用，不重复生成提交或误报交付 | `local_audit.test_successful_remote_push_with_old_intent_is_reconciled; local_audit.test_nonnumeric_id_candidate_and_authorized_ff_delivery; runtime_audit.test_crash_recovery_preserves_attempt_and_consumed_budget` | R | 真实本地 bare remote 已成功但保留旧 intent 的恢复已验；精确引用对账复用并更新 observed，不重推 |
-| A09 | 目标分支已合入但 checkpoint 未更新 | 查询实际 Git/平台状态，正确推进，不重复合入 | `local_audit.test_nonnumeric_id_candidate_and_authorized_ff_delivery; workflow_audit.test_cli_reconcile_cannot_promote_tampered_evidence` | R+M-host | 真实目标对账及伪造证据阻断已验；平台已合并未写 checkpoint 未真实演练 |
+| A09 | 目标分支已合入但 checkpoint 未更新 | 查询实际 Git/平台状态，正确推进，不重复合入 | `cli_e2e.test_dependency_handoff_then_native_delivery_boundary_reconciliation; workflow_audit.test_cli_reconcile_is_idempotent_after_actual_delivery; workflow_audit.test_cli_reconcile_cannot_promote_tampered_evidence` | R+N+M-host | 真实本地 Git已交付但checkpoint未更新的CLI对账、重复对账和假证据拒绝已验；真实平台合并尚未发生 |
 | A10 | checkpoint 损坏或发生过期修订号回写 | 不覆盖有效状态；明确报告冲突或进入恢复流程；运行互斥另按下表验收 | `runtime_audit.test_stale_revision_and_attempt_cannot_write; runtime_audit.test_mode_mismatch_and_corruption_preserve_checkpoint` | R | 隔离真实 CAS/坏文件保留已验 |
 | A11 | 重新打开会话，只提供交接文件 | 能复原验收条件、决策理由、未决问题和下一步，无需重读整段聊天 | `无真实 Codex 新会话成功记录` | B-host | CLI 会话启动前失败；仅交接文件的新会话恢复未执行 |
 | A12 | 提出无证据或与现有规范冲突的知识候选 | 保留候选与冲突，不能直接写成永久事实 | `knowledge.test_temporary_untracked_external_and_traversal_rejected; workflow_audit.test_native_not_ready_cannot_reach_checks_or_review` | R+M-host | 持久依据结构拒绝已验；规范冲突的模型语义判定未验 |
@@ -92,7 +105,7 @@ macOS 路径兼容与便携进程 helper 的修复正在进行。只有实际修
 | A16 | 知识依据已改变但引用仍有效 | 语义复核发现不一致并更新/撤回结论；引用检查通过不能代替该复核 | `knowledge.test_durable_reference_binds_actual_git_commit_and_bytes; workflow_audit.test_mutated_check_log_invalidates_evidence` | R | 字节漂移可检出；有效链接下事实矛盾的语义复核未验 |
 | A17 | 技能、依赖锁文件或运行环境变化 | 预检识别差异，旧验证不会被直接沿用 | `capabilities_audit.test_actual_skill_instruction_edit_expires_receipt; capabilities_audit.test_host_script_and_config_changes_expire_receipt; capabilities_audit.test_installed_code_or_dependency_fingerprint_drift_is_rejected; contracts.test_every_binding_component_rejects_drift` | R+S | 真实 SKILL.md/宿主脚本/配置漂移拒绝已验，代码/锁摘要比较通过模拟漂移验证；真实宿主升级全过程待验 |
 | A18 | 全新安装、选择性安装、重复初始化、升级回退 | 入口可用、版本可追溯、用户修改保留、恢复旧版本后状态兼容性明确 | `install.test_full_chain_install_copies_only_packages; install.test_selective_harness_is_self_contained; install.test_upgrade_and_rollback_verify_manifest_and_backup; install.test_user_edit_blocks_upgrade_and_rollback` | R | 隔离安装测试已验；真实安装后 uv 可用；已用过的 .venv/lib64 符号链接回归已修复，实际 10 技能升级/回退成功且 pyvenv.cfg 哈希不变。Codex 真实发现/调用、旧 checkpoint 迁移兼容另行验收 |
-| A19 | 本地仓库没有 remote、没有 gh、没有 GitHub 凭据 | 完整跑通任务、依赖、实现、验证、交付和恢复，不调用 GitHub API | `local_audit.test_nonnumeric_id_candidate_and_authorized_ff_delivery; local_audit.test_local_github_remote_does_not_require_gh_or_push; workflow_audit.test_simulated_review_allows_verified_but_not_delivery` | R+M-host | 无 remote 的真实 Git 原语、无 gh 的本地路径已验；真实模型全任务链未验 |
+| A19 | 本地仓库没有 remote、没有 gh、没有 GitHub 凭据 | 完整跑通任务、依赖、实现、验证、交付和恢复，不调用 GitHub API | `cli_e2e.test_tiny_function_real_run_validate_deliver_closeout; cli_e2e.test_exception_path_explicit_validate_then_deliver_closeout; cli_e2e.test_dependency_handoff_then_native_delivery_boundary_reconciliation; local_audit.test_local_github_remote_does_not_require_gh_or_push` | R+N+M-host | 本地无remote三类CLI夹具跑通实现/验证/交付/恢复/closeout，宿主实现/审查模拟，原生Serena与Git实际执行；真实Codex仍阻塞 |
 | A20 | 本地模式配置了指向 GitHub 的 remote | 仍按 local 执行，不查询 Issue/PR/CI；默认不推送 | `local_audit.test_local_github_remote_does_not_require_gh_or_push; init_project.test_default_local_never_uses_remote_or_gh` | R | PATH 无 gh 且 remote 指向 GitHub 的本地候选/检查/交付已验；不执行 push |
 | A21 | GitHub 认证或必需检查查询失败 | 保持失败或阻塞，不自动切换 local，不将未知结果当作通过 | `github.test_native_query_failure_not_fallback; github.test_timeout_and_malformed_fail_closed; github.test_checks_exact_sha_skipped_missing; workflow_audit.test_github_local_checks_alone_never_mark_generic_verified` | M-gh | 模拟认证/查询/未知结果及 GitHub 本地验证不提前标 verified 已验；真实 gh 已验证失败/通过/缺失检查；早期403已解决。平台查询失败/未知路径仍由模拟补充 |
 | A22 | 恢复时配置模式与 checkpoint 不一致 | 拒绝混用进度，明确指出匹配配置或新建运行的路径 | `runtime_audit.test_mode_mismatch_and_corruption_preserve_checkpoint; contracts.test_mode_mismatch_and_no_inference` | R+S | 真实 checkpoint 模式不符拒绝已验 |
@@ -125,7 +138,7 @@ macOS 路径兼容与便携进程 helper 的修复正在进行。只有实际修
 
 已独立审阅 zhiheng-current 的七个 `$zh*` 路由与共享 harness-integration 合同：旧资料保留为来源，增强流程只用一个 checkpoint/锁/知识写入口。统一安装器把七个入口和十个增强组件作为 17 项安装；任一 zh 选择自动补齐完整依赖，不覆盖未知同名技能。
 
-[外层仓库测试日志](evidence/zh-wrapper-tests-20261001.log)：28 项通过（22 原独立流程回归 + 6 统一安装/依赖检查），6.674 秒。该日志使用刷新前 vendor 快照，发行前仍需按最终 vendor 复跑；并不证明真实 Codex 已发现 `$zh`。
+[外层仓库测试日志](evidence/zh-wrapper-tests-20261001.log)：28 项通过（22 原独立流程回归 + 6 统一安装/依赖检查），6.674 秒。该日志使用刷新前 vendor 快照，发行前仍需按最终 vendor 复跑；并不证明真实 Codex 已发现 `$zh`。另有[新模型上下文显式加载演练](evidence/zh-forward-20261001.md)：在 local+无网络要求下因缺锁定依赖缓存而阻塞，未绕过能力门槛、未改 tracked 文件、未调用 GitHub；属于路由/拒绝门禁证据，不是 CLI 自动加载或正常开发通过。
 
 ## 目标平台边界
 

@@ -122,12 +122,12 @@ def simulation_scope(controller):
     temporary = Path(tempfile.gettempdir()).resolve()
     if not root.is_relative_to(temporary):
         raise Blocked("simulation is restricted to an explicitly marked temporary fixture repository")
-    if git(root, "remote"):
+    if controller.git("remote"):
         raise Blocked("simulation fixture must not have a remote")
     marker = root / ".harness-simulation"
     if not marker.is_file() or marker.read_text().strip() != "isolated-harness-fixture":
         raise Blocked("simulation fixture marker missing")
-    if git(root, "show", "HEAD:.harness-simulation").strip() != "isolated-harness-fixture":
+    if controller.git("show", "HEAD:.harness-simulation").strip() != "isolated-harness-fixture":
         raise Blocked("simulation marker must be committed")
 
 
@@ -146,7 +146,7 @@ def record_capabilities(controller, config, tier, semantic_review=None, authoriz
     semantic = None
     if semantic_review is not None and authorized_semantic:
         from .knowledge import verify_durable_evidence
-        semantic = verify_durable_evidence(controller.root, [semantic_review])
+        semantic = verify_durable_evidence(controller.root, [semantic_review], controller=controller)
     else:
         unverified.append("operator_semantic_knowledge_review")
     receipt = {"version": 1, "tier": tier, "binding": binding(controller, config),
@@ -165,7 +165,8 @@ def record_capabilities(controller, config, tier, semantic_review=None, authoriz
     if drills.get("report_path") and Path(drills["report_path"]).is_file():
         raw_logs[drills["report_path"]] = sha(drills["report_path"])
     github_probe = observed.get("github_probe", {})
-    for item in github_probe.get("logs", []):
+    github_logs = github_probe.get("logs", {})
+    for item in github_logs.values() if isinstance(github_logs, dict) else github_logs:
         if not isinstance(item, dict):
             continue
         for stream in ("stdout", "stderr"):

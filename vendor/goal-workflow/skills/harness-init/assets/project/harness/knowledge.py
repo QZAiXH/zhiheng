@@ -56,7 +56,7 @@ def _safe_local_path(root, relative, *, required=True):
     return path
 
 
-def verify_durable_evidence(repo, references, commit="HEAD"):
+def verify_durable_evidence(repo, references, commit="HEAD", controller=None):
     """Return actual committed blobs for references; temporary/external-only fails.
 
     This validates accessibility and byte identity, not whether a cited source
@@ -71,6 +71,8 @@ def verify_durable_evidence(repo, references, commit="HEAD"):
     env["GIT_OPTIONAL_LOCKS"] = "0"
 
     def git(*args):
+        if controller is not None:
+            return controller.git(*args, cwd=root, raw=True)
         try:
             result = subprocess.run(["git", "-C", str(root), *args], capture_output=True,
                                     timeout=15, env=env)
@@ -300,7 +302,7 @@ class SerenaAdapter:
         self._project_file()
         core = self.read_core()
         refs = self.check_references()
-        durable = verify_durable_evidence(self.root, evidence)
+        durable = verify_durable_evidence(self.root, evidence, controller=self.controller)
         return {"structural_ready": True, "onboarding_completed": False,
                 "semantic_review_required": True, "host_activation_required": True,
                 "core": core, "references": refs, "durable_evidence": durable}
@@ -310,7 +312,7 @@ class SerenaAdapter:
             raise Blocked("Only normalized project-local native memory names are accepted")
         if not isinstance(content, str) or not content.strip():
             raise Blocked("Empty memory content refused")
-        durable = verify_durable_evidence(self.root, evidence)
+        durable = verify_durable_evidence(self.root, evidence, controller=self.controller)
         with self._mutation():
             target = _safe_local_path(self.root, f".serena/memories/{name}.md", required=False)
             if os.path.lexists(target):
@@ -338,7 +340,7 @@ class SerenaAdapter:
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected_sha256:
             raise Blocked("Memory changed since review; re-read instead of overwriting")
         with self._mutation({path: content.encode("utf-8")}):
-            durable = verify_durable_evidence(self.root, evidence)
+            durable = verify_durable_evidence(self.root, evidence, controller=self.controller)
             result = self._bridge("update", {"name": name, "content": content,
                                             "expected_sha256": expected_sha256})
         return dict(result, durable_evidence=durable, semantic_review_required=True)
@@ -365,6 +367,6 @@ class SerenaAdapter:
             path = _safe_local_path(self.root, f".serena/memories/{name}.md", required=False)
             expected[path] = content.encode("utf-8") if content is not None else None
         with self._mutation(expected):
-            durable = verify_durable_evidence(self.root, evidence)
+            durable = verify_durable_evidence(self.root, evidence, controller=self.controller)
             result = self._bridge("rename", dict(payload, snapshot_sha256=planned["snapshot_sha256"]))
         return dict(result, durable_evidence=durable, semantic_review_required=True)

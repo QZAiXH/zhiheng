@@ -71,7 +71,7 @@ class WorkflowAudit(unittest.TestCase):
         with self.controller() as controller:
             with self.assertRaisesRegex(Blocked, "reviewed baseline"):
                 validate_task(controller, self.config, self.task, "weakened-A")
-            self.assertEqual(controller.state.read()["attempts"], [])
+            self.assertTrue(all(Path(row["argv"][0]).name == "git" for row in controller.state.read()["attempts"]), "business checks or review ran despite a failed prerequisite")
 
     def test_reissued_capability_receipt_cannot_revive_old_task_evidence(self):
         with self.controller() as controller:
@@ -117,14 +117,14 @@ class WorkflowAudit(unittest.TestCase):
             approve_contract(controller, self.config, self.task, authorized=True)
             with self.assertRaisesRegex(Blocked, "Serena"):
                 validate_task(controller, self.config, self.task, "missing-serena-A")
-            self.assertEqual(controller.state.read()["attempts"], [])
+            self.assertTrue(all(Path(row["argv"][0]).name == "git" for row in controller.state.read()["attempts"]), "business checks or review ran despite a failed prerequisite")
 
     def test_native_not_ready_cannot_reach_checks_or_review(self):
         self.readiness_mock.return_value = {"structural_ready": False}
         with self.controller() as controller:
             with self.assertRaisesRegex(Blocked, "knowledge readiness"):
                 validate_task(controller, self.config, self.task, "not-ready-A")
-            self.assertEqual(controller.state.read()["attempts"], [])
+            self.assertTrue(all(Path(row["argv"][0]).name == "git" for row in controller.state.read()["attempts"]), "business checks or review ran despite a failed prerequisite")
 
     def test_simulated_review_allows_verified_but_not_delivery(self):
         with self.controller() as controller:

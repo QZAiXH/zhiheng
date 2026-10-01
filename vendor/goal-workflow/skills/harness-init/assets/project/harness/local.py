@@ -22,9 +22,13 @@ def safe_id(value):
     return value
 
 
-def bindings(root, source, target, spec, checks, environment):
-    return {"H": git(root, "rev-parse", source + "^{commit}"),
-            "T": git(root, "rev-parse", target + "^{commit}"),
+def observed_git(root, *args, controller=None):
+    return controller.git(*args, cwd=root) if controller is not None else git(root, *args)
+
+
+def bindings(root, source, target, spec, checks, environment, controller=None):
+    return {"H": observed_git(root, "rev-parse", source + "^{commit}", controller=controller),
+            "T": observed_git(root, "rev-parse", target + "^{commit}", controller=controller),
             "spec_fingerprint": file_fingerprint(spec),
             "checks_fingerprint": fingerprint(checks), "environment_fingerprint": fingerprint(environment)}
 
@@ -34,18 +38,18 @@ def prepare_candidate(controller, source, target, task_id, attempt_id, spec, che
         raise Blocked("run lock required")
     safe_id(task_id); safe_id(attempt_id)
     root = controller.root
-    bound = bindings(root, source, target, spec, checks, environment)
+    bound = bindings(root, source, target, spec, checks, environment, controller)
     location = controller.common / "harness-worktrees" / (task_id + "-" + attempt_id)
     if location.exists():
         raise Blocked("candidate already exists; reconcile or use a new attempt, never overwrite")
     location.parent.mkdir(exist_ok=True)
-    git(root, "worktree", "add", "--detach", str(location), bound["T"])
+    controller.git("worktree", "add", "--detach", str(location), bound["T"])
     try:
-        git(location, "-c", "user.name=Harness", "-c", "user.email=harness@localhost", "merge", "--no-ff", "--no-edit", bound["H"])
+        controller.git("-c", "user.name=Harness", "-c", "user.email=harness@localhost", "merge", "--no-ff", "--no-edit", bound["H"], cwd=location)
     except Blocked:
         # Preserve conflict and worktree for diagnosis; never touch user's checkout.
         raise Blocked(f"candidate combination conflict; preserved at {location}")
-    bound.update({"C": git(location, "rev-parse", "HEAD"), "tree": git(location, "rev-parse", "HEAD^{tree}"),
+    bound.update({"C": controller.git("rev-parse", "HEAD", cwd=location), "tree": controller.git("rev-parse", "HEAD^{tree}", cwd=location),
                   "candidate_path": str(location), "source_ref": source, "target_ref": target})
     return bound
 
@@ -92,14 +96,14 @@ def run_checks(controller, candidate, checks, attempt_prefix, run_dir):
     return results
 
 
-def check_fresh(root, evidence, spec, checks, environment):
-    now = bindings(root, evidence["source_ref"], evidence["target_ref"], spec, checks, environment)
+def check_fresh(root, evidence, spec, checks, environment, controller=None):
+    now = bindings(root, evidence["source_ref"], evidence["target_ref"], spec, checks, environment, controller)
     for key, value in now.items():
         if evidence.get(key) != value:
             raise Blocked(f"stale evidence: {key} changed")
-    if git(evidence["candidate_path"], "rev-parse", "HEAD") != evidence["C"]:
+    if observed_git(evidence["candidate_path"], "rev-parse", "HEAD", controller=controller) != evidence["C"]:
         raise Blocked("candidate commit changed")
-    if git(evidence["candidate_path"], "diff", "HEAD", "--"):
+    if observed_git(evidence["candidate_path"], "diff", "HEAD", "--", controller=controller):
         raise Blocked("candidate tracked files changed after validation")
 
 
@@ -108,27 +112,27 @@ def deliver(controller, evidence, target_worktree, spec, checks, environment, au
         raise Blocked("explicit delivery authorization and run lock required")
     if evidence.get("status") != "verified":
         raise Blocked("candidate has not passed independent verification")
-    check_fresh(controller.root, evidence, spec, checks, environment)
+    check_fresh(controller.root, evidence, spec, checks, environment, controller)
     target_worktree = Path(target_worktree).resolve()
-    if Path(git(target_worktree, "rev-parse", "--path-format=absolute", "--git-common-dir")) != controller.common:
+    if Path(controller.git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=target_worktree)) != controller.common:
         raise Blocked("target worktree belongs to another repository")
-    if git(target_worktree, "symbolic-ref", "--short", "HEAD") != evidence["target_ref"]:
+    if controller.git("symbolic-ref", "--short", "HEAD", cwd=target_worktree) != evidence["target_ref"]:
         raise Blocked("target worktree is not on requested target branch")
-    if git(target_worktree, "status", "--porcelain"):
+    if controller.git("status", "--porcelain", cwd=target_worktree):
         raise Blocked("target worktree dirty; preserve user changes")
-    if git(target_worktree, "rev-parse", "HEAD") != evidence["T"]:
+    if controller.git("rev-parse", "HEAD", cwd=target_worktree) != evidence["T"]:
         raise Blocked("target changed before delivery")
-    git(target_worktree, "merge", "--ff-only", evidence["C"])
-    delivered = git(target_worktree, "rev-parse", "HEAD")
-    if delivered != evidence["C"] or git(target_worktree, "rev-parse", "HEAD^{tree}") != evidence["tree"]:
+    controller.git("merge", "--ff-only", evidence["C"], cwd=target_worktree)
+    delivered = controller.git("rev-parse", "HEAD", cwd=target_worktree)
+    if delivered != evidence["C"] or controller.git("rev-parse", "HEAD^{tree}", cwd=target_worktree) != evidence["tree"]:
         raise Blocked("target updated but delivered content differs; block downstream")
     return {"status": "delivered", "D": delivered, "tree": evidence["tree"]}
 
 
-def reconcile_delivery(root, evidence, target_ref):
+def reconcile_delivery(root, evidence, target_ref, controller=None):
     """Read real target; never regenerate commits merely because checkpoint is old."""
-    actual = git(root, "rev-parse", target_ref + "^{commit}")
-    if actual == evidence.get("C") and git(root, "rev-parse", actual + "^{tree}") == evidence.get("tree"):
+    actual = observed_git(root, "rev-parse", target_ref + "^{commit}", controller=controller)
+    if actual == evidence.get("C") and observed_git(root, "rev-parse", actual + "^{tree}", controller=controller) == evidence.get("tree"):
         return {"status": "delivered", "D": actual}
     return {"status": "blocked", "D": actual, "reason": "actual target is not the validated candidate; inspect/revalidate"}
 
@@ -142,8 +146,9 @@ def push_delivery(controller, task_id, remote, remote_ref, authorized=False):
     task = state["tasks"].get(task_id, {})
     if task.get("status") not in ("delivered", "completed") or not task.get("D"):
         raise Blocked("only an actually delivered commit may be pushed")
-    git(controller.root, "remote", "get-url", remote)
-    before = git(controller.root, "ls-remote", "--heads", remote, remote_ref)
+    controller.git("remote", "get-url", remote)
+    before = controller.git("ls-remote", "--heads", remote, remote_ref)
+    state = controller.state.read()
     if before.split()[:1] == [task["D"]]:
         matches = [op for op in state["remote_operations"] if op.get("action") == "git-push"
                    and op.get("remote") == remote and op.get("ref") == remote_ref and op.get("D") == task["D"]
@@ -160,12 +165,13 @@ def push_delivery(controller, task_id, remote, remote_ref, authorized=False):
     state["remote_operations"].append(operation)
     state = controller.state.write(state, state["revision"])
     try:
-        git(controller.root, "push", remote, task["D"] + ":" + remote_ref)
+        controller.git("push", remote, task["D"] + ":" + remote_ref)
     except Blocked:
         # A request error is not proof of remote failure; query before retrying.
         pass
-    after = git(controller.root, "ls-remote", "--heads", remote, remote_ref)
+    after = controller.git("ls-remote", "--heads", remote, remote_ref)
     okay = after.split()[:1] == [task["D"]]
+    state = controller.state.read()
     state["remote_operations"][-1]["status"] = "observed" if okay else "unknown"
     controller.state.write(state, state["revision"])
     if not okay:
