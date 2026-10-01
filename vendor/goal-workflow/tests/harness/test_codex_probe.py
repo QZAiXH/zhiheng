@@ -67,6 +67,24 @@ event({'type':'turn.completed'})
 '''
 
 
+def host_drill_diagnostics(result):
+    """Keep report evidence in assertion failures after temporary files are removed."""
+    summary = {key: result.get(key) for key in ("calls_started", "call_limit", "report_path")}
+    steps = {}
+    for step, name in (("start", "host_session_start"), ("review", "host_independent_review"),
+                       ("resume", "host_session_resume"), ("cancel", "host_native_stop")):
+        capability = (result.get("host_native_stop", {}) if step == "cancel"
+                      else result.get("capabilities", {}).get(name, {}))
+        log = result.get("logs", {}).get(step, {})
+        execution = log.get("execution", {})
+        steps[step] = {key: capability.get(key) for key in ("status", "detail")}
+        steps[step].update({key: execution.get(key) for key in ("exit_code", "reason", "stopped")})
+        if "error" in log:
+            steps[step]["error"] = log["error"]
+    summary["steps"] = steps
+    return "host drill report: " + json.dumps(summary, ensure_ascii=False, sort_keys=True)
+
+
 class CodexProbeProtocolTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -106,24 +124,26 @@ class CodexProbeProtocolTests(unittest.TestCase):
 
     def test_explicit_one_call_budget_never_starts_review_or_resume(self):
         result = self.run_drills(max_model_calls=1)
-        self.assertEqual(result["calls_started"], 1)
-        self.assertEqual(result["call_limit"], 1)
-        self.assertEqual(set(result["logs"]), {"start"})
-        self.assertEqual(result["capabilities"]["host_session_start"]["status"], "verified")
-        self.assertEqual(result["capabilities"]["host_independent_review"]["status"], "blocked")
-        self.assertEqual(result["capabilities"]["host_session_resume"]["status"], "blocked")
+        diagnostic = host_drill_diagnostics(result)
+        self.assertEqual(result["calls_started"], 1, msg=diagnostic)
+        self.assertEqual(result["call_limit"], 1, msg=diagnostic)
+        self.assertEqual(set(result["logs"]), {"start"}, msg=diagnostic)
+        self.assertEqual(result["capabilities"]["host_session_start"]["status"], "verified", msg=diagnostic)
+        self.assertEqual(result["capabilities"]["host_independent_review"]["status"], "blocked", msg=diagnostic)
+        self.assertEqual(result["capabilities"]["host_session_resume"]["status"], "blocked", msg=diagnostic)
 
     def test_explicit_fourth_simulated_owned_cancellation_proof(self):
         result = self.run_drills({"startup_seconds": 1, "total_seconds": 1.5, "sleep_seconds": 5})
-        self.assertEqual(result["calls_started"], 4)
+        diagnostic = host_drill_diagnostics(result)
+        self.assertEqual(result["calls_started"], 4, msg=diagnostic)
         cancellation = result["host_native_stop"]
-        self.assertEqual(cancellation["status"], "verified", cancellation)
-        self.assertTrue(cancellation["observation"]["signal_sent"])
-        self.assertTrue(cancellation["observation"]["all_recorded_processes_stopped"])
-        self.assertFalse(cancellation["remote_cancellation_verified"])
-        self.assertEqual(cancellation["scope"], "configured_local_cli_and_owned_descendants")
-        self.assertTrue(Path(cancellation["fixture"]["path"]).exists())
-        self.assertIn("cancel", result["logs"])
+        self.assertEqual(cancellation["status"], "verified", msg=diagnostic)
+        self.assertTrue(cancellation["observation"]["signal_sent"], msg=diagnostic)
+        self.assertTrue(cancellation["observation"]["all_recorded_processes_stopped"], msg=diagnostic)
+        self.assertFalse(cancellation["remote_cancellation_verified"], msg=diagnostic)
+        self.assertEqual(cancellation["scope"], "configured_local_cli_and_owned_descendants", msg=diagnostic)
+        self.assertTrue(Path(cancellation["fixture"]["path"]).exists(), msg=diagnostic)
+        self.assertIn("cancel", result["logs"], msg=diagnostic)
 
     def test_cancellation_trace_without_real_owned_child_is_not_proof(self):
         self.behavior(omit_cancel_child=True)
@@ -148,24 +168,25 @@ class CodexProbeProtocolTests(unittest.TestCase):
 
     def test_simulated_protocol_success_three_calls_and_hashes(self):
         result = self.run_drills()
-        self.assertEqual(result["calls_started"], 3)
+        diagnostic = host_drill_diagnostics(result)
+        self.assertEqual(result["calls_started"], 3, msg=diagnostic)
         for capability in result["capabilities"].values():
-            self.assertEqual(capability["status"], "verified", capability)
-        self.assertEqual(result["host_native_stop"]["status"], "blocked")
+            self.assertEqual(capability["status"], "verified", msg=diagnostic)
+        self.assertEqual(result["host_native_stop"]["status"], "blocked", msg=diagnostic)
         for item in result["logs"].values():
-            self.assertEqual(hashlib.sha256(Path(item["path"]).read_bytes()).hexdigest(), item["sha256"])
-            self.assertEqual(item["argv"][item["argv"].index("--model")+1], "gpt-6.1-sol")
-            self.assertEqual(item["model_policy"]["reasoning_effort"], "low")
-            self.assertEqual(item["argv"][item["argv"].index("--disable")+1], "multi_agent")
-            self.assertFalse(item["model_policy"]["multi_agent"])
-            self.assertEqual(item["model_policy"]["service_tier"], "default")
-            self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", item["argv"])
-            self.assertIn("read-only", item["argv"])
-        self.assertEqual(hashlib.sha256(Path(result["report_path"]).read_bytes()).hexdigest(), result["report_sha256"])
-        self.assertEqual(list(self.project.iterdir()), [])
+            self.assertEqual(hashlib.sha256(Path(item["path"]).read_bytes()).hexdigest(), item["sha256"], msg=diagnostic)
+            self.assertEqual(item["argv"][item["argv"].index("--model")+1], "gpt-6.1-sol", msg=diagnostic)
+            self.assertEqual(item["model_policy"]["reasoning_effort"], "low", msg=diagnostic)
+            self.assertEqual(item["argv"][item["argv"].index("--disable")+1], "multi_agent", msg=diagnostic)
+            self.assertFalse(item["model_policy"]["multi_agent"], msg=diagnostic)
+            self.assertEqual(item["model_policy"]["service_tier"], "default", msg=diagnostic)
+            self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", item["argv"], msg=diagnostic)
+            self.assertIn("read-only", item["argv"], msg=diagnostic)
+        self.assertEqual(hashlib.sha256(Path(result["report_path"]).read_bytes()).hexdigest(), result["report_sha256"], msg=diagnostic)
+        self.assertEqual(list(self.project.iterdir()), [], msg=diagnostic)
         state=json.loads((self.executable.parent/'state.json').read_text())
-        self.assertNotIn(state['nonce'], result['logs']['resume']['argv'][-1])
-        self.assertIn(state['id'], result['logs']['resume']['argv'])
+        self.assertNotIn(state['nonce'], result['logs']['resume']['argv'][-1], msg=diagnostic)
+        self.assertIn(state['id'], result['logs']['resume']['argv'], msg=diagnostic)
 
     def test_auth_failure_blocks_and_preserves_raw_log(self):
         self.behavior(auth_fail=True)
