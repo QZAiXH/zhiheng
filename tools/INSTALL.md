@@ -1,98 +1,64 @@
-# 安装、更新与恢复
+# 安装、升级与回退
 
-从源码仓库根目录运行以下命令，需要 Python 3.10+。七个技能必须一起安装并保持同级目录，安装工具会检查所需资源与相对链接。使用示例见 [README](../README.md)。
+统一入口为 `$zh`。完整安装为七个 zh 入口加十个增强组件；项目内和用户级均使用 Codex 的 `.agents/skills` 布局。
 
-## 用户级安装
+## 新安装
 
-以下 Bash 命令适用于 Linux、macOS 或 WSL。源码仓库应放在安装目录和备份目录之外。
-
-```bash
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups" \
-  --dry-run
-
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups"
-
-python3 tools/validate.py "$HOME/.agents/skills"
-```
-
-`--dry-run` 只输出计划，不创建目录或改动文件。正式安装成功后保存输出中的 `backup_id` 和 `backup` 路径，恢复需要使用该 ID。
-
-示例选用 Codex 当前的用户级 skills 目录，项目级目录及发现方式见 [OpenAI 官方文档](https://learn.chatgpt.com/docs/build-skills)。新装后可打开新会话检查 `$zh`；如果未发现新技能，重启 Codex。
-
-### 参数与现有默认值
-
-| 参数 | 用途 | 不传时的实际行为 |
-| --- | --- | --- |
-| `--source` | 包含七个技能的源码根目录 | 使用 `install.py` 所在 `tools/` 的上一级 |
-| `--target` | 宿主实际发现 skills 的目录 | 使用 `/root/.codex/skills` |
-| `--backups` | 独立备份目录 | 使用 `/root/.codex/skill-backups` |
-| `--dry-run` | 预览安装或恢复 | 不传则实际执行 |
-
-当前脚本不根据 `HOME` 或 `CODEX_HOME` 自动调整默认值，所以建议始终显式传入 `--target` 和 `--backups`。源码、目标、备份目录必须互不包含；工具会拒绝重叠目录和其检查到的不安全符号链接布局。
-
-如果宿主已经从其他目录加载本集合，更新时应继续使用那个目标目录，避免重复安装同名技能。此工具仅管理 `--target` 下的安装，不会迁移其他发现目录里的副本。
-
-## 项目级安装
-
-将七个技能安装到目标项目的 `.agents/skills`，备份仍放在技能发现目录之外。例如，先将下列项目路径替换为实际路径：
+安装脚本需要 Python 3.11+；增强运行环境另由 uv 按锁文件安装。下面只复制技能与自包含资产，不修改业务代码、凭据、checkpoint，也不执行技能。
 
 ```bash
-python3 tools/install.py install \
-  --target /path/to/project/.agents/skills \
-  --backups "$HOME/.local/state/zhiheng/project-skill-backups" \
-  --dry-run
+# 用户级：写入 ~/.agents/skills
+python3 tools/install-harness.py --destination "$HOME" --dry-run
+python3 tools/install-harness.py --destination "$HOME"
+
+# 或项目级：写入目标项目的 .agents/skills
+python3 tools/install-harness.py --destination /path/to/project
 ```
 
-核对输出后移除 `--dry-run` 执行。项目内安装是否提交到项目仓库，由该项目的约定决定；安装脚本本身不会提交文件。
+--destination 必须是已存在的项目目录或用户 home，不能传 `.agents/skills` 本身。现有同名未托管目录、用户改过的托管文件、未恢复事务或活动 workflow checkpoint 都会使安装安全停止。返回成功只证明文件布局已安装；请在实际 Codex 会话确认 `$zh` 发现与加载来源。
 
-## 更新和旧版迁移
+完整增强工作流使用统一安装器，旧 `tools/install.py install` 不再用于此版本，因为它只会安装七个入口而遗漏执行依赖。旧 `restore` 保持可用，操作历史见[旧安装与恢复说明](INSTALL-legacy.md)。
 
-在干净的源码仓库中更新，然后沿用原安装目标与备份路径重新安装：
+## 升级和回退
 
 ```bash
-git pull --ff-only
-python3 tools/validate.py
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups" \
-  --dry-run
+python3 tools/install-harness.py --destination "$HOME" --action upgrade
+python3 tools/install-harness.py --destination "$HOME" --action rollback
 ```
 
-核对后移除 `--dry-run` 执行。只更新 Git 源码不会同步已复制的 skills。
+升级先核对安装清单与文件指纹，保存可验证的上一代，再替换受管技能。回退从本地已验证备份恢复前一代，不撤销已经发生的代码提交、PR、合并或任务变更。实际执行生成的专用工具 .venv 与 Python 缓存不当成用户代码改动，升级/回退会保留已有工具环境；之后仍需 uv sync --locked 与能力重验，不能沿用旧验证。
 
-每次正式安装会创建唯一备份，完整保留目标目录中已有的七个同名技能及旧 `zhiheng` 目录，然后替换为新集合并移除目标中的旧 `zhiheng`。其他技能不受影响。安装工具不修改业务项目的 `.zhiheng/` 知识、`AGENTS.md` 或旧钩子配置。
+## 已安装旧七技能版本
 
-## 恢复某次安装
+旧版与新增受管集合不是同一份安装清单，不能仅凭同名目录自动接管。选择以下一种：
 
-将 `BACKUP_ID` 替换为安装输出中的实际值，`--backups` 必须指向那次安装使用的备份根目录：
+1. 在新的项目级技能目录安装本增强集合，在该 Codex 会话检查有效加载源；不要同时启用用户级原版与项目级同名增强版
+2. 用旧版原始备份和恢复工具审查旧安装，保留本地改动，再明确迁移到增强集合
+
+遇到用户修改、未知版本或 checkpoint 时先保留文件并对账，不自动覆盖或删除旧技能。此限制保护已有内容，不代表旧任务已迁移。
+
+## 选择性安装与单一入口
 
 ```bash
-python3 tools/install.py restore BACKUP_ID \
-  --backups "$HOME/.local/state/zhiheng/skill-backups" \
-  --dry-run
-
-python3 tools/install.py restore BACKUP_ID \
-  --backups "$HOME/.local/state/zhiheng/skill-backups"
+# 仅诊断/初始化资产；不宣称安装了完整 zh 工作流
+python3 tools/install-harness.py --destination /path/to/project --skills harness-init
 ```
 
-恢复会先把当前受影响的技能目录存入该备份下唯一的 `restore-archives/` 子目录，再还原安装前的版本，并移除那次安装新引入的技能。因此安装后的手工修改仍可从归档找回。恢复已完成的同一个备份不会重复操作；无关技能保持不变。
+选择任一 zh 入口会自动包括完整协作依赖，日常仍用 `$zh`。单独安装增强组件时补足 harness-init。升级不能静默增删已管理技能集合；改变集合需要明确的新安装/迁移。
 
-恢复目标从备份的 `manifest.json` 读取；可选传入 `--target` 核对，但不能借此恢复到另一个位置。这是还原整次安装，不是只卸载其中一个技能。
+## 运行前核验
 
-## 中断与排查
+依实际技能加载位置读取 harness-init 的说明，用其 assets/project 的 uv.lock 安装工具。配置 local/github、限额、检查命令、目标分支和持久证据；完成原生 Serena 接入与 Codex P0 探针后再执行任务。能力收据和实际证据未齐时阻塞，不靠 ready:true 放行。
 
-每份备份的 `manifest.json` 保存原目录集合、安装阶段及恢复归档。安装或恢复中断后，保留现场并使用报错中的备份 ID 执行 `restore`；恢复再次中断可以重试。同一目标存在未完成迁移时，新安装会被阻止。首次 manifest 写入前的备份复制失败不会改动已安装技能。
+macOS、Linux 与 WSL 需要分别实际验证原生锁、文件系统和停止路径。Windows 原生、网络共享文件系统等未验路径不自动支持。WSL 优先使用其 Linux 文件系统工作区。真实模型/平台未验证的项目不能靠模拟报告解锁交付。
 
-| 现象 | 检查方式 |
-| --- | --- |
-| 权限不足或写入 `/root` 失败 | 显式传入当前用户有权限的 `--target`、`--backups` |
-| 找不到 `$zh` | 确认宿主发现目录、七个 `SKILL.md` 是否存在；检查同名副本并重启宿主 |
-| 报缺少资源或相对链接失效 | 重新获取完整仓库，运行 `python3 tools/validate.py` |
-| 报未完成迁移 | 使用报错中的备份 ID 和原备份根目录恢复，再重新安装 |
-| 新版本没有生效 | 核对源码提交、实际安装目录；`git pull` 后需重新执行安装 |
+## 执行环境与权限
 
-备份和恢复归档在确认无需回退前应保留。报问题时提供脱敏错误、命令、系统及版本信息，见 [贡献指南](../CONTRIBUTING.md)。
+worktree 是代码工作目录/分支的隔离，不是容器或操作系统安全边界。多数 Git refs 与默认仓库配置仍在多个 worktree 之间共享，见 [Git 官方说明](https://git-scm.com/docs/git-worktree)。共享开发环境可用于可信的专用开发机；仍需区分任务端口、项目依赖和测试数据库，并保留锁、证据和目标分支核验。
+
+Codex 宿主决定文件/网络权限，安装技能不会改变个人权限配置。应显式选择并实际验证权限档，参见 [Codex 官方权限说明](https://learn.chatgpt.com/docs/permissions)。正常 workspace 档可能保护 Git 元数据；不能从控制器可写 Git 推断模型也可写。扩大权限前必须明确影响范围，worktree 不能保护工作目录之外的个人数据。
+
+- 模型提交路径：只在实际宿主已证明具备所需 Git 写能力时使用
+- 控制器提交路径：模型保留既定沙箱；按本次批准的文件名单，由控制器执行受限提交。该路径有自身仓库策略限制和验证要求，不能据此假定支持所有 Git hooks、filters 或签名配置
+
+换用共享环境不代表其它审核限制消失。无论哪种路径，都不能把尚未执行的检查标记为通过；当前版本的真实与模拟覆盖范围以验收报告为准。

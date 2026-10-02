@@ -1,0 +1,9 @@
+test_cleanup_then_clean_clone_keeps_native_knowledge_and_sources (test_durable_cleanup.DurableCleanupTests.test_cleanup_then_clean_clone_keeps_native_knowledge_and_sources) ... ok
+test_guarded_native_edit_and_rename_preserve_neighbors (test_durable_cleanup.DurableCleanupTests.test_guarded_native_edit_and_rename_preserve_neighbors) ... ok
+test_native_rename_propagates_mem_reference (test_durable_cleanup.DurableCleanupTests.test_native_rename_propagates_mem_reference) ... ok
+test_native_tool_readonly_boundary_is_respected (test_durable_cleanup.DurableCleanupTests.test_native_tool_readonly_boundary_is_respected) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 56.397s
+
+OK

@@ -1,0 +1,312 @@
+{
+  "status": "live checks and stale-baseline accepted; protected merge pending approval",
+  "repository": "QZAiXH/zhiheng",
+  "issue_url": "https://github.com/QZAiXH/zhiheng/issues/1",
+  "pr_url": "https://github.com/QZAiXH/zhiheng/pull/2",
+  "base_branch": "goal-harness/smoke-base-20261001",
+  "head_branch": "goal-harness/smoke-head-20261001",
+  "main_unchanged_sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+  "tested_cli_version": "gh 2.46.0",
+  "adapter_sha256": "e0a9eb4126bc77267712fd5fea5f2a0a966e3d975079dcf1e13036c3754cd657",
+  "failed_ci": {
+    "conclusion": "failure",
+    "headSha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+    "jobs": [
+      {
+        "completedAt": "2026-10-01T04:12:03Z",
+        "conclusion": "failure",
+        "databaseId": 110214942321,
+        "name": "goal-harness-smoke",
+        "startedAt": "2026-10-01T04:11:59Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Record candidate identity",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "failure",
+            "name": "Boundary tests",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 9,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36813986425/job/110214942321"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36813986425"
+  },
+  "passed_ci": {
+    "conclusion": "success",
+    "headSha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+    "jobs": [
+      {
+        "completedAt": "2026-10-01T04:18:45Z",
+        "conclusion": "success",
+        "databaseId": 110216539984,
+        "name": "goal-harness-smoke",
+        "startedAt": "2026-10-01T04:18:42Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Record candidate identity",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Boundary tests",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 9,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36814509361/job/110216539984"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36814509361"
+  },
+  "adapter_failed": {
+    "refs": {
+      "number": 2,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "merge_commit_sha": "18d24f718dc7e24db10bb651b2d11c118b0db3e8",
+      "head": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "base": "fb1935376a450c0956b0388e5ff01d223faefac6"
+    },
+    "checks": {
+      "status": "blocked",
+      "checked_sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "checks": {
+        "goal-harness-smoke": {
+          "status": "fail",
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36813986425/job/110214942321",
+          "sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb"
+        }
+      }
+    },
+    "missing_check": {
+      "status": "blocked",
+      "checked_sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "checks": {
+        "goal-harness-nonexistent": {
+          "status": "missing",
+          "sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb"
+        }
+      }
+    },
+    "rules": {
+      "policy": "unsupported",
+      "required_checks": [],
+      "branch": "goal-harness/smoke-base-20261001",
+      "mechanism": "rulesets",
+      "rules_verified": false
+    },
+    "task": {
+      "id": "github:github.com:QZAiXH/zhiheng#1",
+      "number": 1,
+      "repository": "QZAiXH/zhiheng",
+      "title": "[Acceptance smoke] Real gh Issue/PR/CI isolated validation",
+      "body": "Authorized goal-workflow acceptance smoke. Isolated base/head branches only, preserving main. Observe deliberate failing CI, repair, verify exact source/target/check evidence, and merge only after gates. Do not treat absent server protection as verified enforcement. This issue tracks test evidence, not release acceptance.",
+      "state": "open",
+      "state_reason": null,
+      "url": "https://github.com/QZAiXH/zhiheng/issues/1"
+    },
+    "dependencies": [],
+    "find_pr": {
+      "html_url": "https://github.com/QZAiXH/zhiheng/pull/2",
+      "number": 2,
+      "state": "open"
+    },
+    "stale_source": {
+      "source_sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "target_sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+      "checked_sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "delivered_sha": null,
+      "status": "stale",
+      "reason": "Source or target baseline changed",
+      "verified_delivery": false,
+      "pr": 2
+    },
+    "stale_target": {
+      "source_sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "target_sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+      "checked_sha": "ec20f2a813688082b6b23c2cf2f83cc8ce4260fb",
+      "delivered_sha": null,
+      "status": "stale",
+      "reason": "Source or target baseline changed",
+      "verified_delivery": false,
+      "pr": 2
+    }
+  },
+  "adapter_passed": {
+    "refs": {
+      "number": 2,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "merge_commit_sha": "33d742e6543c115c49cc6e7521b706bb562160f6",
+      "head": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "base": "fb1935376a450c0956b0388e5ff01d223faefac6"
+    },
+    "checks": {
+      "status": "pass",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "checks": {
+        "goal-harness-smoke": {
+          "status": "pass",
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36814509361/job/110216539984",
+          "sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9"
+        }
+      }
+    },
+    "missing_check": {
+      "status": "blocked",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "checks": {
+        "goal-harness-nonexistent": {
+          "status": "missing",
+          "sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9"
+        }
+      }
+    },
+    "rules": {
+      "policy": "unsupported",
+      "required_checks": [],
+      "branch": "goal-harness/smoke-base-20261001",
+      "mechanism": "rulesets",
+      "rules_verified": false
+    },
+    "task": {
+      "id": "github:github.com:QZAiXH/zhiheng#1",
+      "number": 1,
+      "repository": "QZAiXH/zhiheng",
+      "title": "[Acceptance smoke] Real gh Issue/PR/CI isolated validation",
+      "body": "Authorized goal-workflow acceptance smoke. Isolated base/head branches only, preserving main. Observe deliberate failing CI, repair, verify exact source/target/check evidence, and merge only after gates. Do not treat absent server protection as verified enforcement. This issue tracks test evidence, not release acceptance.",
+      "state": "open",
+      "state_reason": null,
+      "url": "https://github.com/QZAiXH/zhiheng/issues/1"
+    },
+    "dependencies": [],
+    "find_pr": {
+      "html_url": "https://github.com/QZAiXH/zhiheng/pull/2",
+      "number": 2,
+      "state": "open"
+    },
+    "stale_source": {
+      "source_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "target_sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "delivered_sha": null,
+      "status": "stale",
+      "reason": "Source or target baseline changed",
+      "verified_delivery": false,
+      "pr": 2
+    },
+    "stale_target": {
+      "source_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "target_sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "delivered_sha": null,
+      "status": "stale",
+      "reason": "Source or target baseline changed",
+      "verified_delivery": false,
+      "pr": 2
+    }
+  },
+  "actual_target_changed": {
+    "old_evidence": {
+      "status": "pass",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "checks": {
+        "goal-harness-smoke": {
+          "status": "pass",
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36814509361/job/110216539984",
+          "sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9"
+        }
+      },
+      "source_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "target_sha": "fb1935376a450c0956b0388e5ff01d223faefac6"
+    },
+    "current_head": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+    "pr_base_snapshot": "fb1935376a450c0956b0388e5ff01d223faefac6",
+    "current_target": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "mergeable_state": "clean",
+    "reconcile": {
+      "source_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "target_sha": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "delivered_sha": null,
+      "status": "stale",
+      "reason": "Source or target baseline changed",
+      "verified_delivery": false,
+      "pr": 2
+    }
+  },
+  "initial_compatibility_issue": "gh2.46 lacks --slurp; parser compatibility added and live retest successful",
+  "not_established": [
+    "server strict gate enforcement",
+    "actual adapter merge and delivery reconciliation",
+    "merge queue or auto-merge pending lifecycle",
+    "full implementation GitHub CI"
+  ],
+  "branch_head_probe": {
+    "branch_head": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "pr_base_snapshot": "fb1935376a450c0956b0388e5ff01d223faefac6",
+    "adapter_sha256": "e0a9eb4126bc77267712fd5fea5f2a0a966e3d975079dcf1e13036c3754cd657"
+  }
+}

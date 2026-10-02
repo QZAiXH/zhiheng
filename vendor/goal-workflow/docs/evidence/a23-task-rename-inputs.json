@@ -1,0 +1,8 @@
+{
+  "tests/harness/test_task_rename_cli_e2e.py": "d14a554fe8ae8fa0e0d136255b0f8c0f6f9be9e857ffa732061ead177c7b13e5",
+  "tests/harness/test_cli_e2e.py": "1b44d57229b739bd636170031bb29efc35e8b33faff3b9b14da7a66c71f09eab",
+  "tests/harness/test_tasks.py": "ca581746859c94dada8ad242e033005c261ee51d677af104fe1bf72faa95c17a",
+  "skills/harness-init/assets/project/harness/tasks.py": "30203f896aa6d1b88a44057647faba08db8d281967d9173ff8195cd4ea8850ef",
+  "skills/harness-init/assets/project/harness/workflow.py": "df9a8fde6e30a03786a3ff87bbff0fb1e999fcb4db32adbb7a5d280dfdccfff0",
+  "skills/harness-init/assets/project/harness/cli.py": "d7aca53bdac71f4bc62e82c32bb8835cbed1ec7a6e6bbb63a36c579a7df2ac5f"
+}

@@ -3,6 +3,15 @@ name: zh-finish
 description: Deliver an authorized and independently accepted task through local integration, verification, knowledge preservation, and safe worktree cleanup. Preserve recovery state on failure and keep remote actions within explicit authorization.
 ---
 
+## 执衡 Harness v0.5（默认研发路径）
+
+先读 [统一增强流程](../zh/references/harness-integration.md)。它把现有 zh 入口接到固定 goal-workflow 增强实现；以下步骤适用于本版研发任务，执行后返回，不与原版状态/知识写入并行运行。
+
+使用增强 walkthrough/ship-it 与受控 deliver/reconcile/closeout。默认停 verified；真实 H/T/C/D、必要远端检查、授权交付及知识/任务交接全部核实后才能 completed。local 默认无 push、无 gh；github 需实际平台对账和 Issue 收尾。清理前确认所有执行停止、证据长期保留，不能删除未恢复分支或把已合入失败改写成未交付。
+
+下文保留原协作经验和独立用法。若与增强合同的状态、知识、执行和交付机制冲突，以当前任务的增强合同为准；用户授权和项目规则始终优先，技能文本不会扩大权限。
+
+
 # 收尾与本地交付
 
 输入为本任务交付授权、目标/任务分支与 worktree、实际候选、独立验收及原始检查证据。计划阶段应已明确本地交付约定；从 `zh` 接收已约定本地交付时由主会话实际执行授权的提交、合并和清理，不重新索要相同授权。独立调用不扩展用户要求。适用项目规则若与自动合并约定真实冲突，先说明冲突并解决；不能自创“不得提交”限制，也不能绕过真实限制。自包含执行，不串联会改分支或重启确认的外部 Git 技能；用户显式要求其他技能时尊重该请求。

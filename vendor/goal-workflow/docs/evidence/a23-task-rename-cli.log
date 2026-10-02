@@ -1,0 +1,7 @@
+test_task_file_rename_revalidates_same_source_and_delivers (test_task_rename_cli_e2e.TaskRenameCLI.test_task_file_rename_revalidates_same_source_and_delivers) ... ok
+test_rename_keeps_id_and_reports_but_refreshes_source_path (test_tasks.LocalTaskTests.test_rename_keeps_id_and_reports_but_refreshes_source_path) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 35.831s
+
+OK

@@ -1,0 +1,193 @@
+{
+  "status": "completed native strict-protected platform smoke via authorized operator merge",
+  "scope": "only goal-harness/smoke-base-20261001 protection changed; PR2 fixture source edited; main untouched",
+  "protection": {
+    "strict": true,
+    "contexts": [
+      "goal-harness-smoke"
+    ],
+    "enforce_admins": true
+  },
+  "behind": {
+    "phase": "behind",
+    "rules": {
+      "policy": "strict",
+      "required_checks": [
+        "goal-harness-smoke"
+      ],
+      "branch": "goal-harness/smoke-base-20261001",
+      "mechanism": "branch_protection",
+      "rules_verified": true
+    },
+    "enforce_admins": true,
+    "source_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+    "pr_base_snapshot": "fb1935376a450c0956b0388e5ff01d223faefac6",
+    "actual_target_sha": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "candidate_sha": "33d742e6543c115c49cc6e7521b706bb562160f6",
+    "candidate_tree": "20c7aec11155574ab76ae5e982834f7f3688a3f8",
+    "checks": {
+      "status": "pass",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "checks": {
+        "goal-harness-smoke": {
+          "status": "pass",
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36814509361/job/110216539984",
+          "sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9"
+        }
+      }
+    },
+    "platform_merge_state": {
+      "baseRefName": "goal-harness/smoke-base-20261001",
+      "headRefOid": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "isDraft": true,
+      "mergeStateStatus": "BEHIND",
+      "state": "OPEN"
+    },
+    "rest_mergeable_state": "behind",
+    "merged": false,
+    "method": "read-only actual GitHub adapter and gh; no merge attempted in negative phases",
+    "old_evidence_reconciliation": {
+      "source_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "target_sha": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+      "checked_sha": "8cf9c8df8e21426004f6a1b2b3f3f3eb24ea6cd9",
+      "delivered_sha": null,
+      "status": "stale",
+      "reason": "Source or target baseline changed",
+      "verified_delivery": false,
+      "pr": 2
+    }
+  },
+  "failure": {
+    "phase": "failure",
+    "rules": {
+      "policy": "strict",
+      "required_checks": [
+        "goal-harness-smoke"
+      ],
+      "branch": "goal-harness/smoke-base-20261001",
+      "mechanism": "branch_protection",
+      "rules_verified": true
+    },
+    "enforce_admins": true,
+    "source_sha": "e767f4b5464f6b22905dd5c18b3d1874d078d855",
+    "pr_base_snapshot": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "actual_target_sha": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "candidate_sha": "a3862fa9b35be18809154d182e736caa4c43f7ff",
+    "candidate_tree": "7b47284f0aeee2a625166d9a1f3aca04ee846297",
+    "checks": {
+      "status": "blocked",
+      "checked_sha": "e767f4b5464f6b22905dd5c18b3d1874d078d855",
+      "checks": {
+        "goal-harness-smoke": {
+          "status": "fail",
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36819931696/job/110233118083",
+          "sha": "e767f4b5464f6b22905dd5c18b3d1874d078d855"
+        }
+      }
+    },
+    "platform_merge_state": {
+      "baseRefName": "goal-harness/smoke-base-20261001",
+      "headRefOid": "e767f4b5464f6b22905dd5c18b3d1874d078d855",
+      "isDraft": false,
+      "mergeStateStatus": "BLOCKED",
+      "state": "OPEN"
+    },
+    "rest_mergeable_state": "blocked",
+    "merged": false,
+    "method": "read-only actual GitHub adapter and gh; no merge attempted in negative phases"
+  },
+  "passed": {
+    "phase": "pass",
+    "rules": {
+      "policy": "strict",
+      "required_checks": [
+        "goal-harness-smoke"
+      ],
+      "branch": "goal-harness/smoke-base-20261001",
+      "mechanism": "branch_protection",
+      "rules_verified": true
+    },
+    "enforce_admins": true,
+    "source_sha": "1b545cee7393bd52f328c7c132e620c4e2f18a09",
+    "pr_base_snapshot": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "actual_target_sha": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "candidate_sha": "5497e1dcc34c854376e26228c0216cb398ee6914",
+    "candidate_tree": "b952d2798258e2b79139dc6635b3dff02f8605fe",
+    "checks": {
+      "status": "pass",
+      "checked_sha": "1b545cee7393bd52f328c7c132e620c4e2f18a09",
+      "checks": {
+        "goal-harness-smoke": {
+          "status": "pass",
+          "url": "https://github.com/QZAiXH/zhiheng/actions/runs/36820139287/job/110233736140",
+          "sha": "1b545cee7393bd52f328c7c132e620c4e2f18a09"
+        }
+      }
+    },
+    "platform_merge_state": {
+      "baseRefName": "goal-harness/smoke-base-20261001",
+      "headRefOid": "1b545cee7393bd52f328c7c132e620c4e2f18a09",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "state": "OPEN"
+    },
+    "rest_mergeable_state": "clean",
+    "merged": false,
+    "method": "read-only actual GitHub adapter and gh; no merge attempted in negative phases"
+  },
+  "delivery": {
+    "mode": "authorized operator merge under actual server strict protection, not real Codex core CLI or product automatic delivery",
+    "pr": 2,
+    "url": "https://github.com/QZAiXH/zhiheng/pull/2",
+    "H": "1b545cee7393bd52f328c7c132e620c4e2f18a09",
+    "T": "bc35041bfd3b180a884ec0925f3d3db9171396f2",
+    "C": "5497e1dcc34c854376e26228c0216cb398ee6914",
+    "D": "f58f193260de47d850c7eb97512f8b06b4da49bc",
+    "candidate_tree": "b952d2798258e2b79139dc6635b3dff02f8605fe",
+    "delivered_tree": "b952d2798258e2b79139dc6635b3dff02f8605fe",
+    "actual_target_sha": "f58f193260de47d850c7eb97512f8b06b4da49bc",
+    "delivered_reachable": true,
+    "adapter_reconciliation": {
+      "source_sha": "1b545cee7393bd52f328c7c132e620c4e2f18a09",
+      "target_sha": "f58f193260de47d850c7eb97512f8b06b4da49bc",
+      "checked_sha": "1b545cee7393bd52f328c7c132e620c4e2f18a09",
+      "delivered_sha": "f58f193260de47d850c7eb97512f8b06b4da49bc",
+      "status": "delivered",
+      "reason": "Actual merged content matches verified candidate",
+      "verified_delivery": true,
+      "pr": 2
+    },
+    "protection": {
+      "strict": true,
+      "contexts": [
+        "goal-harness-smoke"
+      ],
+      "enforce_admins": true
+    },
+    "main_observed_after": {
+      "sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+      "protected": false
+    },
+    "negative_tests": "Observed real BEHIND/BLOCKED states; did not attempt unsafe merge while those states held"
+  },
+  "main_before": {
+    "sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+    "protected": false
+  },
+  "main_after": {
+    "sha": "fb1935376a450c0956b0388e5ff01d223faefac6",
+    "protected": false
+  },
+  "limitations": [
+    "Negative stages proved actual platform BEHIND/BLOCKED states; no unsafe merge attempts were sent in those states",
+    "No product automatic CLI or live Codex P0 receipt used",
+    "Queue and pending auto-merge lifecycle not established"
+  ],
+  "settings_left_in_place": "Approved strict test-branch protection remains enabled; no cleanup/removal requested",
+  "issue_final": {
+    "html_url": "https://github.com/QZAiXH/zhiheng/issues/1",
+    "number": 1,
+    "state": "closed",
+    "state_reason": "completed"
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "binding": {
+      "additionalProperties": true,
+      "properties": {
+        "C": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "C_kind": {
+          "enum": [
+            "commit",
+            "tree"
+          ]
+        },
+        "H": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "T": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "checks_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "environment_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "spec_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "task_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "H",
+        "T",
+        "C",
+        "C_kind",
+        "spec_sha256",
+        "checks_sha256",
+        "environment_sha256",
+        "task_sha256"
+      ],
+      "type": "object"
+    },
+    "report": {
+      "additionalProperties": true,
+      "properties": {
+        "path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:goal-workflow:task-result:1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "acceptance": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "id": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "skipped",
+              "pending",
+              "unknown"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "evidence_ids"
+        ],
+        "type": "object"
+      },
+      "maxItems": 500,
+      "minItems": 1,
+      "type": "array"
+    },
+    "attempt_id": {
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+      "type": "string"
+    },
+    "binding": {
+      "$ref": "#/$defs/binding"
+    },
+    "checkpoint_revision": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checks": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "attempt_id": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+            "type": "string"
+          },
+          "binding": {
+            "$ref": "#/$defs/binding"
+          },
+          "counts": {
+            "oneOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "executed": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "failed": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "passed": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "skipped": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "executed",
+                  "passed",
+                  "failed",
+                  "skipped"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "evaluated": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "failed": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "evaluated",
+                  "failed"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+            "type": "string"
+          },
+          "report": {
+            "$ref": "#/$defs/report"
+          },
+          "run_id": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "skipped",
+              "pending",
+              "unknown",
+              "cancelled",
+              "timeout"
+            ]
+          }
+        },
+        "required": [
+          "run_id",
+          "attempt_id",
+          "binding",
+          "id",
+          "status",
+          "exit_code",
+          "report",
+          "counts"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "local",
+        "github"
+      ]
+    },
+    "repository_id": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "type": "string"
+    },
+    "review": {
+      "additionalProperties": true,
+      "properties": {
+        "attempt_id": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/$defs/binding"
+        },
+        "findings": {
+          "items": {
+            "additionalProperties": true,
+            "properties": {
+              "resolved": {
+                "type": "boolean"
+              },
+              "severity": {
+                "enum": [
+                  "Blocking",
+                  "Warning",
+                  "Info"
+                ]
+              },
+              "summary": {
+                "maxLength": 4096,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "severity",
+              "summary",
+              "resolved"
+            ],
+            "type": "object"
+          },
+          "maxItems": 500,
+          "minItems": 0,
+          "type": "array"
+        },
+        "independent": {
+          "type": "boolean"
+        },
+        "report": {
+          "$ref": "#/$defs/report"
+        },
+        "run_id": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "pending",
+            "failed",
+            "unknown",
+            "cancelled",
+            "timeout"
+          ]
+        },
+        "unresolved_items": {
+          "items": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 500,
+          "minItems": 0,
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_id",
+        "attempt_id",
+        "binding",
+        "status",
+        "independent",
+        "report",
+        "unresolved_items",
+        "findings"
+      ],
+      "type": "object"
+    },
+    "run_id": {
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+      "type": "string"
+    },
+    "stop_reason": {
+      "enum": [
+        "completed",
+        "timeout",
+        "cancelled",
+        "budget_exhausted",
+        "blocked",
+        "failed",
+        "unknown"
+      ]
+    },
+    "task_id": {
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,127}$",
+      "type": "string"
+    },
+    "unresolved_items": {
+      "items": {
+        "maxLength": 4096,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 500,
+      "minItems": 0,
+      "type": "array"
+    }
+  },
+  "required": [
+    "mode",
+    "repository_id",
+    "task_id",
+    "run_id",
+    "attempt_id",
+    "checkpoint_revision",
+    "binding",
+    "checks",
+    "review",
+    "acceptance",
+    "stop_reason",
+    "unresolved_items"
+  ],
+  "title": "Task result claims v1",
+  "type": "object"
+}

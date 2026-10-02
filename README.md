@@ -1,60 +1,71 @@
 # 执衡 · Zhiheng
 
+## 当前版本与验收边界
+
+面向 Codex CLI 的 v0.5 实现，入口为 `$zh`，完整安装 17 个技能组件。提供显式 local/GitHub 两种模式、原生 Serena 项目知识、MADR 决策、独立审查、预算和交付对账。
+
+**已有真实 local 闭环，尚未完成整个计划验收。** `8ccb840` 的 15 个普通跨平台 CI 作业通过；同版本在 Mac 完成真实 P0、模型实现、Controller 提交、新会话业务审查、5 项测试、本地交付与收尾（D=C）。28 项测试仍暂停，独立安全复核未完成，CI 汇总仍明确不通过。`05d7b47` 增加任务文件改名续跑夹具，本地分片 10/10、入口测试 38/38 通过，其 CI 尚待终态。详见[当前验证状态](docs/VERIFICATION.md)。
+
+这是有限场景的可行性证据，不是生产安全保证、效率收益或所有平台/业务的通过声明。安装与真实执行要求见[完整使用指南](docs/USAGE.zh-CN.md)；[历史验收追踪](vendor/goal-workflow/docs/harness-acceptance.md)保留历次失败和修复，不替代当前状态。
+
 让 AI 开发有计划、有边界、有独立验收，也有明确的交付结果。
 
-执衡是一套面向 Codex 的开发协作技能，包含七个可组合的 skills。以 `$zh` 为入口，它将项目理解、需求规划、隔离开发、问题诊断、独立审查和收尾交付串联起来，适用于已有项目的功能开发、缺陷修复与重构。
+执衡是一套面向 Codex 的开发协作技能，保留七个可组合的 zh 技能作为对外入口，底层接入固定 goal-workflow 的十个增强组件。以 `$zh` 为入口，它将项目理解、需求规划、隔离开发、问题诊断、独立审查和收尾交付串联起来，适用于已有项目的功能开发、缺陷修复与重构。
 
-[快速开始](#快速开始) · [使用示例](#使用示例) · [技能分工](#技能分工) · [安装与恢复](tools/INSTALL.md) · [参与贡献](CONTRIBUTING.md)
+[快速开始](#快速开始) · [完整使用指南](docs/USAGE.zh-CN.md) · [使用示例](#使用示例) · [技能分工](#技能分工) · [安装与恢复](tools/INSTALL.md) · [参与贡献](CONTRIBUTING.md)
 
 ## 有什么作用
 
 - **先把事情说清楚**：复杂任务先调查和澄清，再在对话中展示完整计划，包括范围、步骤、分工、验收和交付方式。
 - **控制改动范围**：修复本次引入的回归；发现无关的历史问题时记录和说明，避免顺手修改既有业务契约。
-- **分开开发与验收**：复杂任务由主 agent 协调，执行子 agent 开发和运行实现测试，独立新会话审查实际候选与原始证据。
-- **前端先看再做**：新页面或关键交互先提供可操作预览，取得用户对具体版本与范围的确认，再正式实现并做浏览器验收。
-- **把开发交付完整**：验收通过后，按约定提交、合并到目标分支、执行整合检查并清理任务 worktree，保留恢复记录。
+- **分开开发与验收**：默认按受控串行流程执行，独立新会话审查实际候选与原始证据；技能切换不能代替会话隔离。
+- **按项目合同验收**：后端、前端和文档任务使用各自明确的验收条件；需要浏览器证据时，不能以构建成功替代。
+- **明确交付结果**：候选提交后独立验收，证据有效且已授权才交付到目标分支；收尾与清理分别核实，不把停靠当完成。
 - **积累可复用的项目知识**：按需保存模块地图、命令验证状态和重要决定，后续任务增量更新。
 
-这些是 agent 应遵循的协作规则。技能文件本身不提供强制执行沙箱，也不能保证模型不会漏步骤；附带脚本只检查 Git 状态、文件布局和记录一致性，不能判断用户授权或代替独立验收。
+技能负责协调，增强 Python 控制器负责运行锁、进程与预算、checkpoint、证据过期、Git/平台交付及不确定结果对账。它不替代 Codex 的安全沙箱，也不能自行授予权限；用户授权、独立审查与实际工具证据仍是必要条件。
 
 ## 快速开始
 
 ### 环境要求
 
 - 支持本地 skills 的 Codex 环境。
-- Python **3.10+**，用于安装、校验和 Git 辅助脚本；脚本只依赖 Python 标准库。
+- Python **3.11+** 与 uv：安装入口使用标准库；增强执行环境通过独立 uv.lock 固定 filelock、psutil、jsonschema、Markdown，不混入业务依赖。
 - Git，用于仓库克隆和开发 worktree。
-- 完整开发流程需要宿主支持独立子 agent / 新会话；涉及前端时，还需要可用的浏览器操作或项目浏览器测试能力。
+- 完整开发流程需要宿主支持独立新会话、精确续接和可验证的取消路径；涉及前端时，还需要对应浏览器验收能力。
 
 下面是 Linux、macOS 或 WSL 的 Bash 示例。Windows 用户可在 WSL 中执行；其他环境需按实际 shell 调整路径和命令。
 
-### 安装七个技能
+### 安装统一入口与增强组件
+
+`main` 是日常使用与持续开发分支。需要复现验收时，使用[状态页](docs/VERIFICATION.md)列出的确切提交；更新后重新核对当前项目能力和配置。
 
 ```bash
-git clone https://github.com/QZAiXH/zhiheng.git
+git clone --branch main https://github.com/QZAiXH/zhiheng.git
 cd zhiheng
-
 python3 tools/validate.py
 
-# 先预览将替换的目录，不写入文件
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups" \
-  --dry-run
+# 用户级安装：先预览，再安装到 ~/.agents/skills
+python3 tools/install-harness.py --destination "$HOME" --dry-run
+python3 tools/install-harness.py --destination "$HOME"
 
-# 安装，并保存输出中的 backup_id 以便恢复
-python3 tools/install.py install \
-  --target "$HOME/.agents/skills" \
-  --backups "$HOME/.local/state/zhiheng/skill-backups"
-
-python3 tools/validate.py "$HOME/.agents/skills"
+# 或项目级安装（替换成实际项目目录）
+python3 tools/install-harness.py --destination /path/to/project
 ```
 
-示例使用 Codex 的用户级目录 `~/.agents/skills`；路径与 `$` 调用方式见 [OpenAI 官方 skills 文档](https://learn.chatgpt.com/docs/build-skills)。安装后打开新的 Codex 会话，进入自己的项目，在输入框选择 `$zh`。如果没有出现，检查安装目录并重启 Codex。
+统一入口仍为 `$zh`。完整安装包括七个 zh 入口和十个增强组件；它们在同一技能目录中协作。只安装文件不代表运行环境、知识 onboarding 或平台验收已经通过。
 
-**请显式传入安装路径。** 当前安装脚本保留了早期环境的 `/root/.codex/skills` 默认值，不会自动使用当前用户的 home 或 `CODEX_HOME`。如果你的宿主使用其他目录，替换示例中的 `--target`。七个技能相互引用，需完整安装并保持为同级目录。
+安装器保留已有未托管同名技能，不覆盖用户修改；如果检测到旧安装冲突，先按[安装与迁移说明](tools/INSTALL.md)处理。不要同时启用原版与增强版同名技能。已有旧版备份仍可使用原恢复工具。
 
-安装会备份并替换目标目录中的同名七个技能，同时将目标目录里的旧 `zhiheng` 技能退出使用；其他技能保持不变。源码目录、安装目录和备份目录必须互不包含。更新、项目级安装、旧版迁移和恢复见 [安装指南](tools/INSTALL.md)。
+### 本地与 GitHub 模式
+
+必须明确选择模式，有 remote 不会自动变成 GitHub 工作流。
+
+- local：默认不调用 gh、不创建 PR、不推远端；候选经当前证据验证后，按授权交付到本地目标分支
+- github：受控发布源分支、创建草稿 PR、读取 CI、按授权转为待审，再依实际规则决定是否允许自动合并
+- 私有仓库不要求先购买分支保护。无规则或无权读取规则时保留 PR/CI 工作流，只停靠自动合并；后续人工合并仍须核对真实交付提交
+
+真实模型验收必须显式指定允许的模型与有限调用预算。准备/单元/模拟测试无需模型调用；详情见[宿主验收](vendor/goal-workflow/docs/codex-host-acceptance.md)。
 
 ### 开始第一个任务
 
@@ -94,7 +105,7 @@ $zh-context 接入当前项目，调查并保存后续开发需要的上下文�
 优先复用现有文档，记录主要模块、启动与检查命令、已验证结果和知识缺口。
 ```
 
-这里的初始化是建立项目知识。缺少稳定入口时可创建 `.zhiheng/PROJECT.md`，必要时维护 `AGENTS.md` 中的简短指针；它不自动创建应用脚手架、初始化 Git、安装依赖或迁移数据库。只想了解项目而不写文件时，可以明确要求“只读调查”。
+这里的初始化是通过原生 Serena 梳理项目知识；已有 `.zhiheng` 与文档保留为来源，不并行维护另一套可写记忆。必要时维护项目规则中的简短指针；它不自动创建应用脚手架、初始化 Git、安装依赖或迁移数据库。只想了解项目而不写文件时，可以明确要求“只读调查”。
 
 ### 只制定方案
 
@@ -154,7 +165,7 @@ flowchart TD
     G --> H[独立验收]
     H -->|未通过| I[范围内修复或补证据]
     I --> G
-    H -->|通过| J[zh-finish 提交与本地整合]
+    H -->|通过| J[zh-finish 核对证据与授权交付]
     J --> K[整合验证与安全清理]
 ```
 
@@ -166,14 +177,9 @@ flowchart TD
 
 项目长期知识优先复用现有文档；开发任务的范围、决定、检查证据与恢复指针按 [任务记录规则](zh/references/records.md) 保存。
 
-`zh/scripts/task.py` 可辅助创建或接管 worktree、登记审查结果、执行本地快进合并和清理。它在 Git 公共目录的 `zh/tasks/<id>/` 下保存状态，清理 worktree 后记录仍在。通常由 agent 按需使用，不要求用户手动维护 JSON。
+增强任务统一使用 `goal-harness` 的运行记录与 `.loop-state.json`。按[命令速查](docs/USAGE.zh-CN.md#5-终端命令速查可选)操作，不为同一任务并行运行旧 `zh/scripts/task.py` 状态机；旧工具仅保留明确的历史兼容用途。
 
-```bash
-# 在本仓库源码目录执行；替换项目路径和任务标识
-python3 zh/scripts/task.py status --repo /path/to/project --id task-id
-```
-
-完整命令和失败恢复方式见 [Git 辅助工具说明](zh/references/task-tools.md)。脚本不会自动创建独立审查者，也不会推送远端或发布。
+新项目草稿推荐显式 `controller_commit`：模型仅修改已批准文件并测试，Controller 在审计后提交任务源分支。逐文件 `allowed_paths`、当前能力收据、合同和独立审查都不可省略。worktree 不是 OS 沙箱。实现超时会保留脏工作区并 blocked，当前没有自动续接脏实现入口；`recover` 只核验执行停止。详见[提交职责与故障处理](docs/USAGE.zh-CN.md#6-暂停恢复与故障定位)。
 
 ## 常见问题
 
@@ -202,8 +208,9 @@ python3 zh/scripts/task.py status --repo /path/to/project --id task-id
 ├── zh-review/            # 独立验收
 ├── zh-finish/            # 收尾与交付
 ├── tools/                # 安装、恢复、结构校验
-├── tests/                # 安装与 Git 生命周期测试
-└── .github/              # Issue 和 PR 模板
+├── tests/                # 入口、安装与旧任务兼容回归
+├── vendor/goal-workflow/ # 增强引擎、锁定依赖、完整验收追踪
+└── .github/              # 跨平台验证及 Issue/PR 模板
 ```
 
 ## 贡献与反馈

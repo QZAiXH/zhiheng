@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "required": ["findings", "acceptance"], "additionalProperties": false,
+  "properties": {
+    "findings": {"type": "array", "items": {"type": "object", "required": ["severity", "summary", "location", "evidence"], "additionalProperties": false,
+      "properties": {"severity": {"enum": ["Blocking", "Warning", "Info"]}, "summary": {"type": "string", "minLength": 1}, "location": {"type": "string", "minLength": 1}, "evidence": {"type": "string", "minLength": 1}}}},
+    "acceptance": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "status", "evidence"], "additionalProperties": false,
+      "properties": {"id": {"type": "string"}, "status": {"enum": ["passed", "failed"]}, "evidence": {"type": "string", "minLength": 1}}}}
+  }
+}

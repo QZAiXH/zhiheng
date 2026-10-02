@@ -1,0 +1,6 @@
+{
+  "source": "https://github.com/smallnest/goal-workflow/blob/b06ab3c1c147dcf7ef8dd62a8927cd506d098135/skills/walkthrough/scripts/md2html.py",
+  "baseline": "b06ab3c1c147dcf7ef8dd62a8927cd506d098135",
+  "sha256": "298158fa28a368087806ea131c6d534a04428f63a5d29fd5a44d7100799b51b1",
+  "license": "MIT; upstream LICENSE retained at repository root"
+}

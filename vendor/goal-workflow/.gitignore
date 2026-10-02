@@ -1,0 +1,17 @@
+.claude
+
+# Reproducible source only; never publish local runtimes/evidence caches
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.harness/runs/
+.loop-state.json
+
+# Harness tool environments and generated test artifacts
+.venv/
+__pycache__/
+*.pyc
+.harness/runs/
+.loop-state.json
+dist/
