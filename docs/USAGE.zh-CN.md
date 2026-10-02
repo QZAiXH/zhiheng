@@ -1,12 +1,12 @@
-# 执衡 v0.5 候选版使用指南（Codex CLI）
+# 执衡 v0.5 使用指南（Codex CLI）
 
-> 适用版本：`harness/integration-v05` 草稿分支。新版尚未合入 `main`，参见 [PR #3](https://github.com/QZAiXH/zhiheng/pull/3)。本文是安装与操作说明，不是发布批准或生产安全声明。
+> `main` 是日常使用与持续开发分支。本文说明安装、配置、执行和失败处理；具体已验证范围与未完成项见[验证状态](VERIFICATION.md)，不以分支名称代替验收证据。
 
 ## 先看当前能用到哪一步
 
 日常入口仍是 **`$zh`**。你可以安装全部技能，让 Codex 调查项目、整理知识、展示需求与实施计划。真正启动实现、独立审查、提交及交付前，必须完成当前项目、当前技能版本的能力验证与授权。
 
-本版仍为候选版。普通功能测试、安装、能力探针与真实业务交付是不同验收层级；当前版本的结果和未完成项请查阅[验收追踪](../vendor/goal-workflow/docs/harness-acceptance.md)及对应提交证据。不要把安装成功或配置可解析当作生产可用证明。WSL 支持声明也须以实际平台验收为准。
+本版持续开发和修正。普通功能测试、安装、能力探针与真实业务交付是不同验收层级；当前版本的结果和未完成项请查阅[当前验证状态](VERIFICATION.md)与[历史验收追踪](../vendor/goal-workflow/docs/harness-acceptance.md)的对应提交证据。不要把安装成功或配置可解析当作生产可用证明。WSL 支持声明也须以实际平台验收为准。
 
 ## 1. 最短上手流程
 
@@ -16,12 +16,12 @@
 
 命令示例使用 Bash，适用于 macOS、Linux；WSL 应在其 Linux 本地文件系统内操作。原生 Windows、NFS/SMB、FUSE、WSL 的 drvfs/9p 等不在当前初始化支持范围。工作树和公共 Git 目录都要满足文件系统检查。
 
-### 1.2 获取候选版并安装
+### 1.2 从 main 安装
 
 以下在终端运行。克隆会访问 GitHub；安装器只安装文件，不会启动模型、执行技能、创建 PR 或修改业务代码。
 
 ```bash
-git clone --branch harness/integration-v05 --single-branch https://github.com/QZAiXH/zhiheng.git
+git clone --branch main --single-branch https://github.com/QZAiXH/zhiheng.git
 cd zhiheng
 
 # 先预览用户级安装，再执行
@@ -60,7 +60,7 @@ $zh 接入当前项目。先只读调查，明确实际仓库、当前分支、�
 先不要启动付费模型演练、实现、提交、合并或推送；需要写入或调用模型时列出具体范围和预算让我确认。
 ```
 
-先核对调查结果，再明确批准你要执行的初始化、知识维护和有限演练。不要把下面的实现示例直接当作当前版本已经具备真实闭环证据。
+先核对调查结果，再明确批准你要执行的初始化、知识维护和有限演练。示例本身不是执行证据；已有一次 Mac 真实 local 闭环通过，但你的项目仍须完成自己的前置检查。
 
 ### 1.4 条件齐备后开始第一个任务
 
@@ -78,7 +78,7 @@ $zh 为订单列表增加按状态筛选，local 模式，目标分支 main。
 
 安装器拒绝覆盖未托管的同名目录、用户修改过的受管文件、未恢复安装事务或活动工作流 checkpoint。遇到拒绝时保留现有内容，检查具体路径和安装清单；不要直接删除目录、改指纹或强行接管。
 
-升级前先停止活动工作流并完成对账，保留本地编辑；确认源码是你要安装的候选版本。在源码目录运行：
+升级前先停止活动工作流并完成对账，保留本地编辑；确认源码是你要安装的确切版本。在源码目录运行：
 
 ```bash
 python3 tools/install-harness.py --destination "$HOME" --action upgrade --dry-run
@@ -156,6 +156,8 @@ bundle 顶层包含 `version: 1`、`config`、`tasks`，新任务的 `checkpoint
 
 `record-capabilities --tier live` 会运行探针，不是只读展示命令；开启宿主演练时会调用真实模型。必须先明确批准模型、调用次数和时限。当前 P0 宿主演练按实现固定 low reasoning/default service tier，同一模型贯穿开始、独立审查、续接与可选取消；最多四次启动，不等于四次 API 请求，也不是人民币/美元硬上限。没有实际 usage 时费用未知，失败或超时不能推断为零费用。未批准不得启动，不自动重试或换模型。
 
+P0 先校验显式模型/调用预算参数，再运行可观测的免费原生前置检查；这些必需项失败时跳过真实宿主演练并记录零调用。已派发但缺最终报告时调用数可能未知，不能写成零。该门禁不承诺一切无法 ready 的情况都零费用：model_commit 的模型 Git 权限和最终语义接受证据仍有独立缺口。
+
 新草稿推荐 `controller_commit`：模型在既定 sandbox 内只改允许文件并测试，Controller 审计后提交到明确任务源分支。`allowed_paths` 只能是唯一、精确的仓库相对文件名，不支持目录、通配符、绝对路径、`..`、符号链接或 Git 元数据。
 
 `core.autocrlf` 按 Git 最终生效值判断：有效的 `input`／`true` 仍不支持；项目明确配置的 `false` 可以覆盖上层同名值。被覆盖的来源仍参与指纹与变化检查。这种配置调整必须符合项目的换行约定，不能为了通过检查自动修改全局或项目策略，也不代表其他 Git 执行策略获得了支持。
@@ -177,6 +179,8 @@ Controller 会拒绝不支持的 Git hooks、filters、签名及特殊执行型�
 | 收尾 | `$zh-finish` | note-it、walkthrough、ship-it、实际交付对账 |
 
 小且明确的任务可用简短计划；复杂需求先调查和澄清。新页面、布局或关键业务交互应有可操作预览，确认具体版本和范围后再接真实功能，不能用构建成功替代浏览器验收。缺少浏览器或独立新会话能力时明确停靠，不把原对话切换技能当作独立审查。
+
+当 Controller 已派发 task/worktree 时，实现者直接完成本步骤，不再调用 run/probe、启动任务循环或另建工作区，不自行做业务独立审查。controller_commit 下禁止模型 stage/commit/发布；walkthrough/knowledge 以候选说明回传，只有明确允许的文件路径才可写入。完成指定修改和测试后及时返回，不能承诺固定时限必然足够。
 
 测试失败、零条测试、意外 skip、缺报告、未知 CI、未解决 Blocking 都不能通过。每个阶段报告真实状态和剩余缺口；`verified` 不是 `delivered`，交付成功也需完成知识、依据和交接核对才能 `completed`。依赖解除要以成果已进入下游实际基线为准。
 
@@ -277,7 +281,7 @@ uv run --locked --project "$HARNESS_PROJECT" goal-harness github --bundle "$BUND
 uv run --locked --project "$HARNESS_PROJECT" goal-harness recover --bundle "$BUNDLE" --run "$RUN"
 ```
 
-`recover` 核对旧执行已停止，不代表自动续跑或清零费用/尝试次数。若身份未知、进程活跃或远端结果未明，保持 blocked。确认实际状态和预算后再决定下一步及新 attempt；不要删除锁、checkpoint 或日志来“重置”。
+`recover` 核对旧执行已停止，不代表自动续跑或清零费用/尝试次数。若身份未知、进程活跃或远端结果未明，保持 blocked。确认实际状态和预算后再决定下一步；不要删除锁、checkpoint 或日志来“重置”。如果实现超时留下脏工作区，当前没有自动续接该实现的公开入口；换 attempt 也不能绕过已存在源分支。保留现场手动停靠，不能把其中测试 exit 0 当作已形成候选提交或整轮成功。
 
 Controller 提交结果未知时，先取日志中精确 operation ID：
 
@@ -317,7 +321,7 @@ uv run --locked --project "$HARNESS_PROJECT" goal-harness commit-reconcile --bun
 4. 收尾：知识和报告是否可长期读取、Issue/交接是否完成、工作区是否安全清理
 5. 缺口：模拟、未测、受阻与未获授权的事项
 
-当前项目本身仍有真实新版本模型闭环及独立安全复核缺口，不能把本指南或普通回归通过当作“全部验收完成”。
+8ccb840 已有一次 Mac 真实 local 模型闭环通过。完整计划仍缺同基线双模式各三组真实任务等验收；28 项暂停测试与独立安全复核未完成，WSL 未实际执行，真实 GitHub 产品自动整链不能用人工平台测试或模拟替代。不能把代码合入 main、本指南或普通回归通过当作“全部验收完成”，详情见[当前验证状态](VERIFICATION.md)。
 
 ### 延伸阅读
 
@@ -328,6 +332,7 @@ uv run --locked --project "$HARNESS_PROJECT" goal-harness commit-reconcile --bun
 - [Serena 与 MADR](../vendor/goal-workflow/skills/harness-init/references/knowledge.md)
 - [Controller 提交职责](../vendor/goal-workflow/skills/harness-init/references/controller-commit.md)
 - [能力探针的证明边界](../vendor/goal-workflow/skills/harness-init/references/p0-probe.md)
-- [当前验收状态](../vendor/goal-workflow/docs/harness-acceptance.md)
+- [当前验收状态](VERIFICATION.md)
+- [历史逐项验收记录](../vendor/goal-workflow/docs/harness-acceptance.md)
 
 本文命令按当前源码的实际 parser、分发和参数契约离线核对；没有为编写指南调用真实模型、运行新一轮原生测试或实施任何远端操作。参数可解析不代表当前项目已经满足执行条件。

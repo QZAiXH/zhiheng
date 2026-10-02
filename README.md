@@ -1,11 +1,12 @@
 # 执衡 · Zhiheng
 
-## Harness v0.5 集成状态
+## 当前版本与验收边界
 
-本版按 2026-09-30 计划增强，目标为 Codex CLI on macOS、Linux／WSL；用户入口保持 `$zh`。原项目资料保留，增强流程采用显式 local/github 模式、Serena 原生记忆、MADR 决策、真实证据门禁及中断对账。
+面向 Codex CLI 的 v0.5 实现，入口为 `$zh`，完整安装 17 个技能组件。提供显式 local/GitHub 两种模式、原生 Serena 项目知识、MADR 决策、独立审查、预算和交付对账。
 
-当前仍在完成逐项验收，不能把单元测试或模拟宿主/平台通过视作全部环境通过。实现和未完成项见[逐项验收追踪](vendor/goal-workflow/docs/harness-acceptance.md)，真实 Codex 环境可运行[宿主验收脚本](vendor/goal-workflow/docs/codex-host-acceptance.md)。
+**已有真实 local 闭环，尚未完成整个计划验收。** `8ccb840` 的 15 个普通跨平台 CI 作业通过；同版本在 Mac 完成真实 P0、模型实现、Controller 提交、新会话业务审查、5 项测试、本地交付与收尾（D=C）。28 项测试仍暂停，独立安全复核未完成，CI 汇总仍明确不通过。`05d7b47` 增加任务文件改名续跑夹具，本地分片 10/10、入口测试 38/38 通过，其 CI 尚待终态。详见[当前验证状态](docs/VERIFICATION.md)。
 
+这是有限场景的可行性证据，不是生产安全保证、效率收益或所有平台/业务的通过声明。安装与真实执行要求见[完整使用指南](docs/USAGE.zh-CN.md)；[历史验收追踪](vendor/goal-workflow/docs/harness-acceptance.md)保留历次失败和修复，不替代当前状态。
 
 让 AI 开发有计划、有边界、有独立验收，也有明确的交付结果。
 
@@ -19,7 +20,7 @@
 - **控制改动范围**：修复本次引入的回归；发现无关的历史问题时记录和说明，避免顺手修改既有业务契约。
 - **分开开发与验收**：默认按受控串行流程执行，独立新会话审查实际候选与原始证据；技能切换不能代替会话隔离。
 - **按项目合同验收**：后端、前端和文档任务使用各自明确的验收条件；需要浏览器证据时，不能以构建成功替代。
-- **把开发交付完整**：验收通过后，按约定提交、合并到目标分支、执行整合检查并清理任务 worktree，保留恢复记录。
+- **明确交付结果**：候选提交后独立验收，证据有效且已授权才交付到目标分支；收尾与清理分别核实，不把停靠当完成。
 - **积累可复用的项目知识**：按需保存模块地图、命令验证状态和重要决定，后续任务增量更新。
 
 技能负责协调，增强 Python 控制器负责运行锁、进程与预算、checkpoint、证据过期、Git/平台交付及不确定结果对账。它不替代 Codex 的安全沙箱，也不能自行授予权限；用户授权、独立审查与实际工具证据仍是必要条件。
@@ -37,10 +38,10 @@
 
 ### 安装统一入口与增强组件
 
-本增强版目前在开发分支 `harness/integration-v05`；以下命令明确选择该分支，尚未替换 main。
+`main` 是日常使用与持续开发分支。需要复现验收时，使用[状态页](docs/VERIFICATION.md)列出的确切提交；更新后重新核对当前项目能力和配置。
 
 ```bash
-git clone --branch harness/integration-v05 https://github.com/QZAiXH/zhiheng.git
+git clone --branch main https://github.com/QZAiXH/zhiheng.git
 cd zhiheng
 python3 tools/validate.py
 
@@ -104,7 +105,7 @@ $zh-context 接入当前项目，调查并保存后续开发需要的上下文�
 优先复用现有文档，记录主要模块、启动与检查命令、已验证结果和知识缺口。
 ```
 
-这里的初始化是建立项目知识。缺少稳定入口时可创建 `.zhiheng/PROJECT.md`，必要时维护 `AGENTS.md` 中的简短指针；它不自动创建应用脚手架、初始化 Git、安装依赖或迁移数据库。只想了解项目而不写文件时，可以明确要求“只读调查”。
+这里的初始化是通过原生 Serena 梳理项目知识；已有 `.zhiheng` 与文档保留为来源，不并行维护另一套可写记忆。必要时维护项目规则中的简短指针；它不自动创建应用脚手架、初始化 Git、安装依赖或迁移数据库。只想了解项目而不写文件时，可以明确要求“只读调查”。
 
 ### 只制定方案
 
@@ -164,7 +165,7 @@ flowchart TD
     G --> H[独立验收]
     H -->|未通过| I[范围内修复或补证据]
     I --> G
-    H -->|通过| J[zh-finish 提交与本地整合]
+    H -->|通过| J[zh-finish 核对证据与授权交付]
     J --> K[整合验证与安全清理]
 ```
 
@@ -176,14 +177,9 @@ flowchart TD
 
 项目长期知识优先复用现有文档；开发任务的范围、决定、检查证据与恢复指针按 [任务记录规则](zh/references/records.md) 保存。
 
-`zh/scripts/task.py` 可辅助创建或接管 worktree、登记审查结果、执行本地快进合并和清理。它在 Git 公共目录的 `zh/tasks/<id>/` 下保存状态，清理 worktree 后记录仍在。通常由 agent 按需使用，不要求用户手动维护 JSON。
+增强任务统一使用 `goal-harness` 的运行记录与 `.loop-state.json`。按[命令速查](docs/USAGE.zh-CN.md#5-终端命令速查可选)操作，不为同一任务并行运行旧 `zh/scripts/task.py` 状态机；旧工具仅保留明确的历史兼容用途。
 
-```bash
-# 在本仓库源码目录执行；替换项目路径和任务标识
-python3 zh/scripts/task.py status --repo /path/to/project --id task-id
-```
-
-完整命令和失败恢复方式见 [Git 辅助工具说明](zh/references/task-tools.md)。脚本不会自动创建独立审查者，也不会推送远端或发布。
+新项目草稿推荐显式 `controller_commit`：模型仅修改已批准文件并测试，Controller 在审计后提交任务源分支。逐文件 `allowed_paths`、当前能力收据、合同和独立审查都不可省略。worktree 不是 OS 沙箱。实现超时会保留脏工作区并 blocked，当前没有自动续接脏实现入口；`recover` 只核验执行停止。详见[提交职责与故障处理](docs/USAGE.zh-CN.md#6-暂停恢复与故障定位)。
 
 ## 常见问题
 
