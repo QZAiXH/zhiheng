@@ -26,7 +26,7 @@ def flatten(suite):
 def group_for(test):
     parts = test.id().split('.')
     module = parts[0]
-    if module == 'test_cli_e2e':
+    if module in ('test_cli_e2e', 'test_task_rename_cli_e2e'):
         return 'local'
     if module == 'test_github_cli_e2e':
         return 'github'
