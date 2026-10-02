@@ -1,0 +1,28 @@
+--- workflow.before.py
++++ workflow.py
+@@ -264,7 +264,7 @@
+     branch = task["source"]
+     try:
+         controller.git("show-ref", "--verify", "--quiet", "refs/heads/" + branch.removeprefix("refs/heads/"))
+-        raise Blocked("source branch exists; use explicit resume after inspecting its worktree")
++        raise Blocked("source branch exists; manual handoff required, preserve branch/worktree/logs. No automatic dirty-implementation resume entry exists; recover only verifies stopped execution, not business continuation. Do not delete the branch or reset budgets to retry")
+     except GitFailure as exc:
+         if exc.returncode != 1 or exc.reason:
+             raise
+@@ -292,9 +292,14 @@
+                           if mode == "controller_commit" else
+                           "Commit your changes on the current branch when implementation is ready. ")
+     spec = _safe_local_path(controller.root, task["spec"]).read_text()
+-    prompt = ("Implement only this task in the current isolated worktree. Read applicable project rules, "
++    prompt = ("You are the implementation worker already dispatched by the outer Controller. "
++              "Use only this supplied task and existing worktree; do not invoke run/probe, start a task loop, "
++              "create another worktree, or perform independent business review. "
++              "Implement only this task in the current isolated worktree. Read applicable project rules, "
+               "then project core knowledge and needed topic references. Preserve complete acceptance criteria. "
+-              "Prepare required walkthrough and stable evidence/knowledge changes before completion. "
++              "Complete approved changes and the specified tests, then finish promptly with a concise implementation report. "
++              "Provide walkthrough/knowledge candidates in that report for the Controller; do not create extra files "
++              "unless their paths are explicitly authorized (allowed_paths in controller_commit mode). "
+               "Do not push, open PR, merge, deploy, or claim independent verification. "
+               + commit_instruction + "Report missing knowledge/requirements.\n"
+               + json.dumps(task, ensure_ascii=False) + "\nSPEC:\n" + spec + "\nPrior feedback:\n" + feedback)

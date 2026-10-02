@@ -4,6 +4,15 @@
 
 ## 当前可选 Controller 提交：仅普通功能子集完成
 
+### 2026-10-02 已派发实现者角色分流
+
+实际 Mac 的 `a453a35` 已通过免费门禁与 fresh live P0，业务实现读取技能/Serena、修改代码并运行 5 项单元测试 exit 0，但模型会话达到 90 秒限制后被停止，改动未提交，没有业务独审/C/D。不能据超时推断发生递归控制器调用或模型提交。
+
+本次只修正普通实现提示与技能入口歧义：已派发执行者优先处理给定 task/worktree，修改/测试后返回，不重启 run/probe/任务循环或创建工作树；controller_commit 不 stage/commit/发布，model_commit 保留旧提交职责。知识和 walkthrough 回传候选说明，未明确授权路径不另写文件。源分支已存在报错改为真实手动停靠说明；没有新增脏实现 resume 入口，recover 不会自动续跑，超时 blocked 门禁不变。
+
+[源码差异](evidence/implementation-role-workflow.patch)与[普通回归日志](evidence/implementation-role-focused.log)：4 项纯 prompt/静态分流测试及既有明确允许 workflow 16 项，共 **20/20 通过，0 跳过，6.505 秒**。原生业务检查/假审阅只属既有普通 fixture；没有新增模型/网络/Mac操作，没有读审提交安全恢复实现或执行暂停用例。该修复不是已确认的超时根因，也不承诺 90 秒完成。运行时/技能字节变化须按新绑定重新验证；旧实机收据不改写。
+
+
 ### 2026-10-02 core.autocrlf 标量优先级修正
 
 实际 Mac 在用户批准的新测试仓库 local=false 后，原检查仍逐来源拒绝被覆盖的 global=input；本轮免费前置正确阻止模型调用，旧实机收据保持 blocked。最小修复只使 core.autocrlf 使用同一有序配置读结果的最后值，缺失按 false。有效 input/true/未知仍拒绝；其它策略、全来源 raw 哈希、来源文件指纹和提交前后漂移检查原样保留，没有新增 Git 读取或修改用户配置。

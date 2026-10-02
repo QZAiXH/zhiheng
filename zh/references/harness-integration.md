@@ -2,6 +2,9 @@
 
 日常入口保持 `$zh`，原七个 zh 技能仍按职责使用。底层复用固定 goal-workflow 基线的增强技能和自包含 harness-init 资产，避免同时运行两个任务循环。
 
+
+已派发执行者优先：如果外层 Controller 已给定本次 task、worktree 和实现职责，直接处理该步骤，不再调用 run/probe、启动任务循环或新建工作树，不自行做业务独立审查。完成批准修改与指定测试后及时结束，返回简短结果。`controller_commit` 下不 stage/commit 或发布；`model_commit` 保留外层明确的原有提交职责。walkthrough/knowledge 仅回传候选说明，未明确授权的路径不得新增或改写。收到本步骤交接的执行者在回传后结束，不进入下方外层入口路由。
+
 ## 安装位置与读取
 
 从实际技能加载路径定位同级 `harness-init/SKILL.md`，读取它的 `references/workflow-contract.md` 与相关 helper-contract/knowledge 文档。不要根据聊天猜安装位置，不混用原版同名技能。缺少依赖时停止并提示从本仓库用 `tools/install-harness.py` 安装完整增强集合，不能退回无保护的旧自动合并路径。

@@ -5,6 +5,9 @@ description: "Codex CLI 串行研发循环：在显式 GitHub 或本地模式中
 
 ## Harness / Codex CLI 入口（优先路由）
 
+先识别当前角色：若外层 Controller 已派发本次 task 与现成 worktree，你是实现执行者，直接在该范围内修改并运行指定测试，随后返回简短实现说明；不要再次调用 run/probe、启动任务循环、建立工作树或执行业务独立审查。在 `controller_commit` 模式不得 stage/commit 或发布；`model_commit` 仍按外层明确的原有提交职责处理。walkthrough/knowledge 只作为返回 Controller 的候选说明，未明确授权的路径不得另写文件。此执行者分支到此返回，不进入以下外层控制入口。
+
+
 当仓库存在 `.harness/config.json`，或当前请求明确使用本增强计划时，进入此分支。先定位实际安装的 `harness-init/SKILL.md` 并读取其 `references/workflow-contract.md`；配置缺失时先初始化，不能猜测模式。记录实际加载路径和版本，不能同时加载同名原版与增强版。
 
 外层必须经已安装的 Harness 控制入口运行：先同公共 Git 目录的运行锁，再状态锁；先停止/对账旧执行，再准备任务。不要照下面旧版流程直接写 .loop-state.json 或自行模拟持锁。找不到增强控制入口时停止并执行 harness-init/P0，不能继续原版循环。
