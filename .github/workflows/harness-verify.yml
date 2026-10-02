@@ -2,13 +2,8 @@ name: Harness platform verification
 on:
   push:
     branches: ['harness/**']
+  # Every PR must produce the checks required by main branch protection.
   pull_request:
-    paths:
-      - 'vendor/goal-workflow/**'
-      - 'zh*/**'
-      - 'tools/**'
-      - 'tests/**'
-      - '.github/workflows/harness-verify.yml'
   workflow_dispatch:
 permissions:
   contents: read
