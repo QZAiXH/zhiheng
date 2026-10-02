@@ -1,0 +1,11 @@
+test_absent_key_defaults_to_disabled (test_autocrlf_scalar_priority.AutocrlfScalarPriority.test_absent_key_defaults_to_disabled) ... ok
+test_effective_conversion_empty_unknown_values_refused (test_autocrlf_scalar_priority.AutocrlfScalarPriority.test_effective_conversion_empty_unknown_values_refused) ... ok
+test_final_input_overrides_earlier_false (test_autocrlf_scalar_priority.AutocrlfScalarPriority.test_final_input_overrides_earlier_false) ... ok
+test_four_false_spellings_and_case (test_autocrlf_scalar_priority.AutocrlfScalarPriority.test_four_false_spellings_and_case) ... ok
+test_global_input_then_local_false (test_autocrlf_scalar_priority.AutocrlfScalarPriority.test_global_input_then_local_false) ... ok
+test_same_source_duplicates_use_last_value (test_autocrlf_scalar_priority.AutocrlfScalarPriority.test_same_source_duplicates_use_last_value) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.081s
+
+OK

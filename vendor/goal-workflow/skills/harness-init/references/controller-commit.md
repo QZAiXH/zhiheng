@@ -2,6 +2,12 @@
 
 `host.commit_mode` 只有 `model_commit` 与 `controller_commit` 两个值。已有配置省略时仍按 `model_commit` 解释；库不会自动扩大 Controller 的写权限。新 `goal-harness init` 草稿明确推荐 `controller_commit`，但 `ready` 仍是 false，任务路径和验收合同仍须另行明确并批准。普通 `harness_check scaffold` 的兼容默认不变。
 
+## core.autocrlf 标量优先级
+
+仅对 `core.autocrlf`，兼容性检查采用同一次原生 `git config --null --show-origin --list` 有序输出中的最后一个值。没有该键等价于 false；有效值为 `false/no/off/0`（不区分大小写）时允许。被项目 local=false 覆盖的 global=input 不再单独导致拒绝，但真正有效的 input/true、空值或未知值仍 blocked，不支持内容转换。`core.eol` 及 hooks、filters、signing 等其它策略没有放宽，也不修改用户配置。
+
+完整原始配置字节哈希、所有来源列表及来源文件指纹仍参与原有提交前后漂移检查；被覆盖的来源也没有从绑定中移除。此项只修正一个标量的优先级判断；纯数据回归不是原生宿主验收或独立安全复核，新版本须重新取得实际绑定。
+
 ## 范围配置与模型边界
 
 在已经批准的 bundle 中明确配置：

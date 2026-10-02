@@ -158,6 +158,8 @@ bundle 顶层包含 `version: 1`、`config`、`tasks`，新任务的 `checkpoint
 
 新草稿推荐 `controller_commit`：模型在既定 sandbox 内只改允许文件并测试，Controller 审计后提交到明确任务源分支。`allowed_paths` 只能是唯一、精确的仓库相对文件名，不支持目录、通配符、绝对路径、`..`、符号链接或 Git 元数据。
 
+`core.autocrlf` 按 Git 最终生效值判断：有效的 `input`／`true` 仍不支持；项目明确配置的 `false` 可以覆盖上层同名值。被覆盖的来源仍参与指纹与变化检查。这种配置调整必须符合项目的换行约定，不能为了通过检查自动修改全局或项目策略，也不代表其他 Git 执行策略获得了支持。
+
 旧配置省略 `host.commit_mode` 时仍按 `model_commit`；它需要真实模型沙箱内 stage/commit 的证明，现有只读宿主演练不足，当前该 live 能力保持 blocked。不要把切换模式当作绕过安全审查的办法。
 
 Controller 会拒绝不支持的 Git hooks、filters、签名及特殊执行型策略，不会偷偷禁用项目策略。详情见 [Controller 提交边界](../vendor/goal-workflow/skills/harness-init/references/controller-commit.md)。worktree 只是代码/分支隔离，**不是操作系统安全边界**；Controller 权限与模型 sandbox 权限不能互相推断。本文不提供关闭 sandbox 或全局放权命令。

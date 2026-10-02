@@ -4,6 +4,13 @@
 
 ## 当前可选 Controller 提交：仅普通功能子集完成
 
+### 2026-10-02 core.autocrlf 标量优先级修正
+
+实际 Mac 在用户批准的新测试仓库 local=false 后，原检查仍逐来源拒绝被覆盖的 global=input；本轮免费前置正确阻止模型调用，旧实机收据保持 blocked。最小修复只使 core.autocrlf 使用同一有序配置读结果的最后值，缺失按 false。有效 input/true/未知仍拒绝；其它策略、全来源 raw 哈希、来源文件指纹和提交前后漂移检查原样保留，没有新增 Git 读取或修改用户配置。
+
+[精确源码差异](evidence/autocrlf-scalar-priority.patch)仅涉及此选择函数和一次判定。[6 项纯数据回归](evidence/autocrlf-scalar-pure-tests.log)全部通过，0 跳过，0.081 秒；测试通过 AST 仅提取小纯函数，没有导入/执行完整检查脚本、policy_check 或任何原生命令。新增普通测试模块为 `test_autocrlf_scalar_priority`。静态比较确认除此两处文本外 Controller 模块完全不变；原暂停 28 项清单未变，独立安全复核仍未完成。没有模型、网络或 Mac 操作；本次不能标为原生配置兼容性或完整工作流实机通过。
+
+
 ### 2026-10-01 P0 免费前置检查顺序修正
 
 实际 Mac 的旧 `e2af15b` 快照先完成四次真实宿主演练，之后才在 Controller 原生兼容性检查发现继承的 `core.autocrlf=input`，最终收据 blocked，没有业务 H/C/D。该原始收据保持不变；不能因宿主演练已过而忽略转换策略。
