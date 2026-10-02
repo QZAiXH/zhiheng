@@ -40,6 +40,7 @@ elif 'bounded local cancellation drill' in prompt:
  argv=json.JSONDecoder().raw_decode(prompt.split('Exact argv: ',1)[1])[0]
  if not settings.get('omit_cancel_trace'):
   event({'type':'item.started','item':{'type':'command_execution','status':'in_progress','command':shlex.join(argv)}})
+ time.sleep(settings.get('cancel_start_delay',0))
  if settings.get('omit_cancel_child'):
   time.sleep(10)
  else:
@@ -78,7 +79,7 @@ def host_drill_diagnostics(result):
         log = result.get("logs", {}).get(step, {})
         execution = log.get("execution", {})
         steps[step] = {key: capability.get(key) for key in ("status", "detail")}
-        steps[step].update({key: execution.get(key) for key in ("exit_code", "reason", "stopped")})
+        steps[step].update({key: execution.get(key) for key in ("exit_code", "reason", "stopped", "elapsed_seconds")})
         if "error" in log:
             steps[step]["error"] = log["error"]
     summary["steps"] = steps
@@ -106,10 +107,10 @@ class CodexProbeProtocolTests(unittest.TestCase):
     def behavior(self, **options):
         (self.executable.parent / "behavior.json").write_text(json.dumps(options))
 
-    def run_drills(self, cancel_options=None, model="gpt-6.1-sol", max_model_calls=4):
+    def run_drills(self, cancel_options=None, model="gpt-6.1-sol", max_model_calls=4, timeout_seconds=2):
         with Controller(self.repo, "local", "protocol-test", self.limits) as controller:
             return run_host_drills(controller, str(self.executable), str(self.output),
-                project_root=self.project, timeout_seconds=2, config_sha256="a"*64,
+                project_root=self.project, timeout_seconds=timeout_seconds, config_sha256="a"*64,
                 declared_environment_sha256="b"*64, model=model, max_model_calls=max_model_calls,
                 cancel_options=cancel_options)
 
@@ -133,7 +134,21 @@ class CodexProbeProtocolTests(unittest.TestCase):
         self.assertEqual(result["capabilities"]["host_session_resume"]["status"], "blocked", msg=diagnostic)
 
     def test_explicit_fourth_simulated_owned_cancellation_proof(self):
-        result = self.run_drills({"startup_seconds": 1, "total_seconds": 1.5, "sleep_seconds": 5})
+        self.assert_bounded_simulated_cancellation()
+
+    def test_simulated_cancellation_tolerates_bounded_startup_delay(self):
+        # Deliberately exceed the former 1s fixture startup allowance. This is a
+        # scheduling tolerance check, not evidence of the Intel failure's cause.
+        self.behavior(cancel_start_delay=1.25)
+        self.assert_bounded_simulated_cancellation()
+
+    def assert_bounded_simulated_cancellation(self):
+        # A success fixture must allow CLI startup, child launch, Controller
+        # identity journaling and observation. Production/real-model budgets
+        # remain unchanged; only these two fake-host positive cases use 10s.
+        self.limits["command_seconds"] = 10
+        result = self.run_drills({"startup_seconds": 5, "total_seconds": 8, "sleep_seconds": 12},
+                                 timeout_seconds=10)
         diagnostic = host_drill_diagnostics(result)
         self.assertEqual(result["calls_started"], 4, msg=diagnostic)
         cancellation = result["host_native_stop"]
