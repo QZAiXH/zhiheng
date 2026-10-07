@@ -1,0 +1,4 @@
+interface:
+  display_name: "方案与任务拆分"
+  short_description: "将已确认的需求转为技术规格和任务依赖，供独立审查与隔离实现使用"
+  default_prompt: "使用 $dl-plan 根据已确认的需求形成规格和有依赖关系的任务。"

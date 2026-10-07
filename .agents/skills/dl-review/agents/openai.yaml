@@ -1,0 +1,4 @@
+interface:
+  display_name: "独立审查与验收"
+  short_description: "在独立上下文中审查设计与代码，通过项目检查验证需求满足和行为正确"
+  default_prompt: "使用 $dl-review 独立检查当前方案或代码，记录发现与验证证据。"

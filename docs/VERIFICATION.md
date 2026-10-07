@@ -1,41 +1,30 @@
-# 当前验证状态与已知限制
+# 验证状态与边界
 
-更新：2026-10-02 UTC。`main` 是日常使用与持续开发分支；下列结果按确切提交和测试层级记录。使用中发现问题可继续修正，不能将合入 main 理解为所有计划条目通过或生产安全认证。
+当前包有九个技能、15 个固定上游依赖和 56 项隔离回归。历史记录和独立回执见[完整验证记录](../.agents/skills/double-loop/references/validation.md)。
 
-## 已验证
+| 验证 | 证据与范围 |
+|---|---|
+| 29 项接入回归 | 本地 Git fixtures；安装复用/冲突、区块保护、写入中断、源码漂移、Wiki 回执、reload 和 Git 基线 |
+| 27 项研发状态回归 | 模型配置、依赖图、检查点、证据过期、知识门槛、引用保护与清理恢复 |
+| 独立首轮 31 项 | 固定 upstream 的真实 clone 与官方安装器安装，用户内容、九技能包与许可证检查 |
+| 独立修复复验 15 项 | 损坏 JSON 对象诊断、排除否定规则、规格漂移与临时状态噪声 |
+| 独立最终补验 18 项 | 成熟 OpenWiki CLI 的真实 Codex 项目级集成；入口、重复准备、用户配置与全局配置保护 |
+| npx 完整安装 | Skills CLI 1.7.1 在空白项目真实安装发布前本地技能源；九个目录与源内容指纹一致，许可证、53 处包内引用与两个助手入口通过，见[回执](verification/npx-install.json) |
+| 技能契约检查 | 清单、frontmatter、界面元数据、许可证、文件引用和公开材料 |
 
-| 版本 / 场景 | 实际结果 | 证据边界 |
-| --- | --- | --- |
-| `8ccb840` 跨平台普通 CI | 15 个普通功能作业全部通过；覆盖 Ubuntu、macOS ARM、macOS Intel 的分片及外层检查 | 原生 OS/Git/文件/进程/Serena 为实际执行；多数业务模型和 GitHub 协议为显式模拟。该历史运行的汇总因 28 项暂停验收不通过；新报告策略见下文，旧结果不改写 |
-| `8ccb840` Mac 真实 local clamp 任务 | fresh live P0 四项宿主能力、真实模型实现、Controller 提交、新会话业务独审、5/5 业务测试、本地交付/对账/closeout 通过；D=C | 一条实际 local 业务闭环，不替代所有业务、GitHub 模式或独立安全复核 |
-| 同次 Mac 执行记录 | 6 次模型调用，268.381 秒；141 个记录的进程出生身份均确认不再存活 | 调用数不是 API 请求数或账单；未取得实际费用证明，不声称零费用或效率提升 |
-| `05d7b47` A23 任务文件改名 | 改名保持 Task ID、内容和报告映射；拒绝旧证据；重新批准/验证后复用 H，更新 T/C 并交付 D=C；本地分片 10/10、外层 38/38 通过 | 模型/独审模拟，CLI/Git/Serena 实际执行；该版本 CI 尚待终态，不能提前沿用上一版本结果 |
+各轮回执对应不同代码版本，记录各自指纹；新增文档不能将早期结果改写为最终版本全量实测。独立验证过程中发现的 JSON 数组记录异常已修复并复验。
 
-A23 的[合成证据与范围](../vendor/goal-workflow/docs/evidence/a23-task-rename-scope.md)可公开复核。实机结果在此只发布脱敏摘要，不公开个人路径、账号、会话标识、原始日志或凭据。
+## 复现
 
-## 仍未完成
+```bash
+uv run --with-requirements requirements-dev.txt python -B tools/check_repository.py
+uv run --with-requirements requirements-dev.txt python -B tools/run_checks.py --group all
+```
 
-- 28 项测试保留但暂停，独立安全复核未完成。精确清单见[允许与暂停范围](../vendor/goal-workflow/docs/evidence/controller-commit-test-scope.json)。未删除断言或把暂停项计为通过。按明确选择，独立验收未完成仅发 warning，不列为合并阻塞；15 个普通检查仍保留必需条件
-- 原计划 P5 要求 local、GitHub 各三组同基线真实任务及交付/恢复演练。一次真实 local 成功、模拟双模式整链、真实 GitHub 人工平台验证分别有效，不能组合推导完整真实 GitHub 模型控制链已经通过
-- 知识原生写入/引用/清理后读取已有组件与模拟流程证据；真实模型的总结质量、长期知识收益和全部语义冲突场景未完成验收
-- WSL 是目标平台，尚无独立实机通过记录。原生 Windows、未核实共享/特殊文件系统不在当前支持范围
-- 真实 merge queue/merge_group、部分远端取消/长期等待条件路径仍需相应平台证据。缺规则的私有仓库可保留 PR/CI 流程，自动合并停靠
-- 无同条件长期效率、返工、人工介入与实际模型费用对照，不能承诺提速比例或质量保证。P6 并行属于后续可选工作，当前串行流程不计作并行实现
+可通过 `--group core`、`local`、`github`、`knowledge` 单独运行对应回归。CI 在 Linux、macOS 两类系统与三种 runner 验证同一代码；完成情况以 [GitHub Actions](https://github.com/QZAiXH/zhiheng/actions/workflows/verify.yml) 中具体提交的结果为准。
 
-## 使用时必须知道
+## 外部执行边界
 
-新草稿推荐显式 `controller_commit`：模型在既定 sandbox 内修改授权文件并测试，Controller 按合同提交任务源分支。只接受精确 `allowed_paths`，不支持通配符/目录授权；不支持的 hooks、filters、签名及内容转换策略会阻塞。`core.autocrlf` 只按最后有效标量判断，local=false 可覆盖上层值，但有效 input/true 仍拒绝，全来源指纹继续绑定。不能自行修改全局或项目策略来放行。
+模型、Wiki 回执与 PR 状态在回归中明确模拟。真实上游安装与 OpenWiki 集成已在独立临时项目执行；真实多模型业务任务、Wiki 原生生成全流程和业务 PR 端到端交付仍待目标项目验证。文件存在、配置通过或请求模型已记录，不等于外部调用真实完成。
 
-worktree 不构成 OS 安全边界。旧 `model_commit` 模式需要模型本身 Git 写权限证明；现有只读 P0 不足，当前该 live 能力存在已知缺口。免费可观测前置检查先于模型调度，但不保证所有无法 ready 的情况都零费用。
-
-实现超时/非零退出保留现场并 blocked。当前没有自动续接脏实现的公开命令；`recover` 只核验旧执行停止。不要删分支、清 checkpoint/预算或重复发送未知结果操作。已提交候选可以在重新批准相关变化、检查当前证据后显式验证；这与恢复未提交的失败实现不同。
-
-技能、宿主、配置、依赖锁、规范、检查或源/目标变化可能使证据失效；安装成功、测试 exit 0、PR 关闭均不能代替当前完整证据。精确操作见[使用指南](USAGE.zh-CN.md)。
-
-## 如何复核
-
-当前汇总分开处理两种结果：任一普通功能依赖 failure/cancelled/skipped 时仍失败；全部普通依赖通过时，28 项暂停/独立审查未完成仅输出 GitHub warning 和明确步骤摘要，汇总可成功。成功表示普通检查满足，不表示完整验收或安全复核通过，也不授权执行暂停项。该策略不改写此前红色运行、收据或测试结果。
-
-当前回归入口是仓库根 `tools/run-harness-tests.py`，分 `core`、`local`、`github`、`knowledge`。先 `--list` 核对集合；仅运行明确允许范围。存在暂停项时 `--suite all` 拒绝，CI 汇总明确保留未完成，不通过改名或另换环境执行暂停项。
-
-[逐项历史报告](../vendor/goal-workflow/docs/harness-acceptance.md)记录旧快照的失败、修复和当时未完成项；其“当前”“待验证”等措辞属于对应历史快照。当前结论以本页的版本范围为准，原始失败收据不改写为通过。历史版本成功也不会自动授权新版项目执行。
+公开历史材料会替换本机私人路径和测试机定位路径。原件校验指纹保留，公开副本的变换及新指纹见[脱敏清单](../.agents/skills/double-loop/references/verification/publication-redaction.json)。这些定位标签不是可执行环境配置，旧归档验证脚本只用于追踪当时步骤。

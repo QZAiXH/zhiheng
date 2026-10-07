@@ -1,0 +1,401 @@
+{
+  "验证者": "/root/init_forward_check",
+  "完成时间UTC": "2026-10-07T03:45:38.551299+00:00",
+  "临时目录": "<验证临时目录-1>",
+  "本轮结果": [
+    {
+      "场景": "使用外部已有 OpenWiki 入口能准备本地项目",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "外部入口本地就绪与真实 Wiki 未完成分开报告",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "成熟 CLI 项目级状态显示 Codex 尚未接入",
+      "通过": true,
+      "证据类型": "真实成熟 CLI 只读查询",
+      "详情": null
+    },
+    {
+      "场景": "成熟 CLI 真实安装项目级 Codex 集成并提供本地技能入口",
+      "通过": true,
+      "证据类型": "真实成熟 CLI 项目级安装",
+      "详情": null
+    },
+    {
+      "场景": "项目级集成保留用户已有 Codex 配置与其他 MCP",
+      "通过": true,
+      "证据类型": "真实成熟 CLI 项目级安装",
+      "详情": null
+    },
+    {
+      "场景": "重复 prepare 将依赖入口由外部路径切换到项目入口",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "切换入口不重新安装固定上游技能",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "未跟踪的项目 OpenWiki 技能被精确加入两类排除区块",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "成熟 CLI 重复集成返回 unchanged，配置与技能内容不变",
+      "通过": true,
+      "证据类型": "真实成熟 CLI 重复安装",
+      "详情": null
+    },
+    {
+      "场景": "项目入口重复 prepare 不重复排除区块也不改变用户配置",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "成熟 CLI 项目级 Codex 状态为 installed",
+      "通过": true,
+      "证据类型": "真实成熟 CLI 只读查询",
+      "详情": null
+    },
+    {
+      "场景": "安装集成没有伪造 Wiki 完成，verify 仍非零",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "集成与准备不提交已有业务文件",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "入口缺失时先接入成熟项目集成再取得 prepare 路径",
+      "通过": true,
+      "证据类型": "真实成熟 CLI 项目级安装 + 流程验证",
+      "详情": null
+    },
+    {
+      "场景": "先集成后 prepare 可形成有效本地接入且仍等待 Wiki",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "已跟踪的项目 OpenWiki 技能源码继续可见",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "项目入口状态检查只读",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "全局 Codex 配置与全局 OpenWiki 入口 hash、mtime 均未变化",
+      "通过": true,
+      "证据类型": "全局只读指纹核对",
+      "详情": {
+        "核对范围": [
+          "<验证用户目录>/.codex/config.toml",
+          "<验证用户目录>/.agents/skills/openwiki/SKILL.md"
+        ]
+      }
+    }
+  ],
+  "本轮发现": [],
+  "调用日志": [
+    "<验证临时目录-1>/project_openwiki_recheck/logs/03_external_openwiki_prepare.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/04_external_openwiki_instructions.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/05_switch_to_project_openwiki.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/06_repeat_project_openwiki_prepare.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/07_no_real_wiki_verify.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/08_first_prepare_local_openwiki.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/09_first_local_openwiki_instructions.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/10_first_local_openwiki_status.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/11_tracked_project_openwiki_prepare.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/12_local_openwiki_status_readonly.json"
+  ],
+  "真实项目级CLI日志": [
+    "<验证临时目录-1>/project_openwiki_recheck/logs/native_before_install.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/native_project_codex_install.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/native_project_codex_repeat.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/native_after_install.json",
+    "<验证临时目录-1>/project_openwiki_recheck/logs/native_first_before_prepare.json"
+  ],
+  "被测文件SHA256": [
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-init/SKILL.md",
+      "sha256": "3db4a46e157aad5a0baded64e856c50b81566ff32194dd7f19b4dd4f9810554b",
+      "initial_sha256": "d39a22da6c3594ad8ab7595c71779f96f6c9a41afaa3717bc57ddfb6ae2a327c"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-init/agents/openai.yaml",
+      "sha256": "8318918b2fdabedb926f2a1fe8b34be8d8121eb5275de71008a1c3db8c505892",
+      "initial_sha256": "8318918b2fdabedb926f2a1fe8b34be8d8121eb5275de71008a1c3db8c505892"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/agents.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-init/references/agents.md",
+      "sha256": "464c27e65d0534d0024a6296c1e83aa73a6f9187305859f4eba1cc567df0282e",
+      "initial_sha256": "464c27e65d0534d0024a6296c1e83aa73a6f9187305859f4eba1cc567df0282e"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/onboarding.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-init/references/onboarding.md",
+      "sha256": "e419f62902fa5aee14e798c81ebba711e5cb5777a36573a448d9cca112e9c9e4",
+      "initial_sha256": "01d887ffd821f37283cf67c96729a22d68cfbf78aac5ae86fa064d99ea890513"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/wiki.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-init/references/wiki.md",
+      "sha256": "186db6931a69c7c3a23a3cb9b6168966115efc871cb444801d377d406d90ae5f",
+      "initial_sha256": "b48c11c1d0d011ea12b1c713b8d495e141f6f11d27621c9f09a4b980eebf4e7e"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/scripts/project_init.py",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-init/scripts/project_init.py",
+      "sha256": "9c102ac7f3877aa498b4a6db6ae3214d31fd3f4d724ddbfbf11962820483ebbf",
+      "initial_sha256": "8dba498b000e8467c4a5e5a29b649da8b95542eba91bf7ea99a6a4c11da12ff6"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/SKILL.md",
+      "sha256": "df342a6b5bfbbf3bb8f624e91a805baf3de1c5a41c395c40bb222f79fa7f2849",
+      "initial_sha256": "df342a6b5bfbbf3bb8f624e91a805baf3de1c5a41c395c40bb222f79fa7f2849"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/agents/openai.yaml",
+      "sha256": "bfc16879ad015ace980746bb2f7c3d1937a994704c295dd86ec279b35df46d59",
+      "initial_sha256": "bfc16879ad015ace980746bb2f7c3d1937a994704c295dd86ec279b35df46d59"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/dependencies.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/references/dependencies.md",
+      "sha256": "15f0b8c956faabb9758656501b6b5c0fe80516c06500088c3e09e8b3bd0b2da5",
+      "initial_sha256": "15f0b8c956faabb9758656501b6b5c0fe80516c06500088c3e09e8b3bd0b2da5"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/models.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/references/models.md",
+      "sha256": "43c0e5028ec71c8b4d13cd3f35bc7bf0d7067aee699fa01c6270b03d86ab9593",
+      "initial_sha256": "43c0e5028ec71c8b4d13cd3f35bc7bf0d7067aee699fa01c6270b03d86ab9593"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/runtime.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/references/runtime.md",
+      "sha256": "b58f7feacfd2c0767d51f2e9eedc73bff447b4f40d7514d39f7c21237d3a7ab8",
+      "initial_sha256": "b58f7feacfd2c0767d51f2e9eedc73bff447b4f40d7514d39f7c21237d3a7ab8"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/validation.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/references/validation.md",
+      "sha256": "8eacb622bf4c46a4a00fafdb9e7753047c093f87ad267c2db0cdb61891f252e8",
+      "initial_sha256": "8eacb622bf4c46a4a00fafdb9e7753047c093f87ad267c2db0cdb61891f252e8"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/workflow.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/references/workflow.md",
+      "sha256": "ce1de5eec4d29352542c0e8c24dccc5931c884e4a57f4f77be76d25f998102dd",
+      "initial_sha256": "ce1de5eec4d29352542c0e8c24dccc5931c884e4a57f4f77be76d25f998102dd"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/dependency_contract.py",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/scripts/dependency_contract.py",
+      "sha256": "3348388c0026aed1610c9e91449e35f526693d1b75eaa98d4f2b409853981666",
+      "initial_sha256": "3348388c0026aed1610c9e91449e35f526693d1b75eaa98d4f2b409853981666"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/requirements.txt",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/scripts/requirements.txt",
+      "sha256": "aebab43196f8378da012875569928ea779e49aeb71509b4b0327eaa80a8ec477",
+      "initial_sha256": "aebab43196f8378da012875569928ea779e49aeb71509b4b0327eaa80a8ec477"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/scripts/workflow_state.py",
+      "sha256": "89c23b7ec3d7be077377cc2999b1670b65ba1a7d6a1e16b2c38df4a6de1e5fad",
+      "initial_sha256": "9ea2dfbb29714106d1206a22420f247c03e92738615f2978b0080570d59637ad"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-resume/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-resume/SKILL.md",
+      "sha256": "74710e5373d5427e482e51b20bf3c7c1f5e5819c493719ed5d47c3311ec0eb26",
+      "initial_sha256": "74710e5373d5427e482e51b20bf3c7c1f5e5819c493719ed5d47c3311ec0eb26"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-resume/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-resume/agents/openai.yaml",
+      "sha256": "ff451b903a5678bbc49a094db253e022fe32df8a2e9d3c1871b09efa8b8428e2",
+      "initial_sha256": "ff451b903a5678bbc49a094db253e022fe32df8a2e9d3c1871b09efa8b8428e2"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/assets/project-manifest.json",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/assets/project-manifest.json",
+      "sha256": "18986a72b34c0766bd0e114a966648911c5f6b7041b63c354f59910005d59ff7",
+      "initial_sha256": "18986a72b34c0766bd0e114a966648911c5f6b7041b63c354f59910005d59ff7"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-discover/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-discover/SKILL.md",
+      "sha256": "d9663bc8402a6fdf611a56bac7b3a8aabf367ab6a940a3ea8d96fc8b8234bb73",
+      "initial_sha256": "d9663bc8402a6fdf611a56bac7b3a8aabf367ab6a940a3ea8d96fc8b8234bb73"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-discover/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-discover/agents/openai.yaml",
+      "sha256": "92d2c3751aec68ae70ed91c4ab38263cffd2b15b8f54eb4a12773ed7477cd83a",
+      "initial_sha256": "92d2c3751aec68ae70ed91c4ab38263cffd2b15b8f54eb4a12773ed7477cd83a"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-plan/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-plan/SKILL.md",
+      "sha256": "cf81df041249ed0b3960e637d0532b206394fa22ce3e00b0c4c238bf715cf69f",
+      "initial_sha256": "cf81df041249ed0b3960e637d0532b206394fa22ce3e00b0c4c238bf715cf69f"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-plan/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-plan/agents/openai.yaml",
+      "sha256": "4da0fb9d1c36506563d791acd387af3fca3672172f4ae314cc13462f2c0ea244",
+      "initial_sha256": "4da0fb9d1c36506563d791acd387af3fca3672172f4ae314cc13462f2c0ea244"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-execute/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-execute/SKILL.md",
+      "sha256": "c1d788e3a03461f88f082636dd021b9a26df974682c16a6fc971919aa28ea425",
+      "initial_sha256": "c1d788e3a03461f88f082636dd021b9a26df974682c16a6fc971919aa28ea425"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-execute/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-execute/agents/openai.yaml",
+      "sha256": "291464fabd22edeb2559b40331390a90cde6c2350574a5569046f1b0ca2e10ae",
+      "initial_sha256": "291464fabd22edeb2559b40331390a90cde6c2350574a5569046f1b0ca2e10ae"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-review/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-review/SKILL.md",
+      "sha256": "d7ed061c93bf6b48b59cf15a5e5fe92086f39d0f6d608192ee444cfc55f88a94",
+      "initial_sha256": "d7ed061c93bf6b48b59cf15a5e5fe92086f39d0f6d608192ee444cfc55f88a94"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-review/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-review/agents/openai.yaml",
+      "sha256": "8656676eacca851cdffa1407c718095430aa6db4bd8b7236e205d18675aed939",
+      "initial_sha256": "8656676eacca851cdffa1407c718095430aa6db4bd8b7236e205d18675aed939"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-knowledge/SKILL.md",
+      "sha256": "9afaad7387314b592b21cd2b76b972d31bf1571d39436a84b21ccb3c13342556",
+      "initial_sha256": "9afaad7387314b592b21cd2b76b972d31bf1571d39436a84b21ccb3c13342556"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-knowledge/agents/openai.yaml",
+      "sha256": "69f416126f55d5b62e5c36f2baa858501c617d954786937ec36974f570d860a5",
+      "initial_sha256": "69f416126f55d5b62e5c36f2baa858501c617d954786937ec36974f570d860a5"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/references/knowledge.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-knowledge/references/knowledge.md",
+      "sha256": "8ddc2a6f2777709b556683bea0ba0322a3b086fc572cc9aadb0846a5af2b2464",
+      "initial_sha256": "8ddc2a6f2777709b556683bea0ba0322a3b086fc572cc9aadb0846a5af2b2464"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-deliver/SKILL.md",
+      "sha256": "d848d4eb3f4024166853b09daac642ee80fd5a69ec92206ccda2318ca3376d20",
+      "initial_sha256": "d848d4eb3f4024166853b09daac642ee80fd5a69ec92206ccda2318ca3376d20"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-deliver/agents/openai.yaml",
+      "sha256": "7645a8c11f622b54fb0e0fc655c3ea41e3eec6bdb129cd5554cd4e8dbc7f0953",
+      "initial_sha256": "7645a8c11f622b54fb0e0fc655c3ea41e3eec6bdb129cd5554cd4e8dbc7f0953"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/references/cleanup.md",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/dl-deliver/references/cleanup.md",
+      "sha256": "a187d4cd0b4ae911b6d0ef911db747b4711142ab0326a4dcc3dd4a56fab2e2d9",
+      "initial_sha256": "a187d4cd0b4ae911b6d0ef911db747b4711142ab0326a4dcc3dd4a56fab2e2d9"
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/assets/dependencies.example.json",
+      "snapshot": "<验证临时目录-1>/snapshot_openwiki/double-loop/assets/dependencies.example.json",
+      "sha256": "eea4835fc57a9de216bdbe103aedc525d1448084961179f5edc122de19120391",
+      "initial_sha256": "eea4835fc57a9de216bdbe103aedc525d1448084961179f5edc122de19120391"
+    }
+  ],
+  "成熟CLI": {
+    "name": "openwiki",
+    "version": "0.7.0",
+    "entry": "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/cli/cli.js",
+    "来源": "git+https://github.com/langchain-ai/openwiki.git",
+    "关键文件SHA256": [
+      {
+        "path": "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/package.json",
+        "sha256": "52d98cfea4c7b8dc2c934b4ee877b0f7872b03b2ee64949d5354918c6f992910"
+      },
+      {
+        "path": "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/cli/cli.js",
+        "sha256": "82d2e6b65008b4129c1d8ef42e76942e7561eeeee2130c3652bac8f3151e6cd6"
+      },
+      {
+        "path": "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/integrations/install/installer.js",
+        "sha256": "7e4228ecfd8ffbb51a7ec8ba300539b952f8cc6643d93b8ff5920e7078fbcd47"
+      },
+      {
+        "path": "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/integrations/install/registry.js",
+        "sha256": "cd2ab0914522f6e8e7887feafdaa44743a01b6208a5ae4184a1f11008a657811"
+      },
+      {
+        "path": "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/integrations/install/install-paths.js",
+        "sha256": "88ae5def3b2332f5b30115f8e1dbf7df0ab8c52ce8d4192d14bf9362307d8aa4"
+      }
+    ]
+  },
+  "版本覆盖": {
+    "初版": {
+      "回执": "<验证临时目录-1>/independent_receipt.json",
+      "场景数": 31,
+      "说明": "包括真实 upstream 与官方 installer 网络安装；数组接入记录问题当时存在。"
+    },
+    "对象与指纹修复版": {
+      "回执": "<验证临时目录-1>/independent_current_receipt.json",
+      "场景数": 15,
+      "说明": "数组记录诊断、否定 ignore、持久规格与运行噪声已经复验。"
+    },
+    "项目级OpenWiki新版": {
+      "场景数": 18,
+      "说明": "本轮只复验实际项目入口切换、精确排除与重复准备。"
+    }
+  },
+  "期间版本变化": [],
+  "测试边界": [
+    "真实执行成熟 OpenWiki 0.7.0 CLI 项目级 Codex 集成的 list/install；没有调用 Wiki 生成生命周期、任何模型或 PR。",
+    "CLI 的命令参数始终显式 --project，且进程内关闭遥测；未修改全局配置。",
+    "固定上游技能通过首轮真实下载的 checkout 本地 Git clone 复用，没有再次网络安装。",
+    "只在原登记临时目录中产生或修改夹具；没有修改本技能包或当前业务目录。",
+    "没有读取生成者 test_*.py、验证回执或 harness-workflow。",
+    "CLI 安装成功不证明当前宿主 MCP 已加载；Wiki-ready 明确为 false。",
+    "临时目录全部保留，等待主 Agent 归档核对后清理。"
+  ],
+  "结论": "项目级 OpenWiki 新流程独立补验完成；真实安装集成、入口切换、排除及重复调用已经验证，真实 Wiki 与模型仍未实测。"
+}

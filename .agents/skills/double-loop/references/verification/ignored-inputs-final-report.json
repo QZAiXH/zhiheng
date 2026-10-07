@@ -1,0 +1,79 @@
+{
+  "脚本_SHA256": "9d870fcfa6e568cc8b91e0c06b00e1e9a00580ea740186e4a2a9e8e7ee303bad",
+  "临时噪音": {
+    "command": [
+      "<验证用户目录>/.cache/uv/builds-v0/.tmpwQZc1A/bin/python",
+      "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+      "resume",
+      "--root",
+      "<验证临时目录-2>/run-v3/ignored-inputs-final",
+      "--run-id",
+      "main"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": false,\n  \"verification_stale\": false,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"2d25dc1370d11c07802dce52b6b503302bcb9223\",\n    \"content\": \"173b7a3aff10f6e31ead4a0ad110e9ed630e76997699ad29d9d12f1e24d590af\"\n  }\n}",
+    "stderr": "",
+    "data": {
+      "phase": "verifying",
+      "snapshot_changed": false,
+      "verification_stale": false,
+      "ready_tasks": [],
+      "current_snapshot": {
+        "head": "2d25dc1370d11c07802dce52b6b503302bcb9223",
+        "content": "173b7a3aff10f6e31ead4a0ad110e9ed630e76997699ad29d9d12f1e24d590af"
+      }
+    }
+  },
+  "忽略的规格变更": {
+    "command": [
+      "<验证用户目录>/.cache/uv/builds-v0/.tmpwQZc1A/bin/python",
+      "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+      "resume",
+      "--root",
+      "<验证临时目录-2>/run-v3/ignored-inputs-final",
+      "--run-id",
+      "main"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": true,\n  \"verification_stale\": true,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"2d25dc1370d11c07802dce52b6b503302bcb9223\",\n    \"content\": \"db4fec342dcfbfad31141fe15477fdef4d8110d54ebfa85baf843e92e01bcc49\"\n  }\n}",
+    "stderr": "",
+    "data": {
+      "phase": "verifying",
+      "snapshot_changed": true,
+      "verification_stale": true,
+      "ready_tasks": [],
+      "current_snapshot": {
+        "head": "2d25dc1370d11c07802dce52b6b503302bcb9223",
+        "content": "db4fec342dcfbfad31141fe15477fdef4d8110d54ebfa85baf843e92e01bcc49"
+      }
+    }
+  },
+  "清空成功状态": {
+    "verification": {},
+    "knowledge": {}
+  },
+  "忽略的任务变更": {
+    "command": [
+      "<验证用户目录>/.cache/uv/builds-v0/.tmpwQZc1A/bin/python",
+      "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+      "resume",
+      "--root",
+      "<验证临时目录-2>/run-v3/ignored-inputs-final",
+      "--run-id",
+      "main"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": true,\n  \"verification_stale\": true,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"2d25dc1370d11c07802dce52b6b503302bcb9223\",\n    \"content\": \"be3267e56133b0f0a235dd16dfe58c5a363e2cf98b7b3b8dbf793c76a0aca548\"\n  }\n}",
+    "stderr": "",
+    "data": {
+      "phase": "verifying",
+      "snapshot_changed": true,
+      "verification_stale": true,
+      "ready_tasks": [],
+      "current_snapshot": {
+        "head": "2d25dc1370d11c07802dce52b6b503302bcb9223",
+        "content": "be3267e56133b0f0a235dd16dfe58c5a363e2cf98b7b3b8dbf793c76a0aca548"
+      }
+    }
+  }
+}

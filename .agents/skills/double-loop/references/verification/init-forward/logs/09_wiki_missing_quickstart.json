@@ -1,0 +1,19 @@
+{
+  "label": "wiki_missing_quickstart",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "wiki",
+    "--root",
+    "<验证临时目录-1>/projects/已有项目",
+    "--input",
+    "<验证临时目录-1>/inputs/complete-missing-files-simulated.json"
+  ],
+  "exit_code": 2,
+  "output": {
+    "status": "error",
+    "message": "Wiki quickstart 未生成。"
+  },
+  "stdout": "{\"status\": \"error\", \"message\": \"Wiki quickstart 未生成。\"}\n",
+  "stderr": ""
+}

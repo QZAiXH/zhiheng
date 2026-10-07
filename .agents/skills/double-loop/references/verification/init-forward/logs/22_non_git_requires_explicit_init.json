@@ -1,0 +1,23 @@
+{
+  "label": "non_git_requires_explicit_init",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "prepare",
+    "--root",
+    "<验证临时目录-1>/projects/尚无Git基线",
+    "--bundle",
+    "<验证临时目录-1>/snapshot",
+    "--installer",
+    "<验证临时目录-1>/external/installer/install-skill-from-github.py",
+    "--openwiki-skill",
+    "<验证临时目录-1>/external/openwiki/SKILL.md"
+  ],
+  "exit_code": 2,
+  "output": {
+    "status": "error",
+    "message": "项目尚未接入 Git；调用初始化时可显式传入 --init-git。"
+  },
+  "stdout": "{\"status\": \"error\", \"message\": \"项目尚未接入 Git；调用初始化时可显式传入 --init-git。\"}\n",
+  "stderr": ""
+}

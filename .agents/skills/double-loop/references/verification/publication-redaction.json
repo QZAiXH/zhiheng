@@ -1,0 +1,357 @@
+{
+  "日期": "2026-10-07",
+  "说明": "仅变换历史验证材料中的私人路径和临时机定位；测试结果与历史被测源码指纹不变。原件已核对并留存在发布私有暂存区，公开副本不声明与原件逐字节相同。归档索引补充原始指纹语义。",
+  "变换": [
+    "验证用户目录替换为定位标签",
+    "验证工具目录替换为定位标签",
+    "随机临时目录替换为一致定位标签",
+    "归档索引增加公开副本说明"
+  ],
+  "文件": [
+    {
+      "path": ".agents/skills/double-loop/references/verification/report.json",
+      "original_sha256": "f812d0a6452b36885194fefdf63d2b242e93edbfb4ade12129ccb1a483c7c13b",
+      "public_sha256": "998726b3c8945741b75bffa5868e3427823042ac331c999b075ebdc25deeb570"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/extra-final-report.json",
+      "original_sha256": "5786e546e6597f2db6cad18f6a110b2b74cdd7bd8e36b86b37e9ceef0823af8b",
+      "public_sha256": "d64e397248b5683934140c9bc7c1ccf2552111b675b6828a428204772e0d74af"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/ignored-inputs-final-report.json",
+      "original_sha256": "181073073116759881faab2fee9e36713da78ea091d88bdd122de12cf8b62fd7",
+      "public_sha256": "eae4b16e412dae372b64c9ef77f6495aa6455a4a4ea944ee6521f906cbbc87fb"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/archive.json",
+      "original_sha256": "807de00962a37ea583a7257e40af9ea4ab9709a5827d33f7a5c5fd94b72d8f4c",
+      "public_sha256": "8d701354956143947bd87718fd7791e5c9c38f6956c4005254970b3d3623fe9f"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/independent_receipt.json",
+      "original_sha256": "04c0d438f33eea42052827d0ecb108d59b8d2c81b36265b9ff3229fac7c0103d",
+      "public_sha256": "0474f430ffc6e4b36cfa7b22bf1dab0d5630becb417d2977b82369b6244b315b"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/independent_current_receipt.json",
+      "original_sha256": "6339fc0e835fffd75b01f811e37dd0d993d58d2b84ecf3a302dc915f53319ec0",
+      "public_sha256": "dfb14aef519e772f6cbdf159ec1a4b626ec5d309cbbb6b7f4c0268a476df445c"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/independent_final_receipt.json",
+      "original_sha256": "5f68847821fc8276a2da89614aa7cb6ac363d5699dbc00ec3b2e089859bb52ed",
+      "public_sha256": "d6a59c2905f11bbb3e11ffd32fc9d68a659cdcc69ff4fdafe6e8af1b0e556470"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/snapshot_manifest.json",
+      "original_sha256": "9324ad6d09d23f047bc2a72221bdb96138294d24743c1e2f4ade811e222185e1",
+      "public_sha256": "cd28894f9bfc81be178b7880bef284e681281334a4d6972c3a8e6405f6ea7891"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/16_protect_modified_managed_block.json",
+      "original_sha256": "f8fb555dbbaef373125b78f488eb3b39a2cba5ee3f95e6b9a839e24b9ad1afab",
+      "public_sha256": "14cb62aa2afce4cd0fdf2d014ca0d1cfcf67326c1bccf73bc5461b8dba9cd5e0"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/11_wiki_complete_structure_only.json",
+      "original_sha256": "dcf3ec896469a2535fdb1112fbc8ca5c9e2a1e9d202cc03830fe5fed66f58aaf",
+      "public_sha256": "6fb926c0c863230ed4c7c680e6e013d2cb4c33b048be2056368013a06eeaef93"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/19_protect_dependency_conflict.json",
+      "original_sha256": "1574fd23f5b46976ea5a3c3dd740615eaee94d128fded4758dcdaf2eea2d8e21",
+      "public_sha256": "6c8c73d45ffdedbe2ebf4cd060424efbb8b4befec21443589d70d3fd98fc1a05"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/05_prepare_reuse_no_installer.json",
+      "original_sha256": "ad53fe1dfb0c8f7d9158ad35514b417ab438586a834abb9fe6f9ff0ec768d109",
+      "public_sha256": "b26c7c7b693fa76c6cfd57ae684cb9c1fde4e169604dd09de77e487a12b2f28c"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/23_non_git_explicit_init.json",
+      "original_sha256": "97be43b92c227dd71b8cfe9894506b25b9acae7c8a62cdff490dbb09c376d397",
+      "public_sha256": "80a1b29fdc4c02f622b55a8004edf42279a7fdf03054f309cfd4e4616d22531b"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/22_non_git_requires_explicit_init.json",
+      "original_sha256": "fd89e12e2218a9deb90164836ca32bfdd67c7048a32bddaa941e8976facc59a6",
+      "public_sha256": "c15b3f55f2c55a0416c77025435da5356b1611462f710dd3c18848116b3dd7f0"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/02_actual_prepare.json",
+      "original_sha256": "273ebf7ba262ebeca8f53b285d312e8a1ab92c1224a5f5c41eb803565f6e37f7",
+      "public_sha256": "383ad5e31f6f2b87d2fe34bc8d63750bc2c1c6754dd7821c1bfacf2aac3b3dba"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/21_concurrent_writer_rejected.json",
+      "original_sha256": "4cfbfd936b71b27717292c0f64fa665f43868a1d245400e508472a7ee811fe13",
+      "public_sha256": "aea54f3ee9c8b04dc91619503b378ab64151c2f45be32fe3485f869ccdfc18a9"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/27_nested_root_rejected.json",
+      "original_sha256": "9b893f02f9ad778f29f34447e733c7ec478ebd5d3c44c2a007415cb917ec7faa",
+      "public_sha256": "550ef4d7d454da3fa3fb8223e84ca0468218bdbb75d63ec44b4c101bfd2d56b4"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/07_verify_before_wiki.json",
+      "original_sha256": "e85be38dc916f854c6f79f28effe7f88262a10604929a0be21b423cff1751970",
+      "public_sha256": "33d68b90f5ca55e9e89f0a7aa69b67314a0025b203a77c11e40c40c183e6f53f"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/26_unborn_verify.json",
+      "original_sha256": "2f7dec2ffe7aaf6be66d96ddba2a2de6ecc3beba99a427b9e263557f0daf34e3",
+      "public_sha256": "fccd7fc59d46a16a641a19d894c20af4abddfb22227b8d89ac9666bc48faa0ac"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/10_wiki_wrong_operation.json",
+      "original_sha256": "8640086eface3668acfc8763873999461807f60a85c6dd0a70ad119f3ed46a7c",
+      "public_sha256": "9f98bb7243bf8ef948c9e9e5c3f6b844a10993b8335dd7e7dc915487563ce64a"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/08_wiki_reload_simulated.json",
+      "original_sha256": "b1a9f159ddebe6f064289cfffc9f08691bcdc5e0ac5b76efd71099e66762b72f",
+      "public_sha256": "cc3e4cf8a5433d3ae48f63a4e5d4a19605d1372e096085c06a1f0c93d2dfbb88"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/09_wiki_missing_quickstart.json",
+      "original_sha256": "469b5a2aa9c68bff666125669150a24a90833087f59623e3fbec04cd8a1fe6c8",
+      "public_sha256": "1d150dff61167f29030ca38d257af0d37772294783a18d946ab1ef91db18158c"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/15_preserve_surrounding_edit.json",
+      "original_sha256": "c99d0c3d7ac2e0ce8290fbfa6a75e2c45ae169a349bc4c06e2cde54373d84377",
+      "public_sha256": "809fd3dd65f1e6fb6f49007a496a1b7ed644a1866c435fd4501e48e551d36ad7"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/06_status_read_only.json",
+      "original_sha256": "56481f7d385a51590940b37f3f6d294fb13ce34b13969322832e4256f4a1196a",
+      "public_sha256": "d4018826e5ea663566e6a92629f5fbe0cdccd3e5a51d3e4d48bf1dae8bc76159"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/24_unborn_instructions.json",
+      "original_sha256": "f3809db6f5477119900fb551f5fbe50276c70c799589a99861e0f0bc1f5c1b42",
+      "public_sha256": "6f0450b12792958411310cc1cda3fc69cb7521912ccd1aa95a0b53a1e18fdc78"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/20_restore_after_dependency_conflict.json",
+      "original_sha256": "9db2c65b6d0ba2a3eee430f0adf11e644f609e94922576783b155c473b72fb23",
+      "public_sha256": "84a7472b9ad09a1b8f567ba2d157422925b021bc916e085f9dc5fe25b1e1c62b"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/17_upstream_user_conflict.json",
+      "original_sha256": "588a3c5f16b5334aae01641d624bd4b04553d107bd0882338e5e130ac1903d9d",
+      "public_sha256": "3151278c49f15d46487f79012246d51c81096dc438684d3ae35a56000564801d"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/04_instructions_idempotent.json",
+      "original_sha256": "50ca19271fb16e09c43c01234afa94c74a0ce2b9c986f33fa2cde8c785f5c1cb",
+      "public_sha256": "5b56e5436774c3ef6fe84efe89ec1106ca52e9e2f2c96466defcc9b7e16ba476"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/14_user_surrounding_edit.json",
+      "original_sha256": "cc9988664b5057b90c47f40019cb631252f0da46a82aa4887075557c3e24756e",
+      "public_sha256": "382dc709cd0ad0d30958989bfb85c689cdb819a09b040f32620ee257a63b142e"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/01_fresh_status.json",
+      "original_sha256": "efcf3323d2f15120c16311c996f381357a5297a1b42d0bee27ce0163b39b1f79",
+      "public_sha256": "5a4f2dd370f47b0db08ecbccf5efa6b4bceeeb378da3b8f83cb0b92658e6a4c9"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/28_valid_json_wrong_record_type.json",
+      "original_sha256": "c2e103171e9242f59c6345f4a517bc6a2534f3dc35777193622c1f0efd616b50",
+      "public_sha256": "ece35cfc5b65039dddc54386d00d4f2940996c7ad2a35b8bc739ec42a24de29b"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/25_unborn_simulated_wiki.json",
+      "original_sha256": "8aadaf6ba32cfedf4b6150ce163093e7c64a8459d6a7725b56dc00e442762c95",
+      "public_sha256": "981d6bf37777c896b8ed214ac1329dcfc380eb422caba0aba3f4e2485f8760f7"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/03_instructions_chinese.json",
+      "original_sha256": "e4933607f16df005495cbad04bb835db38c7af48794ce64806815468198f0de9",
+      "public_sha256": "d52dfd6400394e9e8c0c790d623fbafbfaf5becda1a101b1d6098f3c28e6088a"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/13_source_drift.json",
+      "original_sha256": "c23b22cdab39d99f76212a52927dfdf55a4a10c5567dbcef0c6dbe86ede65f9b",
+      "public_sha256": "8092b6e322d618e5ce371604e584156fb4d62ae807d28fd15653a71cca77348d"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/12_verify_simulated_wiki_structure.json",
+      "original_sha256": "b7717383ea55573c0ea220e74036cb58c80c0871f610714a5d803f7edcad6be9",
+      "public_sha256": "58c83ca38bba77b3388a357107df119330a88ada9fb84500d7074d39bc2c74d6"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/logs/18_clear_repaired_conflict.json",
+      "original_sha256": "7e8e774b6cc31071ed1575057c409a3ee718cab72dd881be741724c0bb5f0806",
+      "public_sha256": "a3819bc078b7ef39d3f737b3404b5320ab2e95207f5f4fe4e0bae49b04e288e2"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/06_current_prepare_reuse.json",
+      "original_sha256": "ddbd29e2057019c8283d18a5d3478f7ea7ec30a92efd14768aa39c47a91e68ee",
+      "public_sha256": "80b3a935ab7ce4ae94d8b1d32e3b6af9b5663768788edd5fee55c2bba5cf58df"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/04_current_instructions.json",
+      "original_sha256": "a20391f24aee5a01476ecfac21dfe771087593a20e07b1cfb3fbdf1cbe14fa7e",
+      "public_sha256": "965accc22667855a5dd63882b2cbafd7385aba240a07471ee689da58dda3e219"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/19_current_restore_prepare.json",
+      "original_sha256": "c0ed050676f1f21b4577c2858fea0508a2a8f3fce70dbb0f8d91d2ea5f1cae0f",
+      "public_sha256": "a74208a58984ad5fb6be8a780050e99a331858e57de485f89d6818cc550cf771"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/14_current_record_bad-fields.json",
+      "original_sha256": "71fe3141fbbe492e47ff92799caeed8ad745280586f6589c8ca213abe57c7a33",
+      "public_sha256": "d28e6e10440017814ad9c4388dbd12f194c5f64277c64754278ce974bfc45e0d"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/16_current_receipt_host_array.json",
+      "original_sha256": "023b46f1ef547e037bf05ab3e0614fecca1e8d8b17ae3d1373801db82d662d3d",
+      "public_sha256": "315e19b2a3d40d2684798099f16fc219056d9c6335af6b1b30fbeafb2e41b9fd"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/18_current_receipt_array.json",
+      "original_sha256": "f99f4d4fcd8f93e5c5d7a53dc549854503004c29e5094f65f05fb071da46f3ef",
+      "public_sha256": "1fbde5e35ca9c23f25a30e3d407e14c6e26bb1f355c02486038fc858bbd077d6"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/07_current_readonly_status.json",
+      "original_sha256": "d82d69026ec2a003dea0d6476ec50e1b626038b29634140cfe0f62cde7f05a17",
+      "public_sha256": "685cef80761bb631b5c1432be15db119005005891f08760d2d42c54218b36b70"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/03_current_prepare.json",
+      "original_sha256": "bff26079e9b0d8770ecdaf0fac3e65d615c4ac94c293449e5dbbd0718c31faa4",
+      "public_sha256": "099495f4678656158f43fcb81a144323c2f4911103daa00a64878ae725f0f4b1"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/11_wiki_after_durable_change.json",
+      "original_sha256": "5595641051c40a4f2d35d7cac597f9fc85479d63bd640d2f849deeb30f44adce",
+      "public_sha256": "b6112155ccbc73509ba1917d3ab9cac59565151fe6058426d02f8561dc99abe3"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/15_current_dependencies_array.json",
+      "original_sha256": "4da74a6ff071ecaa2115322e93ea1788b39527567ff6137aec124c1be4d18fe4",
+      "public_sha256": "fa7b1f67894e9d7789be983d92c1473e6ba06b7598516025e6b5cb318714455d"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/17_current_receipt_tool_response_array.json",
+      "original_sha256": "60a1e4b0cf9074476f60c242f6f84fce6487bc29955dc3663af99b17d3b76625",
+      "public_sha256": "ce57f90f574d462c65d89125acac299c8d05f242adaad0f9f1d770de246dfddc"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/12_current_runtime_noise_excluded.json",
+      "original_sha256": "4942564acf47c22327eb779bf86eabf3c699312b2e32a864afc1b46cd1e68a31",
+      "public_sha256": "5e266985961a6a25ed1a5eaed3f335eb88efbdbed7f9559489b70abc41f3f894"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/20_current_final_verify.json",
+      "original_sha256": "c1fcc998a318591f2dfaa355e1304d10b7b05b404fecf7bb4ef9f211b04883fd",
+      "public_sha256": "1489b952542df68a086ce9aaf989cc6f241702db52d4ca9c8383f31a241f291c"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/13_current_record_array.json",
+      "original_sha256": "6a3a339f254decb824d594904cd357da2db52bee9f6a0c34f9329a7b928d2ecc",
+      "public_sha256": "fd9aec5670a9307cb5a94835823988c72d7f4c6dc67efb1a5aad5f915735adcf"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/08_current_negation_detected.json",
+      "original_sha256": "f3908bd17b50b3a46e21a4f54c78d5032710ecf9d294e19fd1f9abfc2d07108c",
+      "public_sha256": "eae34eee6c5f6fbcb56c4caf463ca2f36b65a68c377a46032e27a539ded18083"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/05_current_simulated_wiki_structure.json",
+      "original_sha256": "cd291d3012fc0d59430d1c87f6bb1f2f6fcc65dba730b3f132f618764e13b3c9",
+      "public_sha256": "0204635e8b08972813be313a3927834e52be044eb182f0c33cf565d54ebfcdc6"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/10_current_durable_workflow_drift.json",
+      "original_sha256": "6c82531542dcfecec0ba6cf977acea5c0876837e88090297f11366d5e6176ede",
+      "public_sha256": "ba023c0b31765c3a42a4adcc9ee35401b1b80062710d72e2c4cfaa8fd1db3c62"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/current_recheck/logs/09_wiki_before_durable_change.json",
+      "original_sha256": "6857aec146186ff6c2c9f74f1be4185411c5fe2a2c78eb3dc061b6fe923f6f8a",
+      "public_sha256": "1f0b8b100ac8d52a8c03deac54d7142d86e90b167c98226ed8ee2f132f7a92e1"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/06_repeat_project_openwiki_prepare.json",
+      "original_sha256": "93745aab3eb2ea042e6ed6793ef2f05f9e6ae93c36576b08de042b8fd2e01ba9",
+      "public_sha256": "93c428e5a40525c41ece52e8447397afe409017cf15aca4f55baa1a9f3362e66"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/native_project_codex_install.json",
+      "original_sha256": "d9fa7ebecc46cfccb37a4198faee38dbf49ae70f1884c86c0461667350d80b74",
+      "public_sha256": "e1e7ea721b9562138b1a7797ae73dabadd67f5593d65a786e013fffe9ecad85c"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/native_first_before_prepare.json",
+      "original_sha256": "faa46051ce3a3842e1ee782b5223d50ddff262ed316490f14c32368fb72739f3",
+      "public_sha256": "37801aafbefbcedabacd3552e056d71a4ab30e3da54752c4027557e3de7c126c"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/07_no_real_wiki_verify.json",
+      "original_sha256": "7782ba728fdeb4cd40e389e6daebc4a8c929129ad6364341651cc252e1efaecc",
+      "public_sha256": "06723bc2405c0c95dcff327cd1aad1c46dc4effa92dabbea3785e1b3b35dab34"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/11_tracked_project_openwiki_prepare.json",
+      "original_sha256": "b3cb81d21037a62c1f5aa7608cb56df0e6082ca032ff00468031f4924d9163d1",
+      "public_sha256": "6826f575a895d8970c0ab246dc3a5cc8f922c33f63244103f869940f2c33c2c0"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/05_switch_to_project_openwiki.json",
+      "original_sha256": "210f4942397a68e926f203d4e64bf7eb9dd9d7ba4ce119aeee2dee6b2b63fef6",
+      "public_sha256": "3b7db5165dd3a99011b6fe60ed84ff3357cebc31c10d4e61f410b1f91ace3389"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/04_external_openwiki_instructions.json",
+      "original_sha256": "c6e611867344c049913cc668b342cc7191bf755dfc2ea41616b5c5a51cfe1b6a",
+      "public_sha256": "877de8f7733fbba1d51baa710f2047c315d17b501f5349651e78bcbe17b51c57"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/03_external_openwiki_prepare.json",
+      "original_sha256": "b3ef41bb28a1c15010a35e1483319a2baec2355128a36d770dc92a2b42334c6e",
+      "public_sha256": "5eff91e47a27115425773702ab97ad532dfc5107ba9b0bb8bcdb6c16bdc3bb8e"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/08_first_prepare_local_openwiki.json",
+      "original_sha256": "bf0f01931dfd33614c79b2741b136ab5f6a7104fb67376b97417b74e1b2bfb22",
+      "public_sha256": "0fd7dd8f269db4cc6c2dac34d2d6e679e5495e566edf961dc84f8eac4c0844c4"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/native_project_codex_repeat.json",
+      "original_sha256": "16dd964eb2453d8a2f72a3a230cfe965570d86a497cab32195dc76e55683f4b9",
+      "public_sha256": "6700798edd7df4af14f1e1faf2908b9104244f86ac1d0e88f07c35c00fb1a157"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/12_local_openwiki_status_readonly.json",
+      "original_sha256": "1f24cb17f2c4d7895b7c97149981616e98bac245d6f4352a998c6b1a1be9e5ee",
+      "public_sha256": "7e1b87656ce412b740bf091c6ad9bca10eabc9024ccf5de2b2b542ca4017eea6"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/10_first_local_openwiki_status.json",
+      "original_sha256": "0cdc494f6d16c8a88889a5777ed9d160a7b64313f8a2204f6d60d9893dab9d12",
+      "public_sha256": "d66d7489b64d9f99e5ed3d3ea63d306da242506d22872813903888a874379e23"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/native_before_install.json",
+      "original_sha256": "e27faf1c2d37ace7159bf8efee1f46d92866b89f1e63a0540f4570f02fd8323d",
+      "public_sha256": "449075cb12d923ad8bc5ef198f4c55436ac77c5284228704e10a81d5752022bd"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/09_first_local_openwiki_instructions.json",
+      "original_sha256": "dd7efd2862ff10cde56324ae6e959fa8e844b4aa74f003f0a58c04064da2cd4c",
+      "public_sha256": "94853df30e4335c3ac98b65a35ef2eae545a644d914c77b68a974d6ba283d6e0"
+    },
+    {
+      "path": ".agents/skills/double-loop/references/verification/init-forward/project_openwiki_recheck/logs/native_after_install.json",
+      "original_sha256": "e91e3388158bc44ba75b5165ec977c963ae5f4ae18c58a800c3dd9f3afc8f79c",
+      "public_sha256": "f0b93a64a5ce2a5ccc81a2dc96c386c4e04fb01f2c7e0419208fd420000b8f30"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "交付与清理"
+  short_description: "汇总验收证据，提交推送并创建 PR，随后依清单清理可删除的任务中间文件"
+  default_prompt: "使用 $dl-deliver 创建 PR 并按清单清理已经完成知识提炼的临时文件。"

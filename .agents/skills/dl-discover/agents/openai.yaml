@@ -1,0 +1,4 @@
+interface:
+  display_name: "需求讨论"
+  short_description: "通过需求讨论确定范围、验收标准与关键约束，为后续自动研发建立输入"
+  default_prompt: "使用 $dl-discover 讨论需求，整理范围、验收条件与尚未解决的决策。"

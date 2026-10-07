@@ -1,0 +1,19 @@
+{
+  "label": "current_receipt_tool_response_array",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot_current/dl-init/scripts/project_init.py",
+    "wiki",
+    "--root",
+    "<验证临时目录-1>/current_recheck/projects/新版本复验项目",
+    "--input",
+    "<验证临时目录-1>/current_recheck/inputs/bad-tool_response-simulated.json"
+  ],
+  "exit_code": 2,
+  "output": {
+    "status": "error",
+    "message": "Wiki 工具响应必须是对象。"
+  },
+  "stdout": "{\"status\": \"error\", \"message\": \"Wiki 工具响应必须是对象。\"}\n",
+  "stderr": ""
+}

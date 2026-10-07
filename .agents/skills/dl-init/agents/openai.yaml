@@ -1,0 +1,4 @@
+interface:
+  display_name: "双层循环项目初始化"
+  short_description: "接入项目、安装固定版本技能并生成项目指令，初始化知识库并支持恢复"
+  default_prompt: "使用 $dl-init 接入当前项目，安装所需技能、生成 AGENTS.md 并初始化或恢复 OpenWiki。"

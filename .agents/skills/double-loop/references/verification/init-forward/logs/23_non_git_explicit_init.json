@@ -1,0 +1,35 @@
+{
+  "label": "non_git_explicit_init",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "prepare",
+    "--root",
+    "<验证临时目录-1>/projects/尚无Git基线",
+    "--bundle",
+    "<验证临时目录-1>/snapshot",
+    "--installer",
+    "<验证临时目录-1>/external/installer/install-skill-from-github.py",
+    "--openwiki-skill",
+    "<验证临时目录-1>/external/openwiki/SKILL.md",
+    "--init-git"
+  ],
+  "exit_code": 0,
+  "output": {
+    "root": "<验证临时目录-1>/projects/尚无Git基线",
+    "phase": "local_prepared",
+    "initialized": false,
+    "local_ready": false,
+    "wiki_ready": false,
+    "needs_git_baseline": true,
+    "ready_for_worktrees": false,
+    "conflicts": [],
+    "problems": [
+      "[Errno 2] No such file or directory: '<验证临时目录-1>/projects/尚无Git基线/AGENTS.md'",
+      "Wiki 尚未完成或需重新加载宿主。"
+    ],
+    "host_check_required": "仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。"
+  },
+  "stdout": "{\n  \"root\": \"<验证临时目录-1>/projects/尚无Git基线\",\n  \"phase\": \"local_prepared\",\n  \"initialized\": false,\n  \"local_ready\": false,\n  \"wiki_ready\": false,\n  \"needs_git_baseline\": true,\n  \"ready_for_worktrees\": false,\n  \"conflicts\": [],\n  \"problems\": [\n    \"[Errno 2] No such file or directory: '<验证临时目录-1>/projects/尚无Git基线/AGENTS.md'\",\n    \"Wiki 尚未完成或需重新加载宿主。\"\n  ],\n  \"host_check_required\": \"仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。\"\n}\n",
+  "stderr": ""
+}

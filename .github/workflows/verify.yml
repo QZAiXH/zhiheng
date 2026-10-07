@@ -1,0 +1,61 @@
+name: 校验
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    # 名称兼容 main 已有的必需检查；执行内容全部是当前技能包。
+    name: harness-${{ matrix.os }}-${{ matrix.group }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel]
+        group: [core, local, github, knowledge]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - name: 获取代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 准备 Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: 安装固定验证依赖
+        run: python -m pip install -r requirements-dev.txt
+      - name: 运行当前分组回归
+        run: python -B tools/run_checks.py --group '${{ matrix.group }}'
+
+  review:
+    name: review-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: 获取代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: 准备 Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: 安装固定验证依赖
+        run: python -m pip install -r requirements-dev.txt
+      - name: 检查技能包与公开文档契约
+        run: python -B tools/check_repository.py
+      - name: 核查分组覆盖与文件空白
+        run: |
+          python -B tools/run_checks.py --list
+          git diff --check

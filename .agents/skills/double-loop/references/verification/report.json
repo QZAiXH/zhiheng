@@ -1,0 +1,700 @@
+{
+  "范围": "独立辅助脚本实测；不创建真实 PR、不运行 OpenWiki 服务或多模型业务实现。",
+  "场景": [
+    {
+      "名称": "集中确认与三模型隔离声明",
+      "结果": "有效配置通过；同模型、继承上下文、未确认、超并发均拒绝。实际模型调用仅静态核验技能指令。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "validate-config",
+            "--input",
+            "<验证临时目录-2>/run-v3/fixture-config.json"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"status\": \"valid\"\n}",
+          "stderr": "",
+          "data": {
+            "status": "valid"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "validate-config",
+            "--input",
+            "<验证临时目录-2>/run-v3/same-model.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"设计、实现、审查必须使用三个不同的规范模型 ID。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "设计、实现、审查必须使用三个不同的规范模型 ID。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "validate-config",
+            "--input",
+            "<验证临时目录-2>/run-v3/shared-context.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"review 必须使用新上下文。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "review 必须使用新上下文。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "validate-config",
+            "--input",
+            "<验证临时目录-2>/run-v3/unconfirmed.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"缺少用户集中确认记录。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "缺少用户集中确认记录。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "validate-config",
+            "--input",
+            "<验证临时目录-2>/run-v3/too-many-children.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"并发数必须是正整数且不超过宿主上限。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "并发数必须是正整数且不超过宿主上限。"
+          }
+        }
+      ]
+    },
+    {
+      "名称": "失败修复与依赖释放",
+      "结果": "需求独立构造的真实测试先失败（0/-1），修复后通过；前置未完成不能启动 T2，循环依赖拒绝，T1 done 后才释放 T2。两轴模型复审仅静态核验文档。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/feedback-loop",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/feedback-loop-update.json"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"executing\",\n  \"ready_tasks\": [\n    \"T1\"\n  ]\n}",
+          "stderr": "",
+          "data": {
+            "phase": "executing",
+            "ready_tasks": [
+              "T1"
+            ]
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/feedback-loop",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/feedback-loop-update.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"任务 T2 的前置任务尚未完成。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "任务 T2 的前置任务尚未完成。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/feedback-loop",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/feedback-loop-update.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"任务图存在循环依赖。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "任务图存在循环依赖。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "test_invalid (test_limit.LimitTests.test_invalid) ... ok\ntest_nonpositive (test_limit.LimitTests.test_nonpositive) ... \n  test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='0') ... FAIL\n  test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='-1') ... FAIL\ntest_valid (test_limit.LimitTests.test_valid) ... ok\n\n======================================================================\nFAIL: test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='0')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/feedback-loop/tests/test_limit.py\", line 10, in test_nonpositive\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='-1')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/feedback-loop/tests/test_limit.py\", line 10, in test_nonpositive\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nFAILED (failures=2)"
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "test_invalid (test_limit.LimitTests.test_invalid) ... ok\ntest_nonpositive (test_limit.LimitTests.test_nonpositive) ... ok\ntest_valid (test_limit.LimitTests.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK"
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/feedback-loop",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/feedback-loop-update.json"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"integrating\",\n  \"ready_tasks\": [\n    \"T2\"\n  ]\n}",
+          "stderr": "",
+          "data": {
+            "phase": "integrating",
+            "ready_tasks": [
+              "T2"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "名称": "基础清理边界",
+      "结果": "Wiki 未完成被拒；既有文件、逃逸路径不能登记；保留 Markdown 的普通链接能阻止删除；仅无引用封存草稿删除。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "register",
+            "--root",
+            "<验证临时目录-2>/run-v3/cleanup-boundaries",
+            "--run-id",
+            "main",
+            "--path",
+            ".workflow/runs/main/scratch/user-existing.md",
+            "--kind",
+            "temporary",
+            "--reason",
+            "试图认领既有文件"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"已存在文件不能补登记为本次新建产物。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "已存在文件不能补登记为本次新建产物。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "register",
+            "--root",
+            "<验证临时目录-2>/run-v3/cleanup-boundaries",
+            "--run-id",
+            "main",
+            "--path",
+            ".workflow/runs/main/scratch/../../escaped.md",
+            "--kind",
+            "temporary",
+            "--reason",
+            "越界"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"拒绝路径越界或非规范路径。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "拒绝路径越界或非规范路径。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/cleanup-boundaries",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/cleanup-boundaries-update.json"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"知识维护尚未完成。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "知识维护尚未完成。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "cleanup",
+            "--root",
+            "<验证临时目录-2>/run-v3/cleanup-boundaries",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"mode\": \"preview\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"eligible\",\n      \"reason\": \"所有权、内容与静态引用检查通过。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/linked.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+          "stderr": "",
+          "data": {
+            "mode": "preview",
+            "files": [
+              {
+                "path": ".workflow/runs/main/scratch/plain.md",
+                "status": "eligible",
+                "reason": "所有权、内容与静态引用检查通过。"
+              },
+              {
+                "path": ".workflow/runs/main/scratch/linked.md",
+                "status": "retained",
+                "reason": "保留文档仍引用该文件。"
+              }
+            ],
+            "reference_problems": []
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "cleanup",
+            "--root",
+            "<验证临时目录-2>/run-v3/cleanup-boundaries",
+            "--run-id",
+            "main",
+            "--apply"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"mode\": \"apply\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"deleted\",\n      \"reason\": \"所有权、内容与静态引用检查通过。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/linked.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+          "stderr": "",
+          "data": {
+            "mode": "apply",
+            "files": [
+              {
+                "path": ".workflow/runs/main/scratch/plain.md",
+                "status": "deleted",
+                "reason": "所有权、内容与静态引用检查通过。"
+              },
+              {
+                "path": ".workflow/runs/main/scratch/linked.md",
+                "status": "retained",
+                "reason": "保留文档仍引用该文件。"
+              }
+            ],
+            "reference_problems": []
+          }
+        }
+      ]
+    },
+    {
+      "名称": "保留候选的引用保护",
+      "结果": "新版实测通过：A 因封存后变更保留，A 的 Markdown 链接引用 B；B 也保留，没有留下断链。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "cleanup",
+            "--root",
+            "<验证临时目录-2>/run-v3/retained-candidate-reference",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"mode\": \"preview\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/a.md\",\n      \"status\": \"retained\",\n      \"reason\": \"内容在封存后变化。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/b.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+          "stderr": "",
+          "data": {
+            "mode": "preview",
+            "files": [
+              {
+                "path": ".workflow/runs/main/scratch/a.md",
+                "status": "retained",
+                "reason": "内容在封存后变化。"
+              },
+              {
+                "path": ".workflow/runs/main/scratch/b.md",
+                "status": "retained",
+                "reason": "保留文档仍引用该文件。"
+              }
+            ],
+            "reference_problems": []
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "cleanup",
+            "--root",
+            "<验证临时目录-2>/run-v3/retained-candidate-reference",
+            "--run-id",
+            "main",
+            "--apply"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"mode\": \"apply\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/a.md\",\n      \"status\": \"retained\",\n      \"reason\": \"内容在封存后变化。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/b.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+          "stderr": "",
+          "data": {
+            "mode": "apply",
+            "files": [
+              {
+                "path": ".workflow/runs/main/scratch/a.md",
+                "status": "retained",
+                "reason": "内容在封存后变化。"
+              },
+              {
+                "path": ".workflow/runs/main/scratch/b.md",
+                "status": "retained",
+                "reason": "保留文档仍引用该文件。"
+              }
+            ],
+            "reference_problems": []
+          }
+        }
+      ],
+      "遗留文件": "<验证临时目录-2>/run-v3/retained-candidate-reference/.workflow/runs/main/scratch/a.md"
+    },
+    {
+      "名称": "运行目录与业务源码输入变化",
+      "结果": "最新版实测通过：运行目录中的规格与业务源码变更都得到 stale=true；普通检查点清空旧 verification，没有把旧验收绑定到新代码。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/stale-verification",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/stale-verification-update.json"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"verifying\",\n  \"ready_tasks\": []\n}",
+          "stderr": "",
+          "data": {
+            "phase": "verifying",
+            "ready_tasks": []
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "resume",
+            "--root",
+            "<验证临时目录-2>/run-v3/stale-verification",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": true,\n  \"verification_stale\": true,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"889e1643d5c8f5341b4436aeb59802700604a22e\",\n    \"content\": \"67545e70a88440fa71c1f885393f0f2223262310b257db0303c9d6e8c5a7bd62\"\n  }\n}",
+          "stderr": "",
+          "data": {
+            "phase": "verifying",
+            "snapshot_changed": true,
+            "verification_stale": true,
+            "ready_tasks": [],
+            "current_snapshot": {
+              "head": "889e1643d5c8f5341b4436aeb59802700604a22e",
+              "content": "67545e70a88440fa71c1f885393f0f2223262310b257db0303c9d6e8c5a7bd62"
+            }
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "resume",
+            "--root",
+            "<验证临时目录-2>/run-v3/stale-verification",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": true,\n  \"verification_stale\": true,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"889e1643d5c8f5341b4436aeb59802700604a22e\",\n    \"content\": \"e602c770a4a1cb050fa040409203f81d8eed6b84e18fdf0446e07c00dc633dbb\"\n  }\n}",
+          "stderr": "",
+          "data": {
+            "phase": "verifying",
+            "snapshot_changed": true,
+            "verification_stale": true,
+            "ready_tasks": [],
+            "current_snapshot": {
+              "head": "889e1643d5c8f5341b4436aeb59802700604a22e",
+              "content": "e602c770a4a1cb050fa040409203f81d8eed6b84e18fdf0446e07c00dc633dbb"
+            }
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "checkpoint",
+            "--root",
+            "<验证临时目录-2>/run-v3/stale-verification",
+            "--run-id",
+            "main",
+            "--input",
+            "<验证临时目录-2>/run-v3/stale-verification-update.json"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"verifying\",\n  \"ready_tasks\": []\n}",
+          "stderr": "",
+          "data": {
+            "phase": "verifying",
+            "ready_tasks": []
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "resume",
+            "--root",
+            "<验证临时目录-2>/run-v3/stale-verification",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": false,\n  \"verification_stale\": false,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"889e1643d5c8f5341b4436aeb59802700604a22e\",\n    \"content\": \"e602c770a4a1cb050fa040409203f81d8eed6b84e18fdf0446e07c00dc633dbb\"\n  }\n}",
+          "stderr": "",
+          "data": {
+            "phase": "verifying",
+            "snapshot_changed": false,
+            "verification_stale": false,
+            "ready_tasks": [],
+            "current_snapshot": {
+              "head": "889e1643d5c8f5341b4436aeb59802700604a22e",
+              "content": "e602c770a4a1cb050fa040409203f81d8eed6b84e18fdf0446e07c00dc633dbb"
+            }
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "test_invalid (test_limit.LimitTests.test_invalid) ... FAIL\ntest_nonpositive (test_limit.LimitTests.test_nonpositive) ... \n  test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='0') ... FAIL\n  test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='-1') ... FAIL\ntest_valid (test_limit.LimitTests.test_valid) ... FAIL\n\n======================================================================\nFAIL: test_invalid (test_limit.LimitTests.test_invalid)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/stale-verification/tests/test_limit.py\", line 13, in test_invalid\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='0')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/stale-verification/tests/test_limit.py\", line 10, in test_nonpositive\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_nonpositive (test_limit.LimitTests.test_nonpositive) (value='-1')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/stale-verification/tests/test_limit.py\", line 10, in test_nonpositive\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_valid (test_limit.LimitTests.test_valid)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/stale-verification/tests/test_limit.py\", line 6, in test_valid\n    self.assertEqual(parse_limit(\"3\"), 3)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 3\n\n----------------------------------------------------------------------\nRan 3 tests in 0.001s\n\nFAILED (failures=4)"
+        }
+      ]
+    },
+    {
+      "名称": "reconfigure 中断恢复",
+      "结果": "新版实测通过：在写新 config.json 后中断，resume 阻止沿用未完成配置；按错误提示重新 reconfigure 成功，之后 resume 可读取新配置。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证临时目录-2>/run-v3/inject-reconfigure.py",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "<验证临时目录-2>/run-v3/reconfigure-interrupted",
+            "<验证临时目录-2>/run-v3/new-config.json"
+          ],
+          "exit_code": -2,
+          "stdout": "",
+          "stderr": "Traceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/inject-reconfigure.py\", line 10, in <module>\n    m.main()\n    ~~~~~~^^\n  File \"<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py\", line 581, in main\n    run.save()\n    ~~~~~~~~^^\n  File \"<验证临时目录-2>/run-v3/inject-reconfigure.py\", line 7, in stop_before_state_write\n    raise KeyboardInterrupt(\"模拟新配置落盘后状态写入前中断\")\nKeyboardInterrupt: 模拟新配置落盘后状态写入前中断"
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "resume",
+            "--root",
+            "<验证临时目录-2>/run-v3/reconfigure-interrupted",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 2,
+          "stdout": "{\"status\": \"error\", \"message\": \"配置已被修改或上次替换中断，请用确认后的配置重新执行 reconfigure。\"}",
+          "stderr": "",
+          "data": {
+            "status": "error",
+            "message": "配置已被修改或上次替换中断，请用确认后的配置重新执行 reconfigure。"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "reconfigure",
+            "--root",
+            "<验证临时目录-2>/run-v3/reconfigure-interrupted",
+            "--run-id",
+            "main",
+            "--config",
+            "<验证临时目录-2>/run-v3/new-config.json"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"status\": \"reconfigured\",\n  \"phase\": \"verifying\"\n}",
+          "stderr": "",
+          "data": {
+            "status": "reconfigured",
+            "phase": "verifying"
+          }
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "resume",
+            "--root",
+            "<验证临时目录-2>/run-v3/reconfigure-interrupted",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"phase\": \"verifying\",\n  \"snapshot_changed\": false,\n  \"verification_stale\": false,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"0e5dc1980a83a66dde2306a7e29209fe078bf55e\",\n    \"content\": \"35822b952705210b85c883df034cc76116b77c246e6dc99c567d3cf0bfc3d614\"\n  }\n}",
+          "stderr": "",
+          "data": {
+            "phase": "verifying",
+            "snapshot_changed": false,
+            "verification_stale": false,
+            "ready_tasks": [],
+            "current_snapshot": {
+              "head": "0e5dc1980a83a66dde2306a7e29209fe078bf55e",
+              "content": "35822b952705210b85c883df034cc76116b77c246e6dc99c567d3cf0bfc3d614"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "名称": "无关非文档符号链接",
+      "结果": "新版实测通过：仓库存在 alias.txt -> README.md；它不属于删除候选且不是 Markdown，cleanup 不受影响。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "cleanup",
+            "--root",
+            "<验证临时目录-2>/run-v3/unrelated-symlink",
+            "--run-id",
+            "main"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"mode\": \"preview\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"eligible\",\n      \"reason\": \"所有权、内容与静态引用检查通过。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+          "stderr": "",
+          "data": {
+            "mode": "preview",
+            "files": [
+              {
+                "path": ".workflow/runs/main/scratch/plain.md",
+                "status": "eligible",
+                "reason": "所有权、内容与静态引用检查通过。"
+              }
+            ],
+            "reference_problems": []
+          }
+        }
+      ]
+    },
+    {
+      "名称": "删除意图恢复",
+      "结果": "在 unlink 后中断，重试能够依据 deleting 记录识别已删文件，且状态转为 deleted。",
+      "回执": [
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证临时目录-2>/run-v3/inject-cleanup.py",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "<验证临时目录-2>/run-v3/cleanup-interrupted",
+            ".workflow/runs/main/scratch/plain.md"
+          ],
+          "exit_code": -2,
+          "stdout": "",
+          "stderr": "Traceback (most recent call last):\n  File \"<验证临时目录-2>/run-v3/inject-cleanup.py\", line 14, in <module>\n    m.cleanup(m.Run(sys.argv[2], \"main\"), apply=True)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py\", line 500, in cleanup\n    path.unlink()\n    ~~~~~~~~~~~^^\n  File \"<验证临时目录-2>/run-v3/inject-cleanup.py\", line 11, in interrupt_after_unlink\n    raise KeyboardInterrupt(\"模拟删除之后最终状态写入前中断\")\nKeyboardInterrupt: 模拟删除之后最终状态写入前中断"
+        },
+        {
+          "command": [
+            "<验证用户目录>/.cache/uv/builds-v0/.tmpy7mJGK/bin/python",
+            "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+            "cleanup",
+            "--root",
+            "<验证临时目录-2>/run-v3/cleanup-interrupted",
+            "--run-id",
+            "main",
+            "--apply"
+          ],
+          "exit_code": 0,
+          "stdout": "{\n  \"mode\": \"apply\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"deleted\",\n      \"reason\": \"文件已不存在。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+          "stderr": "",
+          "data": {
+            "mode": "apply",
+            "files": [
+              {
+                "path": ".workflow/runs/main/scratch/plain.md",
+                "status": "deleted",
+                "reason": "文件已不存在。"
+              }
+            ],
+            "reference_problems": []
+          }
+        }
+      ]
+    }
+  ],
+  "脚本_SHA256_开始": "9d870fcfa6e568cc8b91e0c06b00e1e9a00580ea740186e4a2a9e8e7ee303bad",
+  "脚本_SHA256_结束": "9d870fcfa6e568cc8b91e0c06b00e1e9a00580ea740186e4a2a9e8e7ee303bad"
+}

@@ -1,0 +1,273 @@
+{
+  "脚本_SHA256_开始": "9d870fcfa6e568cc8b91e0c06b00e1e9a00580ea740186e4a2a9e8e7ee303bad",
+  "脚本_SHA256_结束": "9d870fcfa6e568cc8b91e0c06b00e1e9a00580ea740186e4a2a9e8e7ee303bad",
+  "场景": [
+    {
+      "名称": "七种引用形式",
+      "通过": true,
+      "当前文件系统大小写不敏感": true,
+      "预览": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "cleanup",
+          "--root",
+          "<验证临时目录-2>/run-v3/reference-forms-final",
+          "--run-id",
+          "main"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"mode\": \"preview\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/reference.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/repo.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/absolute.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/draft(v1).md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/MixedCase.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件的实际文件身份。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/image.png\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/claims.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+        "stderr": "",
+        "data": {
+          "mode": "preview",
+          "files": [
+            {
+              "path": ".workflow/runs/main/scratch/reference.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/repo.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/absolute.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/draft(v1).md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/MixedCase.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件的实际文件身份。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/image.png",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/claims.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            }
+          ],
+          "reference_problems": []
+        }
+      },
+      "执行": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "cleanup",
+          "--root",
+          "<验证临时目录-2>/run-v3/reference-forms-final",
+          "--run-id",
+          "main",
+          "--apply"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"mode\": \"apply\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/reference.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/repo.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/absolute.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/draft(v1).md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/MixedCase.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件的实际文件身份。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/image.png\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    },\n    {\n      \"path\": \".workflow/runs/main/scratch/claims.md\",\n      \"status\": \"retained\",\n      \"reason\": \"保留文档仍引用该文件。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+        "stderr": "",
+        "data": {
+          "mode": "apply",
+          "files": [
+            {
+              "path": ".workflow/runs/main/scratch/reference.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/repo.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/absolute.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/draft(v1).md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/MixedCase.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件的实际文件身份。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/image.png",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            },
+            {
+              "path": ".workflow/runs/main/scratch/claims.md",
+              "status": "retained",
+              "reason": "保留文档仍引用该文件。"
+            }
+          ],
+          "reference_problems": []
+        }
+      }
+    },
+    {
+      "名称": "仓库内非候选 Markdown 符号链接",
+      "通过": true,
+      "预览": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "cleanup",
+          "--root",
+          "<验证临时目录-2>/run-v3/document-symlink-final",
+          "--run-id",
+          "main"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"mode\": \"preview\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"eligible\",\n      \"reason\": \"所有权、内容与静态引用检查通过。\"\n    }\n  ],\n  \"reference_problems\": []\n}",
+        "stderr": "",
+        "data": {
+          "mode": "preview",
+          "files": [
+            {
+              "path": ".workflow/runs/main/scratch/plain.md",
+              "status": "eligible",
+              "reason": "所有权、内容与静态引用检查通过。"
+            }
+          ],
+          "reference_problems": []
+        }
+      }
+    },
+    {
+      "名称": "仓库外 Markdown 符号链接",
+      "通过": true,
+      "预览": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "cleanup",
+          "--root",
+          "<验证临时目录-2>/run-v3/outside-document-symlink-final",
+          "--run-id",
+          "main"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"mode\": \"preview\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"retained\",\n      \"reason\": \"存在无法核对的文档引用，暂缓自动清理。\"\n    }\n  ],\n  \"reference_problems\": [\n    \"guide.md：保留文档链接指向仓库之外，无法自动核对引用。\"\n  ]\n}",
+        "stderr": "",
+        "data": {
+          "mode": "preview",
+          "files": [
+            {
+              "path": ".workflow/runs/main/scratch/plain.md",
+              "status": "retained",
+              "reason": "存在无法核对的文档引用，暂缓自动清理。"
+            }
+          ],
+          "reference_problems": [
+            "guide.md：保留文档链接指向仓库之外，无法自动核对引用。"
+          ]
+        }
+      },
+      "执行": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "cleanup",
+          "--root",
+          "<验证临时目录-2>/run-v3/outside-document-symlink-final",
+          "--run-id",
+          "main",
+          "--apply"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"mode\": \"apply\",\n  \"files\": [\n    {\n      \"path\": \".workflow/runs/main/scratch/plain.md\",\n      \"status\": \"retained\",\n      \"reason\": \"存在无法核对的文档引用，暂缓自动清理。\"\n    }\n  ],\n  \"reference_problems\": [\n    \"guide.md：保留文档链接指向仓库之外，无法自动核对引用。\"\n  ]\n}",
+        "stderr": "",
+        "data": {
+          "mode": "apply",
+          "files": [
+            {
+              "path": ".workflow/runs/main/scratch/plain.md",
+              "status": "retained",
+              "reason": "存在无法核对的文档引用，暂缓自动清理。"
+            }
+          ],
+          "reference_problems": [
+            "guide.md：保留文档链接指向仓库之外，无法自动核对引用。"
+          ]
+        }
+      }
+    },
+    {
+      "名称": "首次初始化硬中断",
+      "通过": true,
+      "中断回执": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证临时目录-2>/run-v3/inject-init-final.py",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "<验证临时目录-2>/run-v3/init-interrupted-final",
+          "<验证临时目录-2>/run-v3/fixture-config.json"
+        ],
+        "exit_code": 91,
+        "stdout": "",
+        "stderr": ""
+      },
+      "中断遗留 staging 目录": [
+        ".init-main-ullk_9pf"
+      ],
+      "重试初始化": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "init",
+          "--root",
+          "<验证临时目录-2>/run-v3/init-interrupted-final",
+          "--run-id",
+          "main",
+          "--config",
+          "<验证临时目录-2>/run-v3/fixture-config.json"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"run\": \".workflow/runs/main\",\n  \"phase\": \"planning\"\n}",
+        "stderr": "",
+        "data": {
+          "run": ".workflow/runs/main",
+          "phase": "planning"
+        }
+      },
+      "恢复": {
+        "command": [
+          "<验证用户目录>/.cache/uv/builds-v0/.tmpMTUHqX/bin/python",
+          "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+          "resume",
+          "--root",
+          "<验证临时目录-2>/run-v3/init-interrupted-final",
+          "--run-id",
+          "main"
+        ],
+        "exit_code": 0,
+        "stdout": "{\n  \"phase\": \"planning\",\n  \"snapshot_changed\": false,\n  \"verification_stale\": false,\n  \"ready_tasks\": [],\n  \"current_snapshot\": {\n    \"head\": \"d4079a7872853eacb248c3a034b5c1ad27bc9d3d\",\n    \"content\": \"6be960c803fbc2b93b57e45fdbd91b9223298b003bbcbd9169c3942c150142c3\"\n  }\n}",
+        "stderr": "",
+        "data": {
+          "phase": "planning",
+          "snapshot_changed": false,
+          "verification_stale": false,
+          "ready_tasks": [],
+          "current_snapshot": {
+            "head": "d4079a7872853eacb248c3a034b5c1ad27bc9d3d",
+            "content": "6be960c803fbc2b93b57e45fdbd91b9223298b003bbcbd9169c3942c150142c3"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,488 @@
+{
+  "验证者": "/root/init_forward_check",
+  "完成时间UTC": "2026-10-07T03:39:35.138053+00:00",
+  "临时目录": "<验证临时目录-1>",
+  "结果": [
+    {
+      "场景": "固定上游真实 clone 与官方 installer 整批安装",
+      "通过": true,
+      "证据类型": "真实 Git + 官方网络安装",
+      "详情": {
+        "revision": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+        "log": "<验证临时目录-1>/logs/02_actual_prepare.json"
+      }
+    },
+    {
+      "场景": "助手没有提交已有业务文件",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "首次 prepare 保留全部用户源文件和指令字节",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "已有依赖配置的用户字段保留",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "15 个上游技能全目录内容与固定 checkout 一致",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "九个本包技能完整安装",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "固定 checkout 许可证保留",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "增补中文正文保留既有 AGENTS 与 OpenWiki 区块",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "相同指令再次调用无重复区块、不重写文件",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "完整已有安装复用，不依赖再次可用的安装器",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "prepare 正常退出清理自己的 staging",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "已有项目 status 只读，字节与修改时间均稳定",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "本地安装就绪但 Wiki 未完成时 verify 非零",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "明确模拟 reload 状态可以保存，不能当完成",
+      "通过": true,
+      "证据类型": "明确模拟 Wiki 状态",
+      "详情": null
+    },
+    {
+      "场景": "成功形状的模拟回执不能越过缺少 quickstart 的检查",
+      "通过": true,
+      "证据类型": "明确模拟 Wiki 回执",
+      "详情": null
+    },
+    {
+      "场景": "next_page complete 不能替代 finish complete",
+      "通过": true,
+      "证据类型": "明确模拟 Wiki 回执",
+      "详情": null
+    },
+    {
+      "场景": "合格模拟回执通过结构校验（不证明真实 Wiki 完成）",
+      "通过": true,
+      "证据类型": "明确模拟 Wiki 回执与文件",
+      "详情": null
+    },
+    {
+      "场景": "结构就绪模拟项目 verify 为零（仅助手行为）",
+      "通过": true,
+      "证据类型": "明确模拟 Wiki 回执与文件",
+      "详情": null
+    },
+    {
+      "场景": "业务源码变化使既有 Wiki 结构回执失效",
+      "通过": true,
+      "证据类型": "真实源码变更 + 模拟既有 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "用户编辑 AGENTS 周边内容仍本地有效但要求 Wiki 再核查",
+      "通过": true,
+      "证据类型": "真实用户指令变更 + 模拟既有 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "instructions 重试保留用户新增周边内容",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "用户修改托管区块后拒绝覆盖并保留全部字节",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "上游同名技能用户变更被保留并报告冲突",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "已有关键依赖字段冲突拒绝覆盖用户配置",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "存活初始化写入者持锁时拒绝另一个写入者",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "非 Git 项目无 init-git 时不隐式建立仓库",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "显式 init-git 建立仓库但不提交已有内容",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "无首个提交项目可结构接入但 worktree 不就绪",
+      "通过": true,
+      "证据类型": "真实 unborn Git + 明确模拟 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "无 Git 基线时 verify 非零",
+      "通过": true,
+      "证据类型": "真实 unborn Git + 明确模拟 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "父仓库子目录不会被当作独立项目或创建嵌套仓库",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "错误记录仍保留原用户字节",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    }
+  ],
+  "发现": [
+    {
+      "编号": "INIT-JSON-01",
+      "严重性": "低",
+      "问题": "已有 project.json 是合法 JSON 数组时，status 以 AttributeError 回溯崩溃，未返回约定的中文结构化错误。",
+      "文件": "dl-init/scripts/project_init.py",
+      "位置": "Project.__init__；state.get 调用前未核对记录类型",
+      "复现": [
+        "mkdir -p <隔离目录>/.workflow",
+        "写入 [] 到 .workflow/project.json",
+        "python3 <dl-init>/scripts/project_init.py status --root <隔离目录>"
+      ],
+      "实际": {
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 436, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 417, in main\n    project = Project(args.root)\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 73, in __init__\n    wf.require(self.state.get(\"schema\") == 1 and self.state.get(\"root\") == str(self.root),\n               ^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'get'\n"
+      },
+      "影响": "用户已有其他工作流记录或损坏记录时，保护了原文件但恢复诊断不可消费；不属于数据覆盖。"
+    }
+  ],
+  "调用日志": [
+    "<验证临时目录-1>/logs/03_instructions_chinese.json",
+    "<验证临时目录-1>/logs/04_instructions_idempotent.json",
+    "<验证临时目录-1>/logs/05_prepare_reuse_no_installer.json",
+    "<验证临时目录-1>/logs/06_status_read_only.json",
+    "<验证临时目录-1>/logs/07_verify_before_wiki.json",
+    "<验证临时目录-1>/logs/08_wiki_reload_simulated.json",
+    "<验证临时目录-1>/logs/09_wiki_missing_quickstart.json",
+    "<验证临时目录-1>/logs/10_wiki_wrong_operation.json",
+    "<验证临时目录-1>/logs/11_wiki_complete_structure_only.json",
+    "<验证临时目录-1>/logs/12_verify_simulated_wiki_structure.json",
+    "<验证临时目录-1>/logs/13_source_drift.json",
+    "<验证临时目录-1>/logs/14_user_surrounding_edit.json",
+    "<验证临时目录-1>/logs/15_preserve_surrounding_edit.json",
+    "<验证临时目录-1>/logs/16_protect_modified_managed_block.json",
+    "<验证临时目录-1>/logs/17_upstream_user_conflict.json",
+    "<验证临时目录-1>/logs/18_clear_repaired_conflict.json",
+    "<验证临时目录-1>/logs/19_protect_dependency_conflict.json",
+    "<验证临时目录-1>/logs/20_restore_after_dependency_conflict.json",
+    "<验证临时目录-1>/logs/21_concurrent_writer_rejected.json",
+    "<验证临时目录-1>/logs/22_non_git_requires_explicit_init.json",
+    "<验证临时目录-1>/logs/23_non_git_explicit_init.json",
+    "<验证临时目录-1>/logs/24_unborn_instructions.json",
+    "<验证临时目录-1>/logs/25_unborn_simulated_wiki.json",
+    "<验证临时目录-1>/logs/26_unborn_verify.json",
+    "<验证临时目录-1>/logs/27_nested_root_rejected.json",
+    "<验证临时目录-1>/logs/28_valid_json_wrong_record_type.json"
+  ],
+  "测试快照清单": [
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-init/SKILL.md",
+      "sha256": "d39a22da6c3594ad8ab7595c71779f96f6c9a41afaa3717bc57ddfb6ae2a327c",
+      "bytes": 3398
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-init/agents/openai.yaml",
+      "sha256": "8318918b2fdabedb926f2a1fe8b34be8d8121eb5275de71008a1c3db8c505892",
+      "bytes": 306
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/agents.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-init/references/agents.md",
+      "sha256": "464c27e65d0534d0024a6296c1e83aa73a6f9187305859f4eba1cc567df0282e",
+      "bytes": 2277
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/onboarding.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-init/references/onboarding.md",
+      "sha256": "01d887ffd821f37283cf67c96729a22d68cfbf78aac5ae86fa064d99ea890513",
+      "bytes": 4419
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/wiki.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-init/references/wiki.md",
+      "sha256": "b48c11c1d0d011ea12b1c713b8d495e141f6f11d27621c9f09a4b980eebf4e7e",
+      "bytes": 3954
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/scripts/project_init.py",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+      "sha256": "8dba498b000e8467c4a5e5a29b649da8b95542eba91bf7ea99a6a4c11da12ff6",
+      "bytes": 23605
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/SKILL.md",
+      "sha256": "df342a6b5bfbbf3bb8f624e91a805baf3de1c5a41c395c40bb222f79fa7f2849",
+      "bytes": 3167
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/agents/openai.yaml",
+      "sha256": "bfc16879ad015ace980746bb2f7c3d1937a994704c295dd86ec279b35df46d59",
+      "bytes": 278
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/dependencies.md",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/references/dependencies.md",
+      "sha256": "15f0b8c956faabb9758656501b6b5c0fe80516c06500088c3e09e8b3bd0b2da5",
+      "bytes": 3935
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/models.md",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/references/models.md",
+      "sha256": "43c0e5028ec71c8b4d13cd3f35bc7bf0d7067aee699fa01c6270b03d86ab9593",
+      "bytes": 3686
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/runtime.md",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/references/runtime.md",
+      "sha256": "b58f7feacfd2c0767d51f2e9eedc73bff447b4f40d7514d39f7c21237d3a7ab8",
+      "bytes": 7116
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/validation.md",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/references/validation.md",
+      "sha256": "8eacb622bf4c46a4a00fafdb9e7753047c093f87ad267c2db0cdb61891f252e8",
+      "bytes": 2690
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/workflow.md",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/references/workflow.md",
+      "sha256": "ce1de5eec4d29352542c0e8c24dccc5931c884e4a57f4f77be76d25f998102dd",
+      "bytes": 2272
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/dependency_contract.py",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/scripts/dependency_contract.py",
+      "sha256": "3348388c0026aed1610c9e91449e35f526693d1b75eaa98d4f2b409853981666",
+      "bytes": 2449
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/requirements.txt",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/scripts/requirements.txt",
+      "sha256": "aebab43196f8378da012875569928ea779e49aeb71509b4b0327eaa80a8ec477",
+      "bytes": 22
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/scripts/workflow_state.py",
+      "sha256": "9ea2dfbb29714106d1206a22420f247c03e92738615f2978b0080570d59637ad",
+      "bytes": 29620
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-resume/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-resume/SKILL.md",
+      "sha256": "74710e5373d5427e482e51b20bf3c7c1f5e5819c493719ed5d47c3311ec0eb26",
+      "bytes": 1486
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-resume/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-resume/agents/openai.yaml",
+      "sha256": "ff451b903a5678bbc49a094db253e022fe32df8a2e9d3c1871b09efa8b8428e2",
+      "bytes": 288
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/assets/project-manifest.json",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/assets/project-manifest.json",
+      "sha256": "18986a72b34c0766bd0e114a966648911c5f6b7041b63c354f59910005d59ff7",
+      "bytes": 790
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-discover/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-discover/SKILL.md",
+      "sha256": "d9663bc8402a6fdf611a56bac7b3a8aabf367ab6a940a3ea8d96fc8b8234bb73",
+      "bytes": 1555
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-discover/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-discover/agents/openai.yaml",
+      "sha256": "92d2c3751aec68ae70ed91c4ab38263cffd2b15b8f54eb4a12773ed7477cd83a",
+      "bytes": 272
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-plan/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-plan/SKILL.md",
+      "sha256": "cf81df041249ed0b3960e637d0532b206394fa22ce3e00b0c4c238bf715cf69f",
+      "bytes": 1854
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-plan/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-plan/agents/openai.yaml",
+      "sha256": "4da0fb9d1c36506563d791acd387af3fca3672172f4ae314cc13462f2c0ea244",
+      "bytes": 271
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-execute/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-execute/SKILL.md",
+      "sha256": "c1d788e3a03461f88f082636dd021b9a26df974682c16a6fc971919aa28ea425",
+      "bytes": 1884
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-execute/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-execute/agents/openai.yaml",
+      "sha256": "291464fabd22edeb2559b40331390a90cde6c2350574a5569046f1b0ca2e10ae",
+      "bytes": 271
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-review/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-review/SKILL.md",
+      "sha256": "d7ed061c93bf6b48b59cf15a5e5fe92086f39d0f6d608192ee444cfc55f88a94",
+      "bytes": 1960
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-review/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-review/agents/openai.yaml",
+      "sha256": "8656676eacca851cdffa1407c718095430aa6db4bd8b7236e205d18675aed939",
+      "bytes": 276
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-knowledge/SKILL.md",
+      "sha256": "9afaad7387314b592b21cd2b76b972d31bf1571d39436a84b21ccb3c13342556",
+      "bytes": 1761
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-knowledge/agents/openai.yaml",
+      "sha256": "69f416126f55d5b62e5c36f2baa858501c617d954786937ec36974f570d860a5",
+      "bytes": 289
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/references/knowledge.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-knowledge/references/knowledge.md",
+      "sha256": "8ddc2a6f2777709b556683bea0ba0322a3b086fc572cc9aadb0846a5af2b2464",
+      "bytes": 2055
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-deliver/SKILL.md",
+      "sha256": "d848d4eb3f4024166853b09daac642ee80fd5a69ec92206ccda2318ca3376d20",
+      "bytes": 1572
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-deliver/agents/openai.yaml",
+      "sha256": "7645a8c11f622b54fb0e0fc655c3ea41e3eec6bdb129cd5554cd4e8dbc7f0953",
+      "bytes": 278
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/references/cleanup.md",
+      "snapshot": "<验证临时目录-1>/snapshot/dl-deliver/references/cleanup.md",
+      "sha256": "a187d4cd0b4ae911b6d0ef911db747b4711142ab0326a4dcc3dd4a56fab2e2d9",
+      "bytes": 3094
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/assets/dependencies.example.json",
+      "snapshot": "<验证临时目录-1>/snapshot/double-loop/assets/dependencies.example.json",
+      "sha256": "eea4835fc57a9de216bdbe103aedc525d1448084961179f5edc122de19120391",
+      "bytes": 125,
+      "external": false
+    },
+    {
+      "path": "<验证用户目录>/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py",
+      "snapshot": "<验证临时目录-1>/external/installer/install-skill-from-github.py",
+      "sha256": "38f311b75664bb063808f982c600271ebc4b560830f491705190f88a94e3e781",
+      "bytes": 11917,
+      "external": true
+    },
+    {
+      "path": "<验证用户目录>/.codex/skills/.system/skill-installer/scripts/github_utils.py",
+      "snapshot": "<验证临时目录-1>/external/installer/github_utils.py",
+      "sha256": "61c1bbe2ae217433b4b6f9f09f21aca4df52c12598068343ade719f706e4859b",
+      "bytes": 659,
+      "external": true
+    },
+    {
+      "path": "<验证用户目录>/.agents/skills/openwiki/SKILL.md",
+      "snapshot": "<验证临时目录-1>/external/openwiki/SKILL.md",
+      "sha256": "37bdbb313de37998d85094ffe349e0c05dc05816299b1adf05bbd686c3b698ac",
+      "bytes": 10304,
+      "external": true
+    }
+  ],
+  "期间版本变化": [
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/scripts/project_init.py",
+      "tested_sha256": "8dba498b000e8467c4a5e5a29b649da8b95542eba91bf7ea99a6a4c11da12ff6",
+      "current_sha256": "eacf594496bc7e0680112f59d9421dff2afce58801947969deed79392c19ba4e",
+      "需复验": true
+    }
+  ],
+  "测试边界": [
+    "只在登记的隔离临时目录中执行；没有修改本包源码或当前业务目录。",
+    "真实 Git clone 和官方 skill-installer 项目级安装已经实测，固定 upstream SHA 为 6fd947921b935b7e1e69293a200400f0fdd5c15f。",
+    "后续项目使用来自真实固定 checkout 的本地 Git clone 与完整技能内容，未再造安装器。",
+    "Wiki 页、回执、Host 模型字段全部明确标记模拟；没有调用真实 OpenWiki、模型或 PR。",
+    "仅结构校验通过不能报告真实 Wiki 或模型完成。",
+    "没有读取生成者 test_*.py、验证回执或 harness-workflow；没有改全局配置。"
+  ],
+  "结论": "真实项目级依赖安装、用户文件保护、重试与 Git 基线边界均已验证；完整 Wiki/模型接入未实测。"
+}
