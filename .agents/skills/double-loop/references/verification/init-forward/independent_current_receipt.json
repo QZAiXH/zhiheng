@@ -1,0 +1,389 @@
+{
+  "验证者": "/root/init_forward_check",
+  "完成时间UTC": "2026-10-07T03:41:39.684288+00:00",
+  "临时目录": "<验证临时目录-1>",
+  "初轮回执": "<验证临时目录-1>/independent_receipt.json",
+  "初轮结果": {
+    "场景数": 31,
+    "失败数": 0
+  },
+  "复验结果": [
+    {
+      "场景": "新版本在真实固定 checkout 与现有技能下完成 prepare",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "新版本中文指令增补后本地就绪",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "新版本结构有效的模拟回执可保存",
+      "通过": true,
+      "证据类型": "明确模拟 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "新版本重复 prepare 复用内容",
+      "通过": true,
+      "证据类型": "真实本地重试 + 模拟既有 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "新版本 status 无文件写入",
+      "通过": true,
+      "证据类型": "真实本地状态 + 模拟既有 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "安装后的用户否定规则使技能可见时 status 标记本地未就绪",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "持久运行规格变更使 Wiki 源指纹失效",
+      "通过": true,
+      "证据类型": "真实持久规格变更 + 模拟 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "scratch、handoff 与运行状态变更不反复失效 Wiki",
+      "通过": true,
+      "证据类型": "真实临时运行文件 + 模拟 Wiki",
+      "详情": null
+    },
+    {
+      "场景": "损坏接入记录 array 返回中文结构化错误并保留字节",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "损坏接入记录 bad-fields 返回中文结构化错误并保留字节",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "数组依赖配置返回结构化错误并保留",
+      "通过": true,
+      "证据类型": "真实本地行为",
+      "详情": null
+    },
+    {
+      "场景": "Wiki 回执 host 数组返回结构化错误",
+      "通过": true,
+      "证据类型": "明确模拟无效 Wiki 回执",
+      "详情": null
+    },
+    {
+      "场景": "Wiki 回执 tool_response 数组返回结构化错误",
+      "通过": true,
+      "证据类型": "明确模拟无效 Wiki 回执",
+      "详情": null
+    },
+    {
+      "场景": "数组 Wiki 回执返回结构化错误",
+      "通过": true,
+      "证据类型": "明确模拟无效 Wiki 回执",
+      "详情": null
+    },
+    {
+      "场景": "边界测试恢复后当前项目结构验收通过",
+      "通过": true,
+      "证据类型": "真实本地状态 + 模拟 Wiki",
+      "详情": null
+    }
+  ],
+  "复验日志": [
+    "<验证临时目录-1>/current_recheck/logs/03_current_prepare.json",
+    "<验证临时目录-1>/current_recheck/logs/04_current_instructions.json",
+    "<验证临时目录-1>/current_recheck/logs/05_current_simulated_wiki_structure.json",
+    "<验证临时目录-1>/current_recheck/logs/06_current_prepare_reuse.json",
+    "<验证临时目录-1>/current_recheck/logs/07_current_readonly_status.json",
+    "<验证临时目录-1>/current_recheck/logs/08_current_negation_detected.json",
+    "<验证临时目录-1>/current_recheck/logs/09_wiki_before_durable_change.json",
+    "<验证临时目录-1>/current_recheck/logs/10_current_durable_workflow_drift.json",
+    "<验证临时目录-1>/current_recheck/logs/11_wiki_after_durable_change.json",
+    "<验证临时目录-1>/current_recheck/logs/12_current_runtime_noise_excluded.json",
+    "<验证临时目录-1>/current_recheck/logs/13_current_record_array.json",
+    "<验证临时目录-1>/current_recheck/logs/14_current_record_bad-fields.json",
+    "<验证临时目录-1>/current_recheck/logs/15_current_dependencies_array.json",
+    "<验证临时目录-1>/current_recheck/logs/16_current_receipt_host_array.json",
+    "<验证临时目录-1>/current_recheck/logs/17_current_receipt_tool_response_array.json",
+    "<验证临时目录-1>/current_recheck/logs/18_current_receipt_array.json",
+    "<验证临时目录-1>/current_recheck/logs/19_current_restore_prepare.json",
+    "<验证临时目录-1>/current_recheck/logs/20_current_final_verify.json"
+  ],
+  "被测文件SHA256": [
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-init/SKILL.md",
+      "sha256": "d39a22da6c3594ad8ab7595c71779f96f6c9a41afaa3717bc57ddfb6ae2a327c",
+      "original_tested_sha256": "d39a22da6c3594ad8ab7595c71779f96f6c9a41afaa3717bc57ddfb6ae2a327c",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-init/agents/openai.yaml",
+      "sha256": "8318918b2fdabedb926f2a1fe8b34be8d8121eb5275de71008a1c3db8c505892",
+      "original_tested_sha256": "8318918b2fdabedb926f2a1fe8b34be8d8121eb5275de71008a1c3db8c505892",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/agents.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-init/references/agents.md",
+      "sha256": "464c27e65d0534d0024a6296c1e83aa73a6f9187305859f4eba1cc567df0282e",
+      "original_tested_sha256": "464c27e65d0534d0024a6296c1e83aa73a6f9187305859f4eba1cc567df0282e",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/onboarding.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-init/references/onboarding.md",
+      "sha256": "01d887ffd821f37283cf67c96729a22d68cfbf78aac5ae86fa064d99ea890513",
+      "original_tested_sha256": "01d887ffd821f37283cf67c96729a22d68cfbf78aac5ae86fa064d99ea890513",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/references/wiki.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-init/references/wiki.md",
+      "sha256": "b48c11c1d0d011ea12b1c713b8d495e141f6f11d27621c9f09a4b980eebf4e7e",
+      "original_tested_sha256": "b48c11c1d0d011ea12b1c713b8d495e141f6f11d27621c9f09a4b980eebf4e7e",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-init/scripts/project_init.py",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-init/scripts/project_init.py",
+      "sha256": "45a01207226f189c00d0de75224291c3241f387ececf78b5fc0db7972c9f4303",
+      "original_tested_sha256": "8dba498b000e8467c4a5e5a29b649da8b95542eba91bf7ea99a6a4c11da12ff6",
+      "changed": true
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/SKILL.md",
+      "sha256": "df342a6b5bfbbf3bb8f624e91a805baf3de1c5a41c395c40bb222f79fa7f2849",
+      "original_tested_sha256": "df342a6b5bfbbf3bb8f624e91a805baf3de1c5a41c395c40bb222f79fa7f2849",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/agents/openai.yaml",
+      "sha256": "bfc16879ad015ace980746bb2f7c3d1937a994704c295dd86ec279b35df46d59",
+      "original_tested_sha256": "bfc16879ad015ace980746bb2f7c3d1937a994704c295dd86ec279b35df46d59",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/dependencies.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/references/dependencies.md",
+      "sha256": "15f0b8c956faabb9758656501b6b5c0fe80516c06500088c3e09e8b3bd0b2da5",
+      "original_tested_sha256": "15f0b8c956faabb9758656501b6b5c0fe80516c06500088c3e09e8b3bd0b2da5",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/models.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/references/models.md",
+      "sha256": "43c0e5028ec71c8b4d13cd3f35bc7bf0d7067aee699fa01c6270b03d86ab9593",
+      "original_tested_sha256": "43c0e5028ec71c8b4d13cd3f35bc7bf0d7067aee699fa01c6270b03d86ab9593",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/runtime.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/references/runtime.md",
+      "sha256": "b58f7feacfd2c0767d51f2e9eedc73bff447b4f40d7514d39f7c21237d3a7ab8",
+      "original_tested_sha256": "b58f7feacfd2c0767d51f2e9eedc73bff447b4f40d7514d39f7c21237d3a7ab8",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/validation.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/references/validation.md",
+      "sha256": "8eacb622bf4c46a4a00fafdb9e7753047c093f87ad267c2db0cdb61891f252e8",
+      "original_tested_sha256": "8eacb622bf4c46a4a00fafdb9e7753047c093f87ad267c2db0cdb61891f252e8",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/references/workflow.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/references/workflow.md",
+      "sha256": "ce1de5eec4d29352542c0e8c24dccc5931c884e4a57f4f77be76d25f998102dd",
+      "original_tested_sha256": "ce1de5eec4d29352542c0e8c24dccc5931c884e4a57f4f77be76d25f998102dd",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/dependency_contract.py",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/scripts/dependency_contract.py",
+      "sha256": "3348388c0026aed1610c9e91449e35f526693d1b75eaa98d4f2b409853981666",
+      "original_tested_sha256": "3348388c0026aed1610c9e91449e35f526693d1b75eaa98d4f2b409853981666",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/requirements.txt",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/scripts/requirements.txt",
+      "sha256": "aebab43196f8378da012875569928ea779e49aeb71509b4b0327eaa80a8ec477",
+      "original_tested_sha256": "aebab43196f8378da012875569928ea779e49aeb71509b4b0327eaa80a8ec477",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/scripts/workflow_state.py",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/scripts/workflow_state.py",
+      "sha256": "89c23b7ec3d7be077377cc2999b1670b65ba1a7d6a1e16b2c38df4a6de1e5fad",
+      "original_tested_sha256": "9ea2dfbb29714106d1206a22420f247c03e92738615f2978b0080570d59637ad",
+      "changed": true
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-resume/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-resume/SKILL.md",
+      "sha256": "74710e5373d5427e482e51b20bf3c7c1f5e5819c493719ed5d47c3311ec0eb26",
+      "original_tested_sha256": "74710e5373d5427e482e51b20bf3c7c1f5e5819c493719ed5d47c3311ec0eb26",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-resume/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-resume/agents/openai.yaml",
+      "sha256": "ff451b903a5678bbc49a094db253e022fe32df8a2e9d3c1871b09efa8b8428e2",
+      "original_tested_sha256": "ff451b903a5678bbc49a094db253e022fe32df8a2e9d3c1871b09efa8b8428e2",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/assets/project-manifest.json",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/assets/project-manifest.json",
+      "sha256": "18986a72b34c0766bd0e114a966648911c5f6b7041b63c354f59910005d59ff7",
+      "original_tested_sha256": "18986a72b34c0766bd0e114a966648911c5f6b7041b63c354f59910005d59ff7",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-discover/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-discover/SKILL.md",
+      "sha256": "d9663bc8402a6fdf611a56bac7b3a8aabf367ab6a940a3ea8d96fc8b8234bb73",
+      "original_tested_sha256": "d9663bc8402a6fdf611a56bac7b3a8aabf367ab6a940a3ea8d96fc8b8234bb73",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-discover/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-discover/agents/openai.yaml",
+      "sha256": "92d2c3751aec68ae70ed91c4ab38263cffd2b15b8f54eb4a12773ed7477cd83a",
+      "original_tested_sha256": "92d2c3751aec68ae70ed91c4ab38263cffd2b15b8f54eb4a12773ed7477cd83a",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-plan/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-plan/SKILL.md",
+      "sha256": "cf81df041249ed0b3960e637d0532b206394fa22ce3e00b0c4c238bf715cf69f",
+      "original_tested_sha256": "cf81df041249ed0b3960e637d0532b206394fa22ce3e00b0c4c238bf715cf69f",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-plan/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-plan/agents/openai.yaml",
+      "sha256": "4da0fb9d1c36506563d791acd387af3fca3672172f4ae314cc13462f2c0ea244",
+      "original_tested_sha256": "4da0fb9d1c36506563d791acd387af3fca3672172f4ae314cc13462f2c0ea244",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-execute/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-execute/SKILL.md",
+      "sha256": "c1d788e3a03461f88f082636dd021b9a26df974682c16a6fc971919aa28ea425",
+      "original_tested_sha256": "c1d788e3a03461f88f082636dd021b9a26df974682c16a6fc971919aa28ea425",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-execute/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-execute/agents/openai.yaml",
+      "sha256": "291464fabd22edeb2559b40331390a90cde6c2350574a5569046f1b0ca2e10ae",
+      "original_tested_sha256": "291464fabd22edeb2559b40331390a90cde6c2350574a5569046f1b0ca2e10ae",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-review/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-review/SKILL.md",
+      "sha256": "d7ed061c93bf6b48b59cf15a5e5fe92086f39d0f6d608192ee444cfc55f88a94",
+      "original_tested_sha256": "d7ed061c93bf6b48b59cf15a5e5fe92086f39d0f6d608192ee444cfc55f88a94",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-review/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-review/agents/openai.yaml",
+      "sha256": "8656676eacca851cdffa1407c718095430aa6db4bd8b7236e205d18675aed939",
+      "original_tested_sha256": "8656676eacca851cdffa1407c718095430aa6db4bd8b7236e205d18675aed939",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-knowledge/SKILL.md",
+      "sha256": "9afaad7387314b592b21cd2b76b972d31bf1571d39436a84b21ccb3c13342556",
+      "original_tested_sha256": "9afaad7387314b592b21cd2b76b972d31bf1571d39436a84b21ccb3c13342556",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-knowledge/agents/openai.yaml",
+      "sha256": "69f416126f55d5b62e5c36f2baa858501c617d954786937ec36974f570d860a5",
+      "original_tested_sha256": "69f416126f55d5b62e5c36f2baa858501c617d954786937ec36974f570d860a5",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-knowledge/references/knowledge.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-knowledge/references/knowledge.md",
+      "sha256": "8ddc2a6f2777709b556683bea0ba0322a3b086fc572cc9aadb0846a5af2b2464",
+      "original_tested_sha256": "8ddc2a6f2777709b556683bea0ba0322a3b086fc572cc9aadb0846a5af2b2464",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/SKILL.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-deliver/SKILL.md",
+      "sha256": "d848d4eb3f4024166853b09daac642ee80fd5a69ec92206ccda2318ca3376d20",
+      "original_tested_sha256": "d848d4eb3f4024166853b09daac642ee80fd5a69ec92206ccda2318ca3376d20",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/agents/openai.yaml",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-deliver/agents/openai.yaml",
+      "sha256": "7645a8c11f622b54fb0e0fc655c3ea41e3eec6bdb129cd5554cd4e8dbc7f0953",
+      "original_tested_sha256": "7645a8c11f622b54fb0e0fc655c3ea41e3eec6bdb129cd5554cd4e8dbc7f0953",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/dl-deliver/references/cleanup.md",
+      "snapshot": "<验证临时目录-1>/snapshot_current/dl-deliver/references/cleanup.md",
+      "sha256": "a187d4cd0b4ae911b6d0ef911db747b4711142ab0326a4dcc3dd4a56fab2e2d9",
+      "original_tested_sha256": "a187d4cd0b4ae911b6d0ef911db747b4711142ab0326a4dcc3dd4a56fab2e2d9",
+      "changed": false
+    },
+    {
+      "path": "<验证用户目录>/Documents/my/test/.agents/skills/double-loop/assets/dependencies.example.json",
+      "snapshot": "<验证临时目录-1>/snapshot_current/double-loop/assets/dependencies.example.json",
+      "sha256": "eea4835fc57a9de216bdbe103aedc525d1448084961179f5edc122de19120391",
+      "original_tested_sha256": "eea4835fc57a9de216bdbe103aedc525d1448084961179f5edc122de19120391",
+      "changed": false
+    }
+  ],
+  "期间版本变化": [],
+  "初轮发现": [
+    {
+      "编号": "INIT-JSON-01",
+      "严重性": "低",
+      "问题": "已有 project.json 是合法 JSON 数组时，status 以 AttributeError 回溯崩溃，未返回约定的中文结构化错误。",
+      "文件": "dl-init/scripts/project_init.py",
+      "位置": "Project.__init__；state.get 调用前未核对记录类型",
+      "复现": [
+        "mkdir -p <隔离目录>/.workflow",
+        "写入 [] 到 .workflow/project.json",
+        "python3 <dl-init>/scripts/project_init.py status --root <隔离目录>"
+      ],
+      "实际": {
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 436, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 417, in main\n    project = Project(args.root)\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 73, in __init__\n    wf.require(self.state.get(\"schema\") == 1 and self.state.get(\"root\") == str(self.root),\n               ^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'get'\n"
+      },
+      "影响": "用户已有其他工作流记录或损坏记录时，保护了原文件但恢复诊断不可消费；不属于数据覆盖。"
+    }
+  ],
+  "测试边界": [
+    "初轮真实网络 clone 与官方 installer 已实测；当前复验复用真实固定内容与 Git clone，避免重复网络安装。",
+    "本回执 Wiki、模型全部是明确模拟；没有原生生命周期或模型调用。",
+    "所有变更均位于自己的登记临时目录，没有修改技能包、全局配置或当前业务目录。",
+    "没有读取生成者测试或回执，也未读取 harness-workflow。"
+  ],
+  "结论": "初轮安装与文件保护行为通过；损坏 JSON 数组记录问题已在当前快照复验；完整 Wiki 与模型接入仍未实测。"
+}

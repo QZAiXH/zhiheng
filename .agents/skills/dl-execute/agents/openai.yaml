@@ -1,0 +1,4 @@
+interface:
+  display_name: "任务实现"
+  short_description: "按依赖调度独立实现 Agent，以测试反馈驱动修复并集成经过审查的任务"
+  default_prompt: "使用 $dl-execute 按确认的模型配置实现当前就绪任务并提交验证证据。"

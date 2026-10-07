@@ -1,0 +1,19 @@
+{
+  "label": "concurrent_writer_rejected",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "instructions",
+    "--root",
+    "<验证临时目录-1>/projects/已有项目",
+    "--input",
+    "<验证临时目录-1>/inputs/instructions-zh.md"
+  ],
+  "exit_code": 2,
+  "output": {
+    "status": "error",
+    "message": "已有项目初始化进程；先恢复该执行者。"
+  },
+  "stdout": "{\"status\": \"error\", \"message\": \"已有项目初始化进程；先恢复该执行者。\"}\n",
+  "stderr": ""
+}

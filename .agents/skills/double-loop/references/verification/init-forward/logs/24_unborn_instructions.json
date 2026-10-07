@@ -1,0 +1,29 @@
+{
+  "label": "unborn_instructions",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "instructions",
+    "--root",
+    "<验证临时目录-1>/projects/尚无Git基线",
+    "--input",
+    "<验证临时目录-1>/inputs/instructions-zh.md"
+  ],
+  "exit_code": 0,
+  "output": {
+    "root": "<验证临时目录-1>/projects/尚无Git基线",
+    "phase": "local_prepared",
+    "initialized": false,
+    "local_ready": true,
+    "wiki_ready": false,
+    "needs_git_baseline": true,
+    "ready_for_worktrees": false,
+    "conflicts": [],
+    "problems": [
+      "Wiki 尚未完成或需重新加载宿主。"
+    ],
+    "host_check_required": "仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。"
+  },
+  "stdout": "{\n  \"root\": \"<验证临时目录-1>/projects/尚无Git基线\",\n  \"phase\": \"local_prepared\",\n  \"initialized\": false,\n  \"local_ready\": true,\n  \"wiki_ready\": false,\n  \"needs_git_baseline\": true,\n  \"ready_for_worktrees\": false,\n  \"conflicts\": [],\n  \"problems\": [\n    \"Wiki 尚未完成或需重新加载宿主。\"\n  ],\n  \"host_check_required\": \"仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。\"\n}\n",
+  "stderr": ""
+}

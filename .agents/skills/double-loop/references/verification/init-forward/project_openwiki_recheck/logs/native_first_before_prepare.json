@@ -1,0 +1,14 @@
+{
+  "操作": "真实成熟 OpenWiki CLI 项目级集成；没有 Wiki 生成或模型调用",
+  "command": [
+    "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/cli/cli.js",
+    "integrations",
+    "install",
+    "codex",
+    "--project",
+    "<验证临时目录-1>/project_openwiki_recheck/projects/缺少OpenWiki入口首次接入"
+  ],
+  "exit_code": 0,
+  "stdout": "install Codex\nskill: <验证临时目录-1>/project_openwiki_recheck/projects/缺少OpenWiki入口首次接入/.agents/skills/openwiki\nmcp: <验证临时目录-1>/project_openwiki_recheck/projects/缺少OpenWiki入口首次接入/.codex/config.toml\n\nOpenWiki is ready for Codex.\n\nNext:\n  1. Restart Codex in this repository.\n  2. Confirm the openwiki MCP server is available.\n  3. Ask: “Initialize OpenWiki for this repository.”\n",
+  "stderr": ""
+}

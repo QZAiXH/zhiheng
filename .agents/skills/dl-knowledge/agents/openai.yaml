@@ -1,0 +1,4 @@
+interface:
+  display_name: "知识提炼与维护"
+  short_description: "将已验证的仓库机制提炼进 OpenWiki，将关键决策归档并准备临时材料清理"
+  default_prompt: "使用 $dl-knowledge 提炼已验证的实现知识，更新 OpenWiki 并标明可清理草稿。"

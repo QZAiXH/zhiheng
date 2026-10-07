@@ -1,0 +1,25 @@
+{
+  "label": "verify_simulated_wiki_structure",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "verify",
+    "--root",
+    "<验证临时目录-1>/projects/已有项目"
+  ],
+  "exit_code": 0,
+  "output": {
+    "root": "<验证临时目录-1>/projects/已有项目",
+    "phase": "wiki_recorded",
+    "initialized": true,
+    "local_ready": true,
+    "wiki_ready": true,
+    "needs_git_baseline": false,
+    "ready_for_worktrees": true,
+    "conflicts": [],
+    "problems": [],
+    "host_check_required": "仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。"
+  },
+  "stdout": "{\n  \"root\": \"<验证临时目录-1>/projects/已有项目\",\n  \"phase\": \"wiki_recorded\",\n  \"initialized\": true,\n  \"local_ready\": true,\n  \"wiki_ready\": true,\n  \"needs_git_baseline\": false,\n  \"ready_for_worktrees\": true,\n  \"conflicts\": [],\n  \"problems\": [],\n  \"host_check_required\": \"仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。\"\n}\n",
+  "stderr": ""
+}

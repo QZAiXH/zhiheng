@@ -1,0 +1,14 @@
+{
+  "label": "valid_json_wrong_record_type",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "status",
+    "--root",
+    "<验证临时目录-1>/projects/用户已有其他workflow记录"
+  ],
+  "exit_code": 1,
+  "output": null,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 436, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 417, in main\n    project = Project(args.root)\n  File \"<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py\", line 73, in __init__\n    wf.require(self.state.get(\"schema\") == 1 and self.state.get(\"root\") == str(self.root),\n               ^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'get'\n"
+}

@@ -1,0 +1,38 @@
+{
+  "label": "upstream_user_conflict",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "prepare",
+    "--root",
+    "<验证临时目录-1>/projects/已有项目",
+    "--bundle",
+    "<验证临时目录-1>/snapshot",
+    "--installer",
+    "<验证临时目录-1>/external/installer/install-skill-from-github.py",
+    "--openwiki-skill",
+    "<验证临时目录-1>/external/openwiki/SKILL.md"
+  ],
+  "exit_code": 0,
+  "output": {
+    "root": "<验证临时目录-1>/projects/已有项目",
+    "phase": "conflict",
+    "initialized": false,
+    "local_ready": false,
+    "wiki_ready": true,
+    "needs_git_baseline": false,
+    "ready_for_worktrees": false,
+    "conflicts": [
+      {
+        "path": "<验证临时目录-1>/projects/已有项目/.agents/skills/tdd",
+        "reason": "上游同名技能版本或内容不同"
+      }
+    ],
+    "problems": [
+      "存在已记录的同名技能冲突。"
+    ],
+    "host_check_required": "仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。"
+  },
+  "stdout": "{\n  \"root\": \"<验证临时目录-1>/projects/已有项目\",\n  \"phase\": \"conflict\",\n  \"initialized\": false,\n  \"local_ready\": false,\n  \"wiki_ready\": true,\n  \"needs_git_baseline\": false,\n  \"ready_for_worktrees\": false,\n  \"conflicts\": [\n    {\n      \"path\": \"<验证临时目录-1>/projects/已有项目/.agents/skills/tdd\",\n      \"reason\": \"上游同名技能版本或内容不同\"\n    }\n  ],\n  \"problems\": [\n    \"存在已记录的同名技能冲突。\"\n  ],\n  \"host_check_required\": \"仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。\"\n}\n",
+  "stderr": ""
+}

@@ -1,222 +1,127 @@
 # 执衡 · Zhiheng
 
-## 当前版本与验收边界
+[![校验](https://github.com/QZAiXH/zhiheng/actions/workflows/verify.yml/badge.svg)](https://github.com/QZAiXH/zhiheng/actions/workflows/verify.yml)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-面向 Codex CLI 的 v0.5 实现，入口为 `$zh`，完整安装 17 个技能组件。提供显式 local/GitHub 两种模式、原生 Serena 项目知识、MADR 决策、独立审查、预算和交付对账。
+一套面向 Codex 的中文研发技能：先讨论需求，由主 Agent 根据任务难度推荐模型与上下文，集中确认后自动推进设计、实现、独立审查、OpenWiki 知识维护和 PR 交付。普通测试失败自主修复，涉及新业务取舍或真实阻塞时再询问用户。
 
-**已有真实 local 闭环，尚未完成整个计划验收。** `8ccb840` 的 15 个普通跨平台 CI 作业通过；同版本在 Mac 完成真实 P0、模型实现、Controller 提交、新会话业务审查、5 项测试、本地交付与收尾（D=C）。28 项测试仍暂停，独立安全复核未完成；汇总以 warning 和步骤摘要公开提醒，不因此阻塞合并。15 个普通检查仍须全部通过，普通检查失败仍使汇总失败。`05d7b47` 增加任务文件改名续跑夹具，本地分片 10/10、入口测试 38/38 通过，其 CI 尚待终态。详见[当前验证状态](docs/VERIFICATION.md)。
+本仓库提供九个可组合技能及确定性状态助手。研发方法复用 [Matt Pocock Skills](https://github.com/mattpocock/skills)，项目知识复用 [OpenWiki](https://github.com/langchain-ai/openwiki)；上游正文在接入目标项目时安装，版本由本仓库清单固定。
 
-这是有限场景的可行性证据，不是生产安全保证、效率收益或所有平台/业务的通过声明。安装与真实执行要求见[完整使用指南](docs/USAGE.zh-CN.md)；[历史验收追踪](vendor/goal-workflow/docs/harness-acceptance.md)保留历次失败和修复，不替代当前状态。
+[快速开始](#快速开始) · [使用说明](使用说明.md) · [阶段流程图](.agents/skills/double-loop/references/workflow.md) · [验证边界](docs/VERIFICATION.md) · [参与贡献](CONTRIBUTING.md)
 
-让 AI 开发有计划、有边界、有独立验收，也有明确的交付结果。
+## 工作方式
 
-执衡是一套面向 Codex 的开发协作技能，保留七个可组合的 zh 技能作为对外入口，底层接入固定 goal-workflow 的十个增强组件。以 `$zh` 为入口，它将项目理解、需求规划、隔离开发、问题诊断、独立审查和收尾交付串联起来，适用于已有项目的功能开发、缺陷修复与重构。
+外层循环确定方案、集成验收并固化经验；内层循环按任务反复实现、验证、独立审查和修复。
 
-[快速开始](#快速开始) · [完整使用指南](docs/USAGE.zh-CN.md) · [使用示例](#使用示例) · [技能分工](#技能分工) · [安装与恢复](tools/INSTALL.md) · [参与贡献](CONTRIBUTING.md)
+```mermaid
+flowchart LR
+    I["接入：dl-init<br/>skill-installer + setup-matt-pocock-skills<br/>writing-for-agents + OpenWiki"]
+    A["需求：dl-discover<br/>grill-with-docs + grilling<br/>domain-modeling"]
+    B["配置：double-loop<br/>动态推荐、集中确认"]
+    C["方案：dl-plan<br/>to-spec + to-tickets"]
+    D["任务循环：dl-execute + dl-review<br/>implement-spec + tdd<br/>diagnosing-bugs + code-review"]
+    E["集成验收：dl-review<br/>项目验证工具"]
+    F["知识：dl-knowledge<br/>OpenWiki + domain-modeling + retro"]
+    G["交付与清理：dl-deliver<br/>pr + Git + GitHub CLI"]
+    I --> A --> B --> C --> D --> E
+    E -->|修复或调整方案| C
+    E -->|通过| F --> G
+```
 
-## 有什么作用
+首次接入需要的 Wiki Host 配置可以并入需求后的集中确认；已初始化项目直接核查接入状态。完整流程中的设计审查、任务修复与断点恢复见[逐阶段流程图](.agents/skills/double-loop/references/workflow.md)。
 
-- **先把事情说清楚**：复杂任务先调查和澄清，再在对话中展示完整计划，包括范围、步骤、分工、验收和交付方式。
-- **控制改动范围**：修复本次引入的回归；发现无关的历史问题时记录和说明，避免顺手修改既有业务契约。
-- **分开开发与验收**：默认按受控串行流程执行，独立新会话审查实际候选与原始证据；技能切换不能代替会话隔离。
-- **按项目合同验收**：后端、前端和文档任务使用各自明确的验收条件；需要浏览器证据时，不能以构建成功替代。
-- **明确交付结果**：候选提交后独立验收，证据有效且已授权才交付到目标分支；收尾与清理分别核实，不把停靠当完成。
-- **积累可复用的项目知识**：按需保存模块地图、命令验证状态和重要决定，后续任务增量更新。
-
-技能负责协调，增强 Python 控制器负责运行锁、进程与预算、checkpoint、证据过期、Git/平台交付及不确定结果对账。它不替代 Codex 的安全沙箱，也不能自行授予权限；用户授权、独立审查与实际工具证据仍是必要条件。
+- **动态配置**：技能不写死推荐模型。设计、实现、审查必须使用三个不同的模型，执行角色使用新上下文；主 Agent 保留需求讨论。
+- **自动推进**：已确认的需求、配置和交付授权持续有效。常规失败按证据修复，关键范围变化、模型不可用或用户才能提供的条件才升级。
+- **项目知识**：OpenWiki Host 亲自串行研究与写页，由引擎管理队列、Claims 和索引；规范需求、ADR 与验收原件保留。
+- **交付终点**：默认提交、推送并创建 PR。合并、部署、发版由用户另行明确授权。
+- **恢复与清理**：接入状态、单次任务状态和 Wiki 状态分别持久化；只有本次登记且知识已落盘、指纹未变、无保留引用的临时材料才清理。
 
 ## 快速开始
 
-### 环境要求
+### 1. 获取完整技能包
 
-- 支持本地 skills 的 Codex 环境。
-- Python **3.11+** 与 uv：安装入口使用标准库；增强执行环境通过独立 uv.lock 固定 filelock、psutil、jsonschema、Markdown，不混入业务依赖。
-- Git，用于仓库克隆和开发 worktree。
-- 完整开发流程需要宿主支持独立新会话、精确续接和可验证的取消路径；涉及前端时，还需要对应浏览器验收能力。
-
-下面是 Linux、macOS 或 WSL 的 Bash 示例。Windows 用户可在 WSL 中执行；其他环境需按实际 shell 调整路径和命令。
-
-### 安装统一入口与增强组件
-
-`main` 是日常使用与持续开发分支。需要复现验收时，使用[状态页](docs/VERIFICATION.md)列出的确切提交；更新后重新核对当前项目能力和配置。
+在目标项目目录运行：
 
 ```bash
-git clone --branch main https://github.com/QZAiXH/zhiheng.git
-cd zhiheng
-python3 tools/validate.py
-
-# 用户级安装：先预览，再安装到 ~/.agents/skills
-python3 tools/install-harness.py --destination "$HOME" --dry-run
-python3 tools/install-harness.py --destination "$HOME"
-
-# 或项目级安装（替换成实际项目目录）
-python3 tools/install-harness.py --destination /path/to/project
+npx skills@latest add QZAiXH/zhiheng --agent codex --skill '*' --copy
 ```
 
-统一入口仍为 `$zh`。完整安装包括七个 zh 入口和十个增强组件；它们在同一技能目录中协作。只安装文件不代表运行环境、知识 onboarding 或平台验收已经通过。
+命令通过成熟的 [Skills CLI](https://github.com/vercel-labs/skills) 安装全部九个技能到当前项目 `.agents/skills/`。`--copy` 保留实际目录，便于初始化助手核查路径和内容；随后在目标项目打开或重新加载 Codex。
 
-安装器保留已有未托管同名技能，不覆盖用户修改；如果检测到旧安装冲突，先按[安装与迁移说明](tools/INSTALL.md)处理。不要同时启用原版与增强版同名技能。已有旧版备份仍可使用原恢复工具。
+也支持交互式入口 `npx skills@latest add QZAiXH/zhiheng`；选择 Codex、项目级安装和全部九个技能。预览清单可以运行：
 
-### 本地与 GitHub 模式
-
-必须明确选择模式，有 remote 不会自动变成 GitHub 工作流。
-
-- local：默认不调用 gh、不创建 PR、不推远端；候选经当前证据验证后，按授权交付到本地目标分支
-- github：受控发布源分支、创建草稿 PR、读取 CI、按授权转为待审，再依实际规则决定是否允许自动合并
-- 私有仓库不要求先购买分支保护。无规则或无权读取规则时保留 PR/CI 工作流，只停靠自动合并；后续人工合并仍须核对真实交付提交
-
-真实模型验收必须显式指定允许的模型与有限调用预算。准备/单元/模拟测试无需模型调用；详情见[宿主验收](vendor/goal-workflow/docs/codex-host-acceptance.md)。
-
-### 开始第一个任务
-
-在你的项目目录打开 Codex，发送：
-
-```text
-$zh 为订单列表增加按状态筛选。
-目标分支是 main，沿用现有组件和接口约定。
-请先展示计划；验收通过后提交并本地合并到 main，清理任务 worktree。
-本次不推送远端。
+```bash
+npx skills@latest add QZAiXH/zhiheng --list
 ```
 
-根据任务需要回答澄清问题、审阅完整计划；如果涉及新的关键交互，打开预览后确认具体版本和范围。已有有效决定会继续沿用，无需固定的批准口令。
+九个技能必须保持在同一父目录；只安装 `double-loop` 会缺少阶段入口。升级前保留现有同名目录与项目接入记录，核对修改后再更新；CLI 的覆盖确认不替代初始化的冲突保护。干净项目的自动化安装可在完整命令末尾添加 `--yes`。
+
+开发者也可以 `git clone https://github.com/QZAiXH/zhiheng.git`，在克隆目录打开 Codex；或通过宿主的官方 `$skill-installer` 将本仓库 `.agents/skills/` 下全部九个目录安装到指定项目级 `--dest`。
+
+### 2. 接入业务项目
+
+已经安装到目标项目时直接请求：
+
+> 使用 $dl-init 接入当前项目。保留已有内容，项目级安装所需技能，生成或增补 AGENTS.md，动态推荐 Wiki Host 配置，并初始化或恢复 OpenWiki。
+
+初始化将安装 15 个固定版本的 Matt Pocock 技能，复制完整九技能包，增补项目指令和精确排除规则，再用 OpenWiki 原生生命周期生成中文项目知识。需要重新加载 MCP 时保存待办，下次恢复。
+
+在克隆目录使用技能、接入另一个项目时，明确目标项目的绝对路径。新增依赖后重新加载 Codex，让技能被发现。非 Git 项目可建立仓库；没有首个提交时会标记 Git 基线待办，进入 worktree 执行前按项目授权处理。
+
+### 3. 从需求推进交付
+
+> 使用 $double-loop 讨论这个需求。讨论结束后按复杂度、风险和当前可用能力推荐设计、实现、审查的模型、强度与上下文；集中确认后连续推进到 PR，并清理符合条件的中间文件。
+
+首次直接使用 `$double-loop` 也会接入项目。需求尚未讨论时先做本地准备，将 Wiki Host 与研发矩阵合并确认；后续阶段沿用确认，不重复采访已明确的需求。
+
+中断后使用 `$dl-resume` 指定目标运行。已有 complete 的运行只报告结果，避免重复发布。
 
 ## 技能分工
 
-| 技能 | 何时使用 | 主要结果 |
-| --- | --- | --- |
-| [`zh`](zh/SKILL.md) | 从需求推进到交付 | 协调阶段、角色、证据和任务状态 |
-| [`zh-context`](zh-context/SKILL.md) | 接入项目或刷新项目知识 | 项目地图、命令状态、术语与决定索引 |
-| [`zh-plan`](zh-plan/SKILL.md) | 先规划、暂不实现 | 目标、范围、行为切片、依赖、验收与交付计划 |
-| [`zh-implement`](zh-implement/SKILL.md) | 执行范围明确的开发任务 | worktree 中的候选改动与检查证据 |
-| [`zh-debug`](zh-debug/SKILL.md) | 定位故障或性能回归 | 复现、假设检验、诊断及已授权的修复 |
-| [`zh-review`](zh-review/SKILL.md) | 独立验收具体候选 | 按条件给出通过、未通过或无法验证 |
-| [`zh-finish`](zh-finish/SKILL.md) | 收尾已获授权且验收通过的任务 | 本地提交与整合、知识保存、工作区清理 |
+| 技能 | 用途 | 主要复用方法或工具 |
+|---|---|---|
+| [double-loop](.agents/skills/double-loop/SKILL.md) | 总控、动态配置、阶段路由 | 本包阶段技能、原生 Agent 调度 |
+| [dl-init](.agents/skills/dl-init/SKILL.md) | 接入项目、安装依赖、维护指令、初始化 Wiki | skill-installer、setup-matt-pocock-skills、writing-for-agents、OpenWiki |
+| [dl-discover](.agents/skills/dl-discover/SKILL.md) | 需求、范围、验收与取舍 | grill-with-docs、grilling、domain-modeling |
+| [dl-plan](.agents/skills/dl-plan/SKILL.md) | 中文规格、任务拆分与依赖图 | to-spec、to-tickets；按需 research、codebase-design |
+| [dl-execute](.agents/skills/dl-execute/SKILL.md) | 隔离实现、验证、修复与集成 | implement-spec、tdd、diagnosing-bugs、Git worktree |
+| [dl-review](.agents/skills/dl-review/SKILL.md) | 独立设计、代码和验收审查 | code-review、项目测试/类型/Lint |
+| [dl-knowledge](.agents/skills/dl-knowledge/SKILL.md) | 固化事实、决策与经验 | OpenWiki、domain-modeling、retro |
+| [dl-deliver](.agents/skills/dl-deliver/SKILL.md) | PR 交付与有条件清理 | pr、Git、GitHub CLI |
+| [dl-resume](.agents/skills/dl-resume/SKILL.md) | 断点核查与恢复 | 接入记录、运行状态、Git 与 Wiki 队列 |
 
-日常开发通常只需调用 `$zh`。也可以单独调用某一步；单独规划不会自动开始实现，单独 review 不会顺带修复或合并。仅讨论、只读调查和常规运行操作按请求范围处理。
+## 环境与验证
 
-## 使用示例
+目标环境为 macOS / Linux，Python 3.10+、Git；通过 `npx` 安装需要 Node.js / npm（本次实测 Skills CLI 1.7.1 要求 Node.js 22.20+），交付 GitHub PR 时需要 GitHub CLI 及有效账户权限。仓库开发和 CI 使用 Python 3.12。Markdown 引用解析依赖由 [requirements.txt](.agents/skills/double-loop/scripts/requirements.txt) 固定。
 
-以下内容发送给 Codex，而不是粘贴到终端执行。将分支名、路径和任务内容换成自己的实际值。
+实质执行要求宿主支持显式模型、推理强度、新上下文，并实际提供至少三种不同模型。模型是否可用以当前宿主为准，文件中的配置声明不能代替账户能力。OpenWiki 接入还需要可用 CLI / skill / MCP。
 
-### 初始化项目上下文
-
-```text
-$zh-context 接入当前项目，调查并保存后续开发需要的上下文。
-优先复用现有文档，记录主要模块、启动与检查命令、已验证结果和知识缺口。
+```bash
+uv run --with-requirements requirements-dev.txt python -B tools/check_repository.py
+uv run --with-requirements requirements-dev.txt python -B tools/run_checks.py --group all
+git diff --check
 ```
 
-这里的初始化是通过原生 Serena 梳理项目知识；已有 `.zhiheng` 与文档保留为来源，不并行维护另一套可写记忆。必要时维护项目规则中的简短指针；它不自动创建应用脚手架、初始化 Git、安装依赖或迁移数据库。只想了解项目而不写文件时，可以明确要求“只读调查”。
-
-### 只制定方案
-
-```text
-$zh-plan 评估给项目增加管理员手动关闭和重新开启功能。
-先调查现有状态流转，列出需要确认的行为和验收条件，本次只制定计划。
-```
-
-### 开发前端交互
-
-```text
-$zh 为项目详情增加关闭和重新开启操作，目标分支为 develop。
-先澄清权限与关闭后的行为，展示完整计划。
-制作可操作预览让我确认，再接入真实功能并做浏览器验收。
-通过独立验收后提交并本地合并到 develop。
-```
-
-### 诊断问题
-
-```text
-$zh-debug 定位订单重复提交的原因，先复现并给出证据。
-本次只诊断，不修改代码。
-```
-
-如需继续修复，可明确授权范围；需要完整开发和交付时使用 `$zh` 衔接。
-
-### 独立审查与交付
-
-```text
-$zh-review 独立审查这个候选。
-基线：<基线提交>；候选：<候选提交或完整文件范围>；worktree：<路径>。
-需求与必要决定：<材料路径>；原始检查证据：<材料路径>。
-```
-
-首次审查需要独立新会话，只传必要需求、规范、候选和原始证据。在原开发对话中换用 `$zh-review` 并不自动获得独立上下文；通过 `$zh` 发起时由入口安排独立审查。
-
-```text
-$zh-finish 按已确认范围完成任务 <任务标识> 的收尾。
-目标分支为 develop，任务 worktree 为 <路径>。
-独立验收报告和原始证据见 <路径>。
-提交本次变更、本地合并、执行整合检查，并清理任务 worktree。
-```
-
-若还要推送，需明确授权，例如“将验收后的 develop 推送到 origin”。本地合并、远端推送、创建 PR 和发布是不同操作；技能沿用已有授权，不从其中一个自动推导另一个。
-
-## 工作流程
-
-```mermaid
-flowchart TD
-    A[需求与项目事实] --> B[展示计划并解决必要决定]
-    B --> C[任务 worktree]
-    C --> D{是否涉及新页面或关键交互}
-    D -->|是| E[可操作预览]
-    E --> F[用户确认具体版本与范围]
-    F --> G[正式实现与检查]
-    D -->|否或有明确简化依据| G
-    G --> H[独立验收]
-    H -->|未通过| I[范围内修复或补证据]
-    I --> G
-    H -->|通过| J[zh-finish 核对证据与授权交付]
-    J --> K[整合验证与安全清理]
-```
-
-小而明确的任务可以用简短计划，由主 agent 实现。复杂任务的主 agent 负责调查、澄清、计划协调、证据核对和交付；开发、修复以及实现测试交给执行子 agent。模型与推理强度按宿主实际可用配置及任务风险选择，不固定型号。
-
-前端可在已有明确设计或已确认业务交互的范围内简化预览，但复用组件、样式或通用弹窗不代表新业务交互已确认。原型可以使用模拟数据；正式验收需对照确认依据，核实真实操作与结果。详见 [前端预览与验收](zh-implement/references/frontend-preview.md)。
-
-## 记录与辅助工具
-
-项目长期知识优先复用现有文档；开发任务的范围、决定、检查证据与恢复指针按 [任务记录规则](zh/references/records.md) 保存。
-
-增强任务统一使用 `goal-harness` 的运行记录与 `.loop-state.json`。按[命令速查](docs/USAGE.zh-CN.md#5-终端命令速查可选)操作，不为同一任务并行运行旧 `zh/scripts/task.py` 状态机；旧工具仅保留明确的历史兼容用途。
-
-新项目草稿推荐显式 `controller_commit`：模型仅修改已批准文件并测试，Controller 在审计后提交任务源分支。逐文件 `allowed_paths`、当前能力收据、合同和独立审查都不可省略。worktree 不是 OS 沙箱。实现超时会保留脏工作区并 blocked，当前没有自动续接脏实现入口；`recover` 只核验执行停止。详见[提交职责与故障处理](docs/USAGE.zh-CN.md#6-暂停恢复与故障定位)。
-
-## 常见问题
-
-**必须每次先初始化吗？** 不需要。已有上下文可复用，仅在缺失或过时时按需更新。
-
-**没有子 agent 或浏览器能力怎么办？** 仍可按范围调查、规划和处理不依赖这些能力的工作。复杂开发缺少委派能力、独立验收缺少新会话，或前端关键路径无法验证时，需如实记录受阻；不能把自评、构建成功或截图当作全部验收通过。
-
-**会顺手处理其他失败的测试吗？** 先区分本次回归、历史问题和环境问题。范围外的问题应记录，不应修改旧断言来掩盖未经授权的业务变化。
-
-**原工作区有未提交修改怎么办？** 保留原处。需要依赖这些内容时先明确纳入范围与转移方式；不能隐式 stash、覆盖，或用回填文件绕过脏目标分支。详见 [工作区规则](zh/references/workspaces.md)。
-
-**这是可直接上传的插件吗？** 当前仓库以本地 skill 目录和 Python 工具分发，没有插件 manifest；按本文安装整个技能集合即可。其他 agent 宿主的技能发现、委派与浏览器能力需自行适配和验证。
+已有 **56 项隔离回归测试**，真实固定 upstream 安装及项目级 OpenWiki 集成已另行验证。真实多模型业务调用、完整 Wiki 生成和端到端业务交付仍需在目标项目验证，详见[验证说明](docs/VERIFICATION.md)。辅助脚本不启动模型、代写 Wiki 或自行证明验收成功。
 
 ## 仓库结构
 
 ```text
 .
-├── README.md             # 使用入口
-├── CONTRIBUTING.md       # 贡献与验证说明
-├── LICENSE               # MIT 许可
-├── zh/                   # 协调入口、共享参考与 task.py
-├── zh-context/           # 项目接入与知识维护
-├── zh-plan/              # 需求与实施计划
-├── zh-implement/         # 开发、前端预览与验证参考
-├── zh-debug/             # 故障诊断
-├── zh-review/            # 独立验收
-├── zh-finish/            # 收尾与交付
-├── tools/                # 安装、恢复、结构校验
-├── tests/                # 入口、安装与旧任务兼容回归
-├── vendor/goal-workflow/ # 增强引擎、锁定依赖、完整验收追踪
-└── .github/              # 跨平台验证及 Issue/PR 模板
+├── .agents/skills/       # 九个技能、引用、辅助脚本与留存证据
+├── .github/             # CI、Issue 和 PR 模板
+├── docs/                # 验证与来源说明
+├── tools/               # 仓库契约检查与分组回归入口
+├── README.md            # 项目介绍与快速开始
+├── 使用说明.md          # 使用、接入、恢复与清理说明
+├── CONTRIBUTING.md      # 贡献方式
+└── LICENSE              # MIT
 ```
 
-## 贡献与反馈
+当前 main 的九技能实现替换了早期 `zh-*` 入口与旧 vendor 内容。已有安装需要重新接入并核对同名冲突；历史实现仍可从 Git 历史追踪，不用于当前验收。
 
-欢迎通过 [Issues](https://github.com/QZAiXH/zhiheng/issues) 反馈问题或提出建议，通过 [Pull Requests](https://github.com/QZAiXH/zhiheng/pulls) 提交改进。请先阅读 [贡献指南](CONTRIBUTING.md)，提供可复现的场景、实际行为和必要的脱敏证据。
+## 贡献与许可
 
-## 许可与来源
+通过 [Issues](https://github.com/QZAiXH/zhiheng/issues) 提交问题，通过 [Pull Requests](https://github.com/QZAiXH/zhiheng/pulls) 提交改进。请提供最小复现场景、实际工具结果和验证边界，见[贡献指南](CONTRIBUTING.md)。
 
-本仓库使用 [MIT License](LICENSE)。部分方法参考并改写自 [mattpocock/skills](https://github.com/mattpocock/skills/tree/c55ee46073ed923f86ce59a5eb3b6d895095d1b7)，保留其版权和许可声明；具体来源与改写范围见 [来源说明](zh/references/provenance.md)。
+本项目使用 [MIT License](LICENSE)，每个技能目录均附带许可证，便于独立安装时保留声明。上游方法、Wiki 与解析器的来源和版本见[来源说明](docs/SOURCES.md)。

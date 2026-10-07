@@ -1,0 +1,28 @@
+{
+  "label": "current_negation_detected",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot_current/dl-init/scripts/project_init.py",
+    "status",
+    "--root",
+    "<验证临时目录-1>/current_recheck/projects/新版本复验项目"
+  ],
+  "exit_code": 0,
+  "output": {
+    "root": "<验证临时目录-1>/current_recheck/projects/新版本复验项目",
+    "phase": "local_prepared",
+    "initialized": false,
+    "local_ready": false,
+    "wiki_ready": false,
+    "needs_git_baseline": false,
+    "ready_for_worktrees": false,
+    "conflicts": [],
+    "problems": [
+      "用户 ignore 规则覆盖安装排除项；保留规则并解决：.agents/skills/tdd/",
+      "项目源文件已变化；由 Wiki Host 核查更新。"
+    ],
+    "host_check_required": "仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。"
+  },
+  "stdout": "{\n  \"root\": \"<验证临时目录-1>/current_recheck/projects/新版本复验项目\",\n  \"phase\": \"local_prepared\",\n  \"initialized\": false,\n  \"local_ready\": false,\n  \"wiki_ready\": false,\n  \"needs_git_baseline\": false,\n  \"ready_for_worktrees\": false,\n  \"conflicts\": [],\n  \"problems\": [\n    \"用户 ignore 规则覆盖安装排除项；保留规则并解决：.agents/skills/tdd/\",\n    \"项目源文件已变化；由 Wiki Host 核查更新。\"\n  ],\n  \"host_check_required\": \"仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。\"\n}\n",
+  "stderr": ""
+}

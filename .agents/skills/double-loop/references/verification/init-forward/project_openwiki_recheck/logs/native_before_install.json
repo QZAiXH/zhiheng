@@ -1,0 +1,13 @@
+{
+  "操作": "真实成熟 OpenWiki CLI 项目级集成；没有 Wiki 生成或模型调用",
+  "command": [
+    "<验证用户目录>/.local/share/fnm/node-versions/v26.5.0/installation/lib/node_modules/openwiki/dist/cli/cli.js",
+    "integrations",
+    "list",
+    "--project",
+    "<验证临时目录-1>/project_openwiki_recheck/projects/项目OpenWiki入口切换"
+  ],
+  "exit_code": 0,
+  "stdout": "bob\tnot-installed\tIBM Bob\ncodex\tnot-installed\tCodex\nclaude\tnot-installed\tClaude Code\nopencode\tnot-installed\tOpenCode\ncursor\tnot-installed\tCursor\nkiro\tnot-installed\tKiro\nomp\tnot-installed\tOh My Pi\nantigravity\tnot-installed\tAntigravity CLI\ncopilot\tnot-installed\tGitHub Copilot CLI\n",
+  "stderr": ""
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "检查点恢复"
+  short_description: "核对已保存的配置、代码版本与任务状态，恢复研发流程并避免重复交付动作"
+  default_prompt: "使用 $dl-resume 检查当前任务记录，恢复未完成工序并重新验证过期证据。"

@@ -1,0 +1,76 @@
+{
+  "日期": "2026-10-07",
+  "CLI": {
+    "包": "skills",
+    "版本": "1.7.1",
+    "Node引擎要求": ">=22.20.0"
+  },
+  "来源": {
+    "类型": "发布前本地工作树",
+    "说明": "真实 npx 安装，未将本地来源冒充 GitHub main。"
+  },
+  "命令": "npx skills@latest add <技能源目录> --agent codex --skill '*' --copy --yes",
+  "发现": 9,
+  "安装": 9,
+  "安装位置": ".agents/skills/",
+  "技能": {
+    "double-loop": {
+      "tree_sha256": "00184ce819819ab96525f502c0d90fbab200a1127404baf5507049650ede6d8f",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-init": {
+      "tree_sha256": "912798952fdf5e7da3af875b365f1df870261a60026e463fec38b8e8057c5f9f",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-discover": {
+      "tree_sha256": "4bf82786fea3bb9c3e57d83c65d6884871c34b46f0d4d2dbf920fb0d6e23c348",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-plan": {
+      "tree_sha256": "1d4ee2227f6b3899ecb68478cf79e8f0fbbcf1538182dc89b31ba653e15a3dde",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-execute": {
+      "tree_sha256": "d08fa0353e24bc7ba436726314d499623a8151084f42ebb6f96cd01fd893db74",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-review": {
+      "tree_sha256": "debc037d952370844d6ee5719759bf669bdc3b0a6cff62b2dcb2c4991ae4b780",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-knowledge": {
+      "tree_sha256": "b57321fb83be0ab1967341c6040fa3add8a95f7ae9d77e2adf8687a4cac98032",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-deliver": {
+      "tree_sha256": "75742ae4e53dee3801bdc7663aa1753f3454792758252cabb470d2b464d04a15",
+      "实际目录": true,
+      "许可证完整": true
+    },
+    "dl-resume": {
+      "tree_sha256": "b06d1d0485e0d3b0e14e848a1e356cdb875bff3b373fc9cf2661869103bf0830",
+      "实际目录": true,
+      "许可证完整": true
+    }
+  },
+  "相对引用检查数": 53,
+  "脚本入口": {
+    "dl-init/scripts/project_init.py": {
+      "exit_code": 0,
+      "真实调用": true
+    },
+    "double-loop/scripts/workflow_state.py": {
+      "exit_code": 0,
+      "真实调用": true
+    }
+  },
+  "状态检查只读": true,
+  "边界": "只核验获取安装、内容完整、相对引用和助手入口；未运行项目接入、业务模型或 Wiki。"
+}

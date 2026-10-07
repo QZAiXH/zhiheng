@@ -1,0 +1,34 @@
+{
+  "日期": "2026-10-07",
+  "脚本SHA256": {
+    "dl-init/scripts/project_init.py": "9c102ac7f3877aa498b4a6db6ae3214d31fd3f4d724ddbfbf11962820483ebbf",
+    "double-loop/scripts/workflow_state.py": "89c23b7ec3d7be077377cc2999b1670b65ba1a7d6a1e16b2c38df4a6de1e5fad",
+    "double-loop/scripts/dependency_contract.py": "3348388c0026aed1610c9e91449e35f526693d1b75eaa98d4f2b409853981666",
+    "double-loop/assets/project-manifest.json": "18986a72b34c0766bd0e114a966648911c5f6b7041b63c354f59910005d59ff7",
+    "dl-init/scripts/test_project_init.py": "3d30eaf584c3b07246526b31174fe96303ec405c3eb4bd60093b8f9a3700f3d6",
+    "double-loop/scripts/test_workflow_state.py": "df07af0fbb0b33cce402e0b48699a6cad15d208a1af11b151d60c0770b81b72f"
+  },
+  "测试": [
+    {
+      "命令": "python3 -B .agents/skills/dl-init/scripts/test_project_init.py",
+      "通过": 29,
+      "失败": 0,
+      "边界": "本地 Git fixture，安装器、Wiki 与模型明确模拟"
+    },
+    {
+      "命令": "uv run --with-requirements .agents/skills/double-loop/scripts/requirements.txt python -B .agents/skills/double-loop/scripts/test_workflow_state.py",
+      "通过": 27,
+      "失败": 0,
+      "边界": "本地 Git fixture，Wiki/PR 与模型明确模拟"
+    }
+  ],
+  "技能格式验证": {
+    "通过": 9,
+    "工具": "官方 skill-creator quick_validate.py"
+  },
+  "引用验证": "技能与使用说明的相对文件引用已核对有效",
+  "本目录真实接入": false,
+  "真实Wiki写入": false,
+  "真实多模型任务": false,
+  "真实PR": false
+}

@@ -1,0 +1,17 @@
+{
+  "label": "current_record_bad-fields",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot_current/dl-init/scripts/project_init.py",
+    "status",
+    "--root",
+    "<验证临时目录-1>/current_recheck/projects/损坏记录-bad-fields"
+  ],
+  "exit_code": 2,
+  "output": {
+    "status": "error",
+    "message": "接入记录的字段类型损坏；保留原记录。"
+  },
+  "stdout": "{\"status\": \"error\", \"message\": \"接入记录的字段类型损坏；保留原记录。\"}\n",
+  "stderr": ""
+}

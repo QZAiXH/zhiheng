@@ -1,0 +1,19 @@
+{
+  "label": "protect_modified_managed_block",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "instructions",
+    "--root",
+    "<验证临时目录-1>/projects/已有项目",
+    "--input",
+    "<验证临时目录-1>/inputs/instructions-zh.md"
+  ],
+  "exit_code": 2,
+  "output": {
+    "status": "error",
+    "message": "AGENTS.md 托管区块被用户修改或所有权未知；保留内容。"
+  },
+  "stdout": "{\"status\": \"error\", \"message\": \"AGENTS.md 托管区块被用户修改或所有权未知；保留内容。\"}\n",
+  "stderr": ""
+}

@@ -1,0 +1,29 @@
+{
+  "label": "nested_root_rejected",
+  "command": [
+    "<验证工具目录>/opt/python@3.14/bin/python3.14",
+    "<验证临时目录-1>/snapshot/dl-init/scripts/project_init.py",
+    "status",
+    "--root",
+    "<验证临时目录-1>/projects/已有项目/src"
+  ],
+  "exit_code": 0,
+  "output": {
+    "root": "<验证临时目录-1>/projects/已有项目/src",
+    "phase": "not_initialized",
+    "initialized": false,
+    "local_ready": false,
+    "wiki_ready": false,
+    "needs_git_baseline": false,
+    "ready_for_worktrees": false,
+    "conflicts": [],
+    "problems": [
+      "目标必须是 Git 顶层；不会在已有父仓库内创建嵌套仓库。",
+      "项目接入清单缺失或已变化。",
+      "Wiki 尚未完成或需重新加载宿主。"
+    ],
+    "host_check_required": "仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。"
+  },
+  "stdout": "{\n  \"root\": \"<验证临时目录-1>/projects/已有项目/src\",\n  \"phase\": \"not_initialized\",\n  \"initialized\": false,\n  \"local_ready\": false,\n  \"wiki_ready\": false,\n  \"needs_git_baseline\": false,\n  \"ready_for_worktrees\": false,\n  \"conflicts\": [],\n  \"problems\": [\n    \"目标必须是 Git 顶层；不会在已有父仓库内创建嵌套仓库。\",\n    \"项目接入清单缺失或已变化。\",\n    \"Wiki 尚未完成或需重新加载宿主。\"\n  ],\n  \"host_check_required\": \"仍需从当前工具清单核查模型、MCP 在线状态与 GitHub 权限；回执不独立证明模型生效。\"\n}\n",
+  "stderr": ""
+}

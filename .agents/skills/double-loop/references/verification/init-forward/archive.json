@@ -1,0 +1,351 @@
+{
+  "日期": "2026-10-07",
+  "临时目录": "<验证临时目录-1>",
+  "原始引用说明": "回执中的临时绝对路径是验证时定位记录；用此映射定位已归档日志。",
+  "所有权": "独立验证 Agent 在本任务创建的隔离目录；该 Agent 已完成。",
+  "文件": [
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/03_current_prepare.json",
+      "归档相对位置": "current_recheck/logs/03_current_prepare.json",
+      "sha256": "bff26079e9b0d8770ecdaf0fac3e65d615c4ac94c293449e5dbbd0718c31faa4"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/04_current_instructions.json",
+      "归档相对位置": "current_recheck/logs/04_current_instructions.json",
+      "sha256": "a20391f24aee5a01476ecfac21dfe771087593a20e07b1cfb3fbdf1cbe14fa7e"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/05_current_simulated_wiki_structure.json",
+      "归档相对位置": "current_recheck/logs/05_current_simulated_wiki_structure.json",
+      "sha256": "cd291d3012fc0d59430d1c87f6bb1f2f6fcc65dba730b3f132f618764e13b3c9"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/06_current_prepare_reuse.json",
+      "归档相对位置": "current_recheck/logs/06_current_prepare_reuse.json",
+      "sha256": "ddbd29e2057019c8283d18a5d3478f7ea7ec30a92efd14768aa39c47a91e68ee"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/07_current_readonly_status.json",
+      "归档相对位置": "current_recheck/logs/07_current_readonly_status.json",
+      "sha256": "d82d69026ec2a003dea0d6476ec50e1b626038b29634140cfe0f62cde7f05a17"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/08_current_negation_detected.json",
+      "归档相对位置": "current_recheck/logs/08_current_negation_detected.json",
+      "sha256": "f3908bd17b50b3a46e21a4f54c78d5032710ecf9d294e19fd1f9abfc2d07108c"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/09_wiki_before_durable_change.json",
+      "归档相对位置": "current_recheck/logs/09_wiki_before_durable_change.json",
+      "sha256": "6857aec146186ff6c2c9f74f1be4185411c5fe2a2c78eb3dc061b6fe923f6f8a"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/10_current_durable_workflow_drift.json",
+      "归档相对位置": "current_recheck/logs/10_current_durable_workflow_drift.json",
+      "sha256": "6c82531542dcfecec0ba6cf977acea5c0876837e88090297f11366d5e6176ede"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/11_wiki_after_durable_change.json",
+      "归档相对位置": "current_recheck/logs/11_wiki_after_durable_change.json",
+      "sha256": "5595641051c40a4f2d35d7cac597f9fc85479d63bd640d2f849deeb30f44adce"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/12_current_runtime_noise_excluded.json",
+      "归档相对位置": "current_recheck/logs/12_current_runtime_noise_excluded.json",
+      "sha256": "4942564acf47c22327eb779bf86eabf3c699312b2e32a864afc1b46cd1e68a31"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/13_current_record_array.json",
+      "归档相对位置": "current_recheck/logs/13_current_record_array.json",
+      "sha256": "6a3a339f254decb824d594904cd357da2db52bee9f6a0c34f9329a7b928d2ecc"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/14_current_record_bad-fields.json",
+      "归档相对位置": "current_recheck/logs/14_current_record_bad-fields.json",
+      "sha256": "71fe3141fbbe492e47ff92799caeed8ad745280586f6589c8ca213abe57c7a33"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/15_current_dependencies_array.json",
+      "归档相对位置": "current_recheck/logs/15_current_dependencies_array.json",
+      "sha256": "4da74a6ff071ecaa2115322e93ea1788b39527567ff6137aec124c1be4d18fe4"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/16_current_receipt_host_array.json",
+      "归档相对位置": "current_recheck/logs/16_current_receipt_host_array.json",
+      "sha256": "023b46f1ef547e037bf05ab3e0614fecca1e8d8b17ae3d1373801db82d662d3d"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/17_current_receipt_tool_response_array.json",
+      "归档相对位置": "current_recheck/logs/17_current_receipt_tool_response_array.json",
+      "sha256": "60a1e4b0cf9074476f60c242f6f84fce6487bc29955dc3663af99b17d3b76625"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/18_current_receipt_array.json",
+      "归档相对位置": "current_recheck/logs/18_current_receipt_array.json",
+      "sha256": "f99f4d4fcd8f93e5c5d7a53dc549854503004c29e5094f65f05fb071da46f3ef"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/19_current_restore_prepare.json",
+      "归档相对位置": "current_recheck/logs/19_current_restore_prepare.json",
+      "sha256": "c0ed050676f1f21b4577c2858fea0508a2a8f3fce70dbb0f8d91d2ea5f1cae0f"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/current_recheck/logs/20_current_final_verify.json",
+      "归档相对位置": "current_recheck/logs/20_current_final_verify.json",
+      "sha256": "c1fcc998a318591f2dfaa355e1304d10b7b05b404fecf7bb4ef9f211b04883fd"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/independent_current_receipt.json",
+      "归档相对位置": "independent_current_receipt.json",
+      "sha256": "6339fc0e835fffd75b01f811e37dd0d993d58d2b84ecf3a302dc915f53319ec0"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/independent_final_receipt.json",
+      "归档相对位置": "independent_final_receipt.json",
+      "sha256": "5f68847821fc8276a2da89614aa7cb6ac363d5699dbc00ec3b2e089859bb52ed"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/independent_receipt.json",
+      "归档相对位置": "independent_receipt.json",
+      "sha256": "04c0d438f33eea42052827d0ecb108d59b8d2c81b36265b9ff3229fac7c0103d"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/01_fresh_status.json",
+      "归档相对位置": "logs/01_fresh_status.json",
+      "sha256": "efcf3323d2f15120c16311c996f381357a5297a1b42d0bee27ce0163b39b1f79"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/02_actual_prepare.json",
+      "归档相对位置": "logs/02_actual_prepare.json",
+      "sha256": "273ebf7ba262ebeca8f53b285d312e8a1ab92c1224a5f5c41eb803565f6e37f7"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/03_instructions_chinese.json",
+      "归档相对位置": "logs/03_instructions_chinese.json",
+      "sha256": "e4933607f16df005495cbad04bb835db38c7af48794ce64806815468198f0de9"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/04_instructions_idempotent.json",
+      "归档相对位置": "logs/04_instructions_idempotent.json",
+      "sha256": "50ca19271fb16e09c43c01234afa94c74a0ce2b9c986f33fa2cde8c785f5c1cb"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/05_prepare_reuse_no_installer.json",
+      "归档相对位置": "logs/05_prepare_reuse_no_installer.json",
+      "sha256": "ad53fe1dfb0c8f7d9158ad35514b417ab438586a834abb9fe6f9ff0ec768d109"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/06_status_read_only.json",
+      "归档相对位置": "logs/06_status_read_only.json",
+      "sha256": "56481f7d385a51590940b37f3f6d294fb13ce34b13969322832e4256f4a1196a"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/07_verify_before_wiki.json",
+      "归档相对位置": "logs/07_verify_before_wiki.json",
+      "sha256": "e85be38dc916f854c6f79f28effe7f88262a10604929a0be21b423cff1751970"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/08_wiki_reload_simulated.json",
+      "归档相对位置": "logs/08_wiki_reload_simulated.json",
+      "sha256": "b1a9f159ddebe6f064289cfffc9f08691bcdc5e0ac5b76efd71099e66762b72f"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/09_wiki_missing_quickstart.json",
+      "归档相对位置": "logs/09_wiki_missing_quickstart.json",
+      "sha256": "469b5a2aa9c68bff666125669150a24a90833087f59623e3fbec04cd8a1fe6c8"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/10_wiki_wrong_operation.json",
+      "归档相对位置": "logs/10_wiki_wrong_operation.json",
+      "sha256": "8640086eface3668acfc8763873999461807f60a85c6dd0a70ad119f3ed46a7c"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/11_wiki_complete_structure_only.json",
+      "归档相对位置": "logs/11_wiki_complete_structure_only.json",
+      "sha256": "dcf3ec896469a2535fdb1112fbc8ca5c9e2a1e9d202cc03830fe5fed66f58aaf"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/12_verify_simulated_wiki_structure.json",
+      "归档相对位置": "logs/12_verify_simulated_wiki_structure.json",
+      "sha256": "b7717383ea55573c0ea220e74036cb58c80c0871f610714a5d803f7edcad6be9"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/13_source_drift.json",
+      "归档相对位置": "logs/13_source_drift.json",
+      "sha256": "c23b22cdab39d99f76212a52927dfdf55a4a10c5567dbcef0c6dbe86ede65f9b"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/14_user_surrounding_edit.json",
+      "归档相对位置": "logs/14_user_surrounding_edit.json",
+      "sha256": "cc9988664b5057b90c47f40019cb631252f0da46a82aa4887075557c3e24756e"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/15_preserve_surrounding_edit.json",
+      "归档相对位置": "logs/15_preserve_surrounding_edit.json",
+      "sha256": "c99d0c3d7ac2e0ce8290fbfa6a75e2c45ae169a349bc4c06e2cde54373d84377"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/16_protect_modified_managed_block.json",
+      "归档相对位置": "logs/16_protect_modified_managed_block.json",
+      "sha256": "f8fb555dbbaef373125b78f488eb3b39a2cba5ee3f95e6b9a839e24b9ad1afab"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/17_upstream_user_conflict.json",
+      "归档相对位置": "logs/17_upstream_user_conflict.json",
+      "sha256": "588a3c5f16b5334aae01641d624bd4b04553d107bd0882338e5e130ac1903d9d"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/18_clear_repaired_conflict.json",
+      "归档相对位置": "logs/18_clear_repaired_conflict.json",
+      "sha256": "7e8e774b6cc31071ed1575057c409a3ee718cab72dd881be741724c0bb5f0806"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/19_protect_dependency_conflict.json",
+      "归档相对位置": "logs/19_protect_dependency_conflict.json",
+      "sha256": "1574fd23f5b46976ea5a3c3dd740615eaee94d128fded4758dcdaf2eea2d8e21"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/20_restore_after_dependency_conflict.json",
+      "归档相对位置": "logs/20_restore_after_dependency_conflict.json",
+      "sha256": "9db2c65b6d0ba2a3eee430f0adf11e644f609e94922576783b155c473b72fb23"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/21_concurrent_writer_rejected.json",
+      "归档相对位置": "logs/21_concurrent_writer_rejected.json",
+      "sha256": "4cfbfd936b71b27717292c0f64fa665f43868a1d245400e508472a7ee811fe13"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/22_non_git_requires_explicit_init.json",
+      "归档相对位置": "logs/22_non_git_requires_explicit_init.json",
+      "sha256": "fd89e12e2218a9deb90164836ca32bfdd67c7048a32bddaa941e8976facc59a6"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/23_non_git_explicit_init.json",
+      "归档相对位置": "logs/23_non_git_explicit_init.json",
+      "sha256": "97be43b92c227dd71b8cfe9894506b25b9acae7c8a62cdff490dbb09c376d397"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/24_unborn_instructions.json",
+      "归档相对位置": "logs/24_unborn_instructions.json",
+      "sha256": "f3809db6f5477119900fb551f5fbe50276c70c799589a99861e0f0bc1f5c1b42"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/25_unborn_simulated_wiki.json",
+      "归档相对位置": "logs/25_unborn_simulated_wiki.json",
+      "sha256": "8aadaf6ba32cfedf4b6150ce163093e7c64a8459d6a7725b56dc00e442762c95"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/26_unborn_verify.json",
+      "归档相对位置": "logs/26_unborn_verify.json",
+      "sha256": "2f7dec2ffe7aaf6be66d96ddba2a2de6ecc3beba99a427b9e263557f0daf34e3"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/27_nested_root_rejected.json",
+      "归档相对位置": "logs/27_nested_root_rejected.json",
+      "sha256": "9b893f02f9ad778f29f34447e733c7ec478ebd5d3c44c2a007415cb917ec7faa"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/logs/28_valid_json_wrong_record_type.json",
+      "归档相对位置": "logs/28_valid_json_wrong_record_type.json",
+      "sha256": "c2e103171e9242f59c6345f4a517bc6a2534f3dc35777193622c1f0efd616b50"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/03_external_openwiki_prepare.json",
+      "归档相对位置": "project_openwiki_recheck/logs/03_external_openwiki_prepare.json",
+      "sha256": "b3ef41bb28a1c15010a35e1483319a2baec2355128a36d770dc92a2b42334c6e"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/04_external_openwiki_instructions.json",
+      "归档相对位置": "project_openwiki_recheck/logs/04_external_openwiki_instructions.json",
+      "sha256": "c6e611867344c049913cc668b342cc7191bf755dfc2ea41616b5c5a51cfe1b6a"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/05_switch_to_project_openwiki.json",
+      "归档相对位置": "project_openwiki_recheck/logs/05_switch_to_project_openwiki.json",
+      "sha256": "210f4942397a68e926f203d4e64bf7eb9dd9d7ba4ce119aeee2dee6b2b63fef6"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/06_repeat_project_openwiki_prepare.json",
+      "归档相对位置": "project_openwiki_recheck/logs/06_repeat_project_openwiki_prepare.json",
+      "sha256": "93745aab3eb2ea042e6ed6793ef2f05f9e6ae93c36576b08de042b8fd2e01ba9"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/07_no_real_wiki_verify.json",
+      "归档相对位置": "project_openwiki_recheck/logs/07_no_real_wiki_verify.json",
+      "sha256": "7782ba728fdeb4cd40e389e6daebc4a8c929129ad6364341651cc252e1efaecc"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/08_first_prepare_local_openwiki.json",
+      "归档相对位置": "project_openwiki_recheck/logs/08_first_prepare_local_openwiki.json",
+      "sha256": "bf0f01931dfd33614c79b2741b136ab5f6a7104fb67376b97417b74e1b2bfb22"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/09_first_local_openwiki_instructions.json",
+      "归档相对位置": "project_openwiki_recheck/logs/09_first_local_openwiki_instructions.json",
+      "sha256": "dd7efd2862ff10cde56324ae6e959fa8e844b4aa74f003f0a58c04064da2cd4c"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/10_first_local_openwiki_status.json",
+      "归档相对位置": "project_openwiki_recheck/logs/10_first_local_openwiki_status.json",
+      "sha256": "0cdc494f6d16c8a88889a5777ed9d160a7b64313f8a2204f6d60d9893dab9d12"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/11_tracked_project_openwiki_prepare.json",
+      "归档相对位置": "project_openwiki_recheck/logs/11_tracked_project_openwiki_prepare.json",
+      "sha256": "b3cb81d21037a62c1f5aa7608cb56df0e6082ca032ff00468031f4924d9163d1"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/12_local_openwiki_status_readonly.json",
+      "归档相对位置": "project_openwiki_recheck/logs/12_local_openwiki_status_readonly.json",
+      "sha256": "1f24cb17f2c4d7895b7c97149981616e98bac245d6f4352a998c6b1a1be9e5ee"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/native_after_install.json",
+      "归档相对位置": "project_openwiki_recheck/logs/native_after_install.json",
+      "sha256": "e91e3388158bc44ba75b5165ec977c963ae5f4ae18c58a800c3dd9f3afc8f79c"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/native_before_install.json",
+      "归档相对位置": "project_openwiki_recheck/logs/native_before_install.json",
+      "sha256": "e27faf1c2d37ace7159bf8efee1f46d92866b89f1e63a0540f4570f02fd8323d"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/native_first_before_prepare.json",
+      "归档相对位置": "project_openwiki_recheck/logs/native_first_before_prepare.json",
+      "sha256": "faa46051ce3a3842e1ee782b5223d50ddff262ed316490f14c32368fb72739f3"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/native_project_codex_install.json",
+      "归档相对位置": "project_openwiki_recheck/logs/native_project_codex_install.json",
+      "sha256": "d9fa7ebecc46cfccb37a4198faee38dbf49ae70f1884c86c0461667350d80b74"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/project_openwiki_recheck/logs/native_project_codex_repeat.json",
+      "归档相对位置": "project_openwiki_recheck/logs/native_project_codex_repeat.json",
+      "sha256": "16dd964eb2453d8a2f72a3a230cfe965570d86a497cab32195dc76e55683f4b9"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/revalidate_current.py",
+      "归档相对位置": "revalidate_current.py",
+      "sha256": "232c40f931b62febd6935e4cb9ed3cfc40e750cff5dcdb242d55bb0f0526e6ff"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/snapshot_manifest.json",
+      "归档相对位置": "snapshot_manifest.json",
+      "sha256": "9324ad6d09d23f047bc2a72221bdb96138294d24743c1e2f4ade811e222185e1"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/validate_behavior.py",
+      "归档相对位置": "validate_behavior.py",
+      "sha256": "764144ab16164dbd44c66aff8763253b9694a6d8b4b72e6a1611b1b40fa19f43"
+    },
+    {
+      "原始位置": "<验证临时目录-1>/validate_project_openwiki.py",
+      "归档相对位置": "validate_project_openwiki.py",
+      "sha256": "7c0ebb2f51d2f2e31a978f989dad3dc411dc65277e25dcc729ed3c3ba64c6b96"
+    }
+  ],
+  "临时目录已清理": true,
+  "清理依据": "独立 Agent 已完成，全部留存验证文件逐字节 SHA-256 与原件匹配；仅删除本任务登记的隔离测试目录。",
+  "公开副本说明": "私人目录与临时机定位已标签化；文件条目 sha256 均为脱敏前归档原件的指纹。公开副本指纹见上级 publication-redaction.json。"
+}
