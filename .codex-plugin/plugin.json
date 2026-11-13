@@ -1,0 +1,6 @@
+{
+  "name": "zhiheng",
+  "version": "0.1.0",
+  "description": "本地优先的软件开发 Harness 技能系列",
+  "skills": "./skills/"
+}

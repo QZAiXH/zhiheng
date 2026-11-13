@@ -1,127 +1,148 @@
-# 执衡 · Zhiheng
+# zhiheng
 
-[![校验](https://github.com/QZAiXH/zhiheng/actions/workflows/verify.yml/badge.svg)](https://github.com/QZAiXH/zhiheng/actions/workflows/verify.yml)
-[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+zhiheng 是一套本地优先的软件开发 Harness 技能：`zh` 负责跨阶段协调，另外 16 个 `zh-*` 技能可以按任务单独调用。技能指令以英文编写；项目任务状态使用协议约定的中文值。它把需求、决定、实施、审查、验收和交付连接到项目自己的任务入口，业务代码和测试目录仍遵循项目所用框架的惯例。
 
-一套面向 Codex 的中文研发技能：先讨论需求，由主 Agent 根据任务难度推荐模型与上下文，集中确认后自动推进设计、实现、独立审查、OpenWiki 知识维护和 PR 交付。普通测试失败自主修复，涉及新业务取舍或真实阻塞时再询问用户。
+本仓库提供 17 个技能、共享规则与模板、`validate`／`snapshot`／`compare` 三个本地工具，以及源码、来源和验证说明。当前版本为 `0.1.0`。可安装的插件包由权威 `skills/` 源码生成；本地审计运行资料不进入插件包。
 
-本仓库提供九个可组合技能及确定性状态助手。研发方法复用 [Matt Pocock Skills](https://github.com/mattpocock/skills)，项目知识复用 [OpenWiki](https://github.com/langchain-ai/openwiki)；上游正文在接入目标项目时安装，版本由本仓库清单固定。
+## 开始使用
 
-[快速开始](#快速开始) · [使用说明](使用说明.md) · [阶段流程图](.agents/skills/double-loop/references/workflow.md) · [验证边界](docs/VERIFICATION.md) · [参与贡献](CONTRIBUTING.md)
+需要 Codex 插件功能、Python 3.11+ 和可在 `PATH` 中执行的 Git。工具依赖装在单独的 Python 虚拟环境中，不改变业务项目的依赖。
 
-## 工作方式
+在本仓库根目录运行：
 
-外层循环确定方案、集成验收并固化经验；内层循环按任务反复实现、验证、独立审查和修复。
-
-```mermaid
-flowchart LR
-    I["接入：dl-init<br/>skill-installer + setup-matt-pocock-skills<br/>writing-for-agents + OpenWiki"]
-    A["需求：dl-discover<br/>grill-with-docs + grilling<br/>domain-modeling"]
-    B["配置：double-loop<br/>动态推荐、集中确认"]
-    C["方案：dl-plan<br/>to-spec + to-tickets"]
-    D["任务循环：dl-execute + dl-review<br/>implement-spec + tdd<br/>diagnosing-bugs + code-review"]
-    E["集成验收：dl-review<br/>项目验证工具"]
-    F["知识：dl-knowledge<br/>OpenWiki + domain-modeling + retro"]
-    G["交付与清理：dl-deliver<br/>pr + Git + GitHub CLI"]
-    I --> A --> B --> C --> D --> E
-    E -->|修复或调整方案| C
-    E -->|通过| F --> G
+```sh
+python3 tools/build_package.py
+python3 tools/check_package.py
+codex plugin marketplace add "$PWD"
+codex plugin add zhiheng@zhiheng-local
+codex plugin list --json
 ```
 
-首次接入需要的 Wiki Host 配置可以并入需求后的集中确认；已初始化项目直接核查接入状态。完整流程中的设计审查、任务修复与断点恢复见[逐阶段流程图](.agents/skills/double-loop/references/workflow.md)。
+本地 marketplace 配置在 `.agents/plugins/marketplace.json`，指向生成的 `dist/zhiheng/`。检查 `plugin list` 中的 `zhiheng@zhiheng-local` 已安装且启用。修改 `skills/` 后，先重建包，再按当前客户端的插件安装流程刷新安装副本；运行时加载的是安装缓存。插件包内含 17 个 `SKILL.md` 及其共享资源。插件布局和本地 marketplace 的约定见 [OpenAI 插件封装说明](https://developers.openai.com/plugins/build/plugins)；本仓库的命令以[实际安装检查](docs/verification.md)为准。
 
-- **动态配置**：技能不写死推荐模型。设计、实现、审查必须使用三个不同的模型，执行角色使用新上下文；主 Agent 保留需求讨论。
-- **自动推进**：已确认的需求、配置和交付授权持续有效。常规失败按证据修复，关键范围变化、模型不可用或用户才能提供的条件才升级。
-- **项目知识**：OpenWiki Host 亲自串行研究与写页，由引擎管理队列、Claims 和索引；规范需求、ADR 与验收原件保留。
-- **交付终点**：默认提交、推送并创建 PR。合并、部署、发版由用户另行明确授权。
-- **恢复与清理**：接入状态、单次任务状态和 Wiki 状态分别持久化；只有本次登记且知识已落盘、指纹未变、无保留引用的临时材料才清理。
+如果只想在某一个项目本地使用技能，可以从本仓库根目录复制完整技能树：
 
-## 快速开始
-
-### 1. 获取完整技能包
-
-在目标项目目录运行：
-
-```bash
-npx skills@latest add QZAiXH/zhiheng --agent codex --skill '*' --copy
+```sh
+mkdir -p /absolute/path/to/project/.agents/skills
+cp -R skills/. /absolute/path/to/project/.agents/skills/
 ```
 
-命令通过成熟的 [Skills CLI](https://github.com/vercel-labs/skills) 安装全部九个技能到当前项目 `.agents/skills/`。`--copy` 保留实际目录，便于初始化助手核查路径和内容；随后在目标项目打开或重新加载 Codex。
+`zh` 目录包含所有阶段共用的规则、模板和工具，复制阶段技能时也必须保留。项目本地复制与插件安装任选一种适合当前工作环境的方式；在项目中核对实际能否发现并读取目标技能。
 
-也支持交互式入口 `npx skills@latest add QZAiXH/zhiheng`；选择 Codex、项目级安装和全部九个技能。预览清单可以运行：
+## 选择入口
 
-```bash
-npx skills@latest add QZAiXH/zhiheng --list
-```
-
-九个技能必须保持在同一父目录；只安装 `double-loop` 会缺少阶段入口。升级前保留现有同名目录与项目接入记录，核对修改后再更新；CLI 的覆盖确认不替代初始化的冲突保护。干净项目的自动化安装可在完整命令末尾添加 `--yes`。
-
-开发者也可以 `git clone https://github.com/QZAiXH/zhiheng.git`，在克隆目录打开 Codex；或通过宿主的官方 `$skill-installer` 将本仓库 `.agents/skills/` 下全部九个目录安装到指定项目级 `--dest`。
-
-### 2. 接入业务项目
-
-已经安装到目标项目时直接请求：
-
-> 使用 $dl-init 接入当前项目。保留已有内容，项目级安装所需技能，生成或增补 AGENTS.md，动态推荐 Wiki Host 配置，并初始化或恢复 OpenWiki。
-
-初始化将安装 15 个固定版本的 Matt Pocock 技能，复制完整九技能包，增补项目指令和精确排除规则，再用 OpenWiki 原生生命周期生成中文项目知识。需要重新加载 MCP 时保存待办，下次恢复。
-
-在克隆目录使用技能、接入另一个项目时，明确目标项目的绝对路径。新增依赖后重新加载 Codex，让技能被发现。非 Git 项目可建立仓库；没有首个提交时会标记 Git 基线待办，进入 worktree 执行前按项目授权处理。
-
-### 3. 从需求推进交付
-
-> 使用 $double-loop 讨论这个需求。讨论结束后按复杂度、风险和当前可用能力推荐设计、实现、审查的模型、强度与上下文；集中确认后连续推进到 PR，并清理符合条件的中间文件。
-
-首次直接使用 `$double-loop` 也会接入项目。需求尚未讨论时先做本地准备，将 Wiki Host 与研发矩阵合并确认；后续阶段沿用确认，不重复采访已明确的需求。
-
-中断后使用 `$dl-resume` 指定目标运行。已有 complete 的运行只报告结果，避免重复发布。
-
-## 技能分工
-
-| 技能 | 用途 | 主要复用方法或工具 |
-|---|---|---|
-| [double-loop](.agents/skills/double-loop/SKILL.md) | 总控、动态配置、阶段路由 | 本包阶段技能、原生 Agent 调度 |
-| [dl-init](.agents/skills/dl-init/SKILL.md) | 接入项目、安装依赖、维护指令、初始化 Wiki | skill-installer、setup-matt-pocock-skills、writing-for-agents、OpenWiki |
-| [dl-discover](.agents/skills/dl-discover/SKILL.md) | 需求、范围、验收与取舍 | grill-with-docs、grilling、domain-modeling |
-| [dl-plan](.agents/skills/dl-plan/SKILL.md) | 中文规格、任务拆分与依赖图 | to-spec、to-tickets；按需 research、codebase-design |
-| [dl-execute](.agents/skills/dl-execute/SKILL.md) | 隔离实现、验证、修复与集成 | implement-spec、tdd、diagnosing-bugs、Git worktree |
-| [dl-review](.agents/skills/dl-review/SKILL.md) | 独立设计、代码和验收审查 | code-review、项目测试/类型/Lint |
-| [dl-knowledge](.agents/skills/dl-knowledge/SKILL.md) | 固化事实、决策与经验 | OpenWiki、domain-modeling、retro |
-| [dl-deliver](.agents/skills/dl-deliver/SKILL.md) | PR 交付与有条件清理 | pr、Git、GitHub CLI |
-| [dl-resume](.agents/skills/dl-resume/SKILL.md) | 断点核查与恢复 | 接入记录、运行状态、Git 与 Wiki 队列 |
-
-## 环境与验证
-
-目标环境为 macOS / Linux，Python 3.10+、Git；通过 `npx` 安装需要 Node.js / npm（本次实测 Skills CLI 1.7.1 要求 Node.js 22.20+），交付 GitHub PR 时需要 GitHub CLI 及有效账户权限。仓库开发和 CI 使用 Python 3.12。Markdown 引用解析依赖由 [requirements.txt](.agents/skills/double-loop/scripts/requirements.txt) 固定。
-
-实质执行要求宿主支持显式模型、推理强度、新上下文，并实际提供至少三种不同模型。模型是否可用以当前宿主为准，文件中的配置声明不能代替账户能力。OpenWiki 接入还需要可用 CLI / skill / MCP。
-
-```bash
-uv run --with-requirements requirements-dev.txt python -B tools/check_repository.py
-uv run --with-requirements requirements-dev.txt python -B tools/run_checks.py --group all
-git diff --check
-```
-
-已有 **56 项隔离回归测试**，真实固定 upstream 安装及项目级 OpenWiki 集成已另行验证。真实多模型业务调用、完整 Wiki 生成和端到端业务交付仍需在目标项目验证，详见[验证说明](docs/VERIFICATION.md)。辅助脚本不启动模型、代写 Wiki 或自行证明验收成功。
-
-## 仓库结构
+在 Codex 请求里显式调用，例如：
 
 ```text
-.
-├── .agents/skills/       # 九个技能、引用、辅助脚本与留存证据
-├── .github/             # CI、Issue 和 PR 模板
-├── docs/                # 验证与来源说明
-├── tools/               # 仓库契约检查与分组回归入口
-├── README.md            # 项目介绍与快速开始
-├── 使用说明.md          # 使用、接入、恢复与清理说明
-├── CONTRIBUTING.md      # 贡献方式
-└── LICENSE              # MIT
+$zh 根据 docs/tasks/T-20261114-001/README.md 的有效需求完成开发、审查、验收和本地交付。
+$zh-init 接入这个已有项目，找到当前任务需要的规则、运行和验证入口。
+$zh-spec 只把已确认的决定整理成可实施规格，先不要写业务代码。
+$zh-review 只审查这次变更与已确认规格、项目规范的符合情况。
+$zh-resume 核对当前产物和证据，留下可由下一位执行者接续的记录。
 ```
 
-当前 main 的九技能实现替换了早期 `zh-*` 入口与旧 vendor 内容。已有安装需要重新接入并核对同名冲突；历史实现仍可从 Git 历史追踪，不用于当前验收。
+意图明确时也可以由各入口的 `description` 自动选择。只委托一个阶段，就在该阶段的完成边界返回；例如 `zh-spec` 不会因写完规格而自动开始实施。普通小改动不必建立完整任务图。项目采用本系列后，跨阶段内部引用指向本系列的对应技能。
 
-## 贡献与许可
+| 入口 | 主要用途 |
+|---|---|
+| [`zh`](skills/zh/SKILL.md) | 协调整项任务、选择可执行切片、接收阶段结果并检查总体交付目标 |
+| [`zh-init`](skills/zh-init/SKILL.md) | 接入已有项目，或按已定技术栈建立可运行的新项目 |
+| [`zh-discuss`](skills/zh-discuss/SKILL.md) | 澄清未决需求、业务规则和重要设计取舍 |
+| [`zh-research`](skills/zh-research/SKILL.md) | 对有边界的技术或项目事实做可追溯调查 |
+| [`zh-domain`](skills/zh-domain/SKILL.md) | 明确术语、实体关系、生命周期、权限和数据归属 |
+| [`zh-arch`](skills/zh-arch/SKILL.md) | 比较模块职责、接口、依赖方向和结构约束 |
+| [`zh-prototype`](skills/zh-prototype/SKILL.md) | 用交互原型或隔离实验回答尚未确定的设计问题 |
+| [`zh-spec`](skills/zh-spec/SKILL.md) | 将已确认决定整理成带可观察验收条件的规格 |
+| [`zh-plan`](skills/zh-plan/SKILL.md) | 将规格拆成有真实依赖和检查入口的实施切片 |
+| [`zh-implement`](skills/zh-implement/SKILL.md) | 实施有效规格或已分配切片并返回实际产物与检查结果 |
+| [`zh-tdd`](skills/zh-tdd/SKILL.md) | 按真实失败测试、最小实现和复验推进已确认行为 |
+| [`zh-debug`](skills/zh-debug/SKILL.md) | 复现、定位和修复缺陷或性能退步 |
+| [`zh-review`](skills/zh-review/SKILL.md) | 由独立上下文分别核对 Standards 与 Spec 两轴 |
+| [`zh-verify`](skills/zh-verify/SKILL.md) | 对照当前完成条件逐项核对产物、检查和审查证据 |
+| [`zh-deliver`](skills/zh-deliver/SKILL.md) | 将已接受工作交付到约定的本地或 Git／平台终点 |
+| [`zh-release`](skills/zh-release/SKILL.md) | 按项目已有发布入口执行版本发布、部署或恢复 |
+| [`zh-resume`](skills/zh-resume/SKILL.md) | 暂停、交接或恢复时核实有效需求、实际状态和下一步 |
 
-通过 [Issues](https://github.com/QZAiXH/zhiheng/issues) 提交问题，通过 [Pull Requests](https://github.com/QZAiXH/zhiheng/pulls) 提交改进。请提供最小复现场景、实际工具结果和验证边界，见[贡献指南](CONTRIBUTING.md)。
+## 项目知识和任务文件
 
-本项目使用 [MIT License](LICENSE)，每个技能目录均附带许可证，便于独立安装时保留声明。上游方法、Wiki 与解析器的来源和版本见[来源说明](docs/SOURCES.md)。
+`zh-init` 先盘点已有资料，再建立**当前任务必需**的入口。`AGENTS.md`、`docs/README.md` 用于全局约束和知识导航；领域、架构、ADR、工作流、开发与验证资料有固定定位约定，但根据涉及范围逐步出现。它不会在每次接入时生成整套空目录。项目已有 Wiki、规格或任务系统时，以有效来源为权威，由本地入口引用。
+
+持续跟踪的任务沿用项目已有合适的本地位置；没有约定时使用：
+
+```text
+docs/tasks/T-YYYYMMDD-NNN/
+├── README.md          # 身份、修订、状态、目标、来源、完成条件与产物入口
+├── spec.md            # 需要可执行规格时
+├── plan.md            # 需要多个实施切片时
+├── verification.md    # 实际验证后
+└── checkpoint.md      # 需要暂停或交接时
+```
+
+原始运行资料在真正执行时按 `.harness/runs/<task-id>/<run-id>/` 隔离。任务入口保留到这些资料的指针。总体任务身份、修订和状态由 `README.md` 管理，切片状态和依赖由 `plan.md` 管理。状态值为 `待处理`、`执行中`、`待验收`、`已完成`、`阻塞`、`已暂停`、`已取消`、`已取代`；只有核对当前版本的产物、检查和验收依据后才记 `已完成`。模板位于 [`skills/zh/assets/templates/`](skills/zh/assets/templates/)。
+
+例如在业务项目根目录建立一个待处理任务：
+
+```sh
+mkdir -p docs/tasks/T-20261114-001
+cp /absolute/path/to/installed/zh/assets/templates/task.md docs/tasks/T-20261114-001/README.md
+```
+
+随后把模板中的 ID、目标、授权范围、有效来源、完成条件及检查入口改成这个任务的真实内容。`/absolute/path/to/installed/zh` 是实际安装包中的 `skills/zh`；如果采用项目本地复制方式，它就是项目的 `.agents/skills/zh`。
+
+## 本地记录检查工具
+
+创建独立工具环境，并从**实际安装的** `zh` 位置安装依赖：
+
+```sh
+python3 -m venv /absolute/path/to/zhiheng-tool-venv
+/absolute/path/to/zhiheng-tool-venv/bin/python -m pip install \
+  -r /absolute/path/to/installed/zh/scripts/requirements.txt
+```
+
+先在业务项目的 `docs/tasks/T-20261114-001/scope.json` 保存如下内容。此例假设项目确有 `src/` 和 `tests/`，请按实际核对范围修改：
+
+```json
+{
+  "schema_version": 1,
+  "root": "../../..",
+  "paths": ["src", "tests"],
+  "sources": [],
+  "checks": [],
+  "conditions": {"environment": "local"}
+}
+```
+
+`root` 相对 scope 文件解析，`paths`、`sources` 及检查证据路径相对该 root；应填写实际存在且属于本次核对范围的文件。`conditions` 是调用者声明，不是工具探测到的环境事实。
+
+然后在业务项目根目录运行；把两个绝对路径替换为本机位置：
+
+```sh
+TOOL_PY=/absolute/path/to/zhiheng-tool-venv/bin/python
+ZH_TOOL=/absolute/path/to/installed/zh/scripts/harness.py
+TASK=docs/tasks/T-20261114-001/README.md
+
+"$TOOL_PY" "$ZH_TOOL" validate --task "$TASK" --format json
+"$TOOL_PY" "$ZH_TOOL" snapshot --task "$TASK" \
+  --scope docs/tasks/T-20261114-001/scope.json \
+  --output docs/tasks/T-20261114-001/manifest.json
+"$TOOL_PY" "$ZH_TOOL" compare --task "$TASK" \
+  --manifest docs/tasks/T-20261114-001/manifest.json --format json
+```
+
+`validate` 检查任务、计划、来源、依赖、链接及验收记录的结构；`snapshot` 按声明范围采集内容指纹和 Git 状态；`compare` 对照清单指出不变、变化、缺失或无法核对的项目。三个命令不执行项目测试，也不代替业务验收；实际检查日志应由项目先运行并写入任务可引用的位置。
+
+内容或任务修订变化后重新采集清单，再比较新的适用范围。使用 `"$TOOL_PY" "$ZH_TOOL" --help` 查看完整字段。退出码 `0` 表示本次核对无问题，`1` 表示结构缺口或差异，`2` 表示输入、依赖或运行错误。
+
+## 开发、验证与反馈
+
+在本仓库根目录，用已安装工具依赖的 Python 执行：
+
+```sh
+/absolute/path/to/zhiheng-tool-venv/bin/python tools/run_checks.py
+```
+
+该命令重建精简包、检查 17 个入口与资源、运行单元测试并编译脚本。固定上游版本、改造与许可见[来源说明](docs/sources.md)及[三张来源表](docs/upstream-adoption.tsv)。[验证总表](docs/verification.md)区分本地隔离基础检查与尚未进行的业务项目实测；反馈按[反馈入口](docs/feedback.md)记录请求、版本、预期、实际产物和复验结果。
+
+真实项目的迁移、发布和恢复以该项目的配置及知识入口为准。`zh-release` 需要对应环境和授权，不能仅凭本仓库的隔离样例判定业务发布成功。
+
+源码仓库保留 `skills/`、`tools/`、`tests/` 和维护文档。`dist/zhiheng/` 可由构建命令再生成；开发期间的 `docs/evidence/`、`docs/reviews/`、`docs/tasks/` 审计资料在本地另行保留，不作为插件或源码提交内容，其中可能包含宿主缓存及第三方运行副本。

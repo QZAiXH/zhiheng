@@ -1,0 +1,22 @@
+kind	source	lines	upstream_target	actual_internal_target	note	status
+显式技能调用	skills/engineering/grill-with-docs/SKILL.md	7	grilling；domain-modeling	skills/zh-discuss/SKILL.md;skills/zh-domain/SKILL.md	wrapper正文不打包；领域阶段按实际问题条件调用	组合方法已衍生
+显式技能调用	skills/engineering/implement-spec/SKILL.md	31；38	tdd；code-review	skills/zh/SKILL.md;skills/zh-implement/SKILL.md;skills/zh-tdd/SKILL.md;skills/zh-review/SKILL.md	本包协调/实施/TDD/审查入口；验收由本包新增zh-verify承担	已替换
+显式技能调用	skills/engineering/implement/SKILL.md	11；15	tdd；code-review	skills/zh-implement/SKILL.md;skills/zh-tdd/SKILL.md;skills/zh-review/SKILL.md	按行为与适用审查条件衔接；提交遵循约定终点	已替换
+条件技能调用	skills/engineering/tdd/SKILL.md	26	codebase-design	skills/zh-tdd/SKILL.md;skills/zh-arch/SKILL.md	TDD正文的Choose the boundary承接边界判断；重要结构变更进入设计过程，不保留上游固定Skill tool调用	条件方法已融入
+后续阶段提示	skills/engineering/tdd/SKILL.md	38	code-review	skills/zh-tdd/SKILL.md;skills/zh-review/SKILL.md	TDD完成返回区按业务逻辑/数据含义/架构变更条件进入独立双轴审查	已替换
+显式技能调用	skills/engineering/retro/SKILL.md	11	writing-for-agents	skills/zh/references/improvement.md;skills/zh/references/host.md	维护闭环使用条件资料与实际宿主能力；无writing-for-agents运行时安装要求	已融入共享参考
+用户前置提示	skills/engineering/to-spec/SKILL.md	9	setup-matt-pocock-skills	skills/zh-spec/SKILL.md;skills/zh-init/SKILL.md;skills/zh/references/knowledge.md	先读取现有项目依据，缺口按需接入；无需上游setup	已替换
+用户前置提示	skills/engineering/to-tickets/SKILL.md	11；60	setup-matt-pocock-skills	skills/zh-plan/SKILL.md;skills/zh/references/task-protocol.md	使用本地任务/计划协议，不沿用固定五个triage标签	已替换
+用户前置提示	skills/engineering/implement-spec/SKILL.md	9	setup-matt-pocock-skills	skills/zh/SKILL.md;skills/zh/references/knowledge.md;skills/zh/references/task-protocol.md	协调入口取得项目知识与任务权威，不安装上游setup	已替换
+用户前置提示	skills/engineering/code-review/SKILL.md	13	setup-matt-pocock-skills	skills/zh-review/SKILL.md;skills/zh/references/knowledge.md	按明确本地依据和受审范围工作，不安装上游setup	已替换
+动态建议	skills/productivity/handoff/SKILL.md	10	suggested skills	skills/zh-resume/SKILL.md;skills/zh-resume/references/checkpoint-reconciliation.md	检查点按实际下一步登记本包阶段，不指定上游动态callee	已替换
+附带文件	skills/engineering/domain-modeling/SKILL.md	62；74	GLOSSARY-FORMAT.md；ADR-FORMAT.md	skills/zh-domain/SKILL.md;skills/zh-domain/references/glossary-format.md;skills/zh-domain/references/adr-format.md	两份条件资源有正文指针；项目输出目录按项目权威决定	已衍生
+附带文件	skills/engineering/codebase-design/SKILL.md	113—114	DEEPENING.md；DESIGN-IT-TWICE.md	skills/zh-arch/SKILL.md;skills/zh-arch/references/deepening.md;skills/zh-arch/references/design-it-twice.md	两份条件资源由架构正文按问题加载	已衍生
+附带文件	skills/engineering/prototype/SKILL.md	14—15	LOGIC.md；UI.md	skills/zh-prototype/SKILL.md;skills/zh-prototype/references/logic.md;skills/zh-prototype/references/ui.md	两分支按原型问题加载，不机械照搬上游导航	已衍生
+附带文件	skills/engineering/tdd/SKILL.md	16	tests.md；mocking.md	skills/zh-tdd/SKILL.md;skills/zh-tdd/references/tests.md;skills/zh-tdd/references/mocking.md	按断言与替身问题加载；无需安装示例SDK/测试库	已衍生
+附带文件	skills/engineering/diagnosing-bugs/SKILL.md	35；64	scripts/hitl-loop.template.sh	skills/zh-debug/SKILL.md;skills/zh-debug/references/diagnosis-loop.md;skills/zh-debug/assets/human-reproduction.template.sh	仅人工复现分支复制并适配Bash模板；本轮未执行	已衍生
+附带文件	skills/productivity/writing-for-agents/SKILL.md	8；59	SKILL-MECHANICS.md	skills/zh/references/host.md;skills/zh/references/improvement.md;skills/zh/SKILL.md	SKILL-MECHANICS正文不单独带入；显式/自动调用、参考分层与协调路由已在这些文件改写	已融入共享参考
+直接运行依赖	skills/zh/scripts/requirements.txt	1	PyYAML>=6.0.3,<7	skills/zh/scripts/harness.py;tools/check_package.py	MIT；解析YAML/frontmatter；历史观察6.0.3，声明为区间而非锁定；安装于工具解释器	已声明
+直接运行依赖	skills/zh/scripts/requirements.txt	2	markdown-it-py==4.3.0	skills/zh/scripts/harness.py	MIT；解析Markdown链接及引用；直接依赖精确固定，不安装额外extras	已声明
+传递运行依赖	https://pypi.org/project/markdown-it-py/4.3.0/	Requires-Dist	mdurl~=0.1	skills/zh/scripts/harness.py;skills/zh/scripts/requirements.txt	MIT；历史解析结果0.1.2，未在requirements单独锁定；由markdown-it-py引入	已观察
+系统运行前置	skills/zh/scripts/harness.py	git_state（Git前置检查）	Python>=3.11;Git	skills/zh/references/task-protocol.md;docs/usage.md	工具解释器和PATH中的Git由用户环境提供；非Git工程仍需Git程序；不随包附带解释器或Git二进制	已声明
