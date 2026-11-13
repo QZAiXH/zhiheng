@@ -27,4 +27,4 @@ python3 tools/build_package.py
 /absolute/path/to/zhiheng-tool-venv/bin/python tools/run_checks.py
 ```
 
-`run_checks.py` 重建包、检查 17 个入口与资源、运行测试并编译脚本。使用 `tools/check_package.py` 可单独核对生成包的文件指纹。此处的命令验证当前源码和隔离测试，不会重演历史模型会话；原始审计材料需要在保留它们的开发工作区查阅。
+`run_checks.py` 重建包、检查 17 个入口与资源、检查文档链接和三张来源表落点、运行测试并编译脚本。使用 `tools/check_package.py` 可单独核对生成包的文件指纹；`tools/check_docs.py` 可单独核对仓库文档。PR 的 [CI 工作流](../.github/workflows/verify.yml)在三个操作系统环境运行这套基础检查的相应部分。此处的命令验证当前源码和隔离测试，不会重演历史模型会话；原始审计材料需要在保留它们的开发工作区查阅。

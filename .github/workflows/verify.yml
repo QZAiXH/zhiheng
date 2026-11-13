@@ -1,0 +1,58 @@
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  harness:
+    name: harness-${{ matrix.os }}-${{ matrix.suite }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel]
+        suite: [core, local, github, knowledge]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r skills/zh/scripts/requirements.txt
+      - name: Package and full tests
+        if: matrix.suite == 'core'
+        run: python tools/run_checks.py
+      - name: Local package
+        if: matrix.suite == 'local'
+        run: |
+          python tools/build_package.py
+          python tools/check_package.py
+      - name: Git state and revision tests
+        if: matrix.suite == 'github'
+        run: python -m unittest discover -s tests -p 'test_harness.py' -k git -v
+      - name: Knowledge links and provenance
+        if: matrix.suite == 'knowledge'
+        run: python tools/check_docs.py
+
+  review:
+    name: review-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-15-intel]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r skills/zh/scripts/requirements.txt
+      - name: Skill structure and Python syntax
+        run: |
+          python tools/build_package.py
+          python tools/check_package.py
+          python -m compileall -q skills tools tests

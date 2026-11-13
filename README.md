@@ -141,7 +141,7 @@ TASK=docs/tasks/T-20261114-001/README.md
 /absolute/path/to/zhiheng-tool-venv/bin/python tools/run_checks.py
 ```
 
-该命令重建精简包、检查 17 个入口与资源、运行单元测试并编译脚本。固定上游版本、改造与许可见[来源说明](docs/sources.md)及[三张来源表](docs/upstream-adoption.tsv)。[验证总表](docs/verification.md)区分本地隔离基础检查与尚未进行的业务项目实测；反馈按[反馈入口](docs/feedback.md)记录请求、版本、预期、实际产物和复验结果。
+该命令重建精简包、检查 17 个入口与资源、核对文档链接和来源落点、运行单元测试并编译脚本。仓库 PR 的 GitHub Actions 在 Ubuntu、macOS Apple Silicon 和 macOS Intel 上执行包、Git 状态、知识文档与语法检查。固定上游版本、改造与许可见[来源说明](docs/sources.md)及[三张来源表](docs/upstream-adoption.tsv)。[验证总表](docs/verification.md)区分本地隔离基础检查与尚未进行的业务项目实测；反馈按[反馈入口](docs/feedback.md)记录请求、版本、预期、实际产物和复验结果。
 
 真实项目的迁移、发布和恢复以该项目的配置及知识入口为准。`zh-release` 需要对应环境和授权，不能仅凭本仓库的隔离样例判定业务发布成功。
 

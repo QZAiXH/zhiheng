@@ -8,7 +8,7 @@
 | `.codex-plugin/plugin.json`、根 `LICENSE` | 包含 | 包含 |
 | `.agents/plugins/marketplace.json` | 包含 | 不包含 |
 | `README.md`、`AGENTS.md`、`docs/` 根目录的维护说明和来源表 | 包含 | 不包含 |
-| `tools/`、`tests/` | 包含 | 不包含 |
+| `tools/`、`tests/`、新版 `.github/workflows/verify.yml` | 包含 | 不包含 |
 | `dist/zhiheng/package-manifest.json` | 构建生成 | 包含 |
 | `docs/evidence/`、`docs/reviews/`、`docs/tasks/` | 本地审计资料，不提交 | 不包含 |
 | `.harness/`、虚拟环境、字节码、宿主插件缓存、`.git/` | 不提交 | 不包含 |
