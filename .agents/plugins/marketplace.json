@@ -1,0 +1,17 @@
+{
+  "name": "zhiheng-local",
+  "plugins": [
+    {
+      "name": "zhiheng",
+      "source": {
+        "source": "local",
+        "path": "./dist/zhiheng"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "purpose": "Description-only discovery cases; observe selection separately from execution.",
+  "cases": [
+    {"id": "whole-task", "request": "Implement a local feature from this spec, review it and deliver the result.", "expected": "zh"},
+    {"id": "spec-only", "request": "Turn these accepted decisions into an executable spec only.", "expected": "zh-spec"},
+    {"id": "review-only", "request": "Review these changes against the project rules and the spec.", "expected": "zh-review"},
+    {"id": "acceptance-only", "request": "Check every completion criterion against artifacts and evidence.", "expected": "zh-verify"},
+    {"id": "release", "request": "Deploy the accepted version to the test environment and verify migration.", "expected": "zh-release"},
+    {"id": "handoff", "request": "I am stopping here. Record the actual state so another developer can resume.", "expected": "zh-resume"},
+    {"id": "neighbor", "request": "Translate this one sentence into English.", "expected": null},
+    {"id": "adjacent-delivery", "request": "Prepare the accepted change as a local handoff, without deploying.", "expected": "zh-deliver"}
+  ]
+}
