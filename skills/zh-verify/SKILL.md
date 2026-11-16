@@ -22,6 +22,7 @@ Read [verification](../zh/references/verification.md) before assessing evidence 
 5. Proactively inspect actual code, relevant models, persistence semantics, and migration artifacts for data impact. Read [data-change](../zh/references/data-change.md) when data is involved. Use suitable isolated samples to check retained data, transformations, backfills, initialization, constraints, compatibility, retry and partial completion, and recovery. Record a supported no-migration conclusion when appropriate.
 6. Confirm required independent Standards and Spec review covers the actual result, including fixes and integration. Read [host](../zh/references/host.md) when an independent context must be obtained; missing mandatory independence remains an unmet condition. Tool success cannot substitute for a semantic or independent review obligation.
 7. Verify the actual endpoint: local artifacts, a requested platform state, or an explicitly commissioned runtime result. For a deployed result, inspect the actual environment and required business path; for a stage-only assessment, do not advance to deployment.
+8. When judging completion of implementation or delivery, verify [closure](../zh/references/change-recovery.md#closure) against actual files and retained records.
 
 ## Results and return
 

@@ -1,0 +1,89 @@
+{
+  "format_version": 1,
+  "cases": [
+    {
+      "id": "c01",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "团队从 guide/home.md 查找长期任务记录。采用 work/index.md 登记交付。原始运行日志保留在本机且不进入共享副本；接收者只有共享副本。允许维护现有记录与入口。\n",
+        "guide/home.md": "# Guide\n[Work](../work/index.md)\n",
+        "work/index.md": "# Work\n[Earlier work](r17.md)\n",
+        "work/r17.md": "# Earlier work\n交付记录，状态以本记录为准。\n",
+        ".gitignore": ".local-runs/\n",
+        ".local-runs/r18/task.md": "# Current work\n需求：更新导出格式。本地修改与验证已完成。状态权威：本记录。来源版本：fixture-v2。raw.txt 是验证原文。\n",
+        ".local-runs/r18/raw.txt": "fixture-v2\nexport check: passed\n",
+        "feedback.txt": "导出修改和验证文件都在。本地任务记录尚未整理给团队；请完成交付收尾。\n"
+      }
+    },
+    {
+      "id": "c02",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "长期变更从 design/changes/ledger.md 导航。每项变更有 notes.md。活动协调器的状态页为唯一总体状态来源；共享 notes 只描述交付与证据边界。团队副本没有 cache。允许维护台账与变更说明。\n",
+        "design/changes/ledger.md": "# Changes\n[Prior change](green/notes.md)\n",
+        "design/changes/green/notes.md": "# Prior change\n已交付。\n",
+        ".gitignore": "cache/\n",
+        "cache/blue/coordinator.md": "# State\n状态：等待整合验收。唯一状态页：本文件。交付：命令帮助文本更新；检查 help-check.log 通过。版本：fixture-b7。\n",
+        "cache/blue/help-check.log": "fixture-b7\nhelp rendering: passed\n",
+        "feedback.txt": "帮助文本修改已验证，请处理收尾，团队应能从已有台账了解交付内容；原始证据留本地。\n"
+      }
+    },
+    {
+      "id": "c03",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "业务术语维护在 manual/terms.md；当前实现由源码描述。允许补齐本次已确认术语，保持已有定义的权威地位。\n",
+        "manual/terms.md": "# Terms\n预留数量：尚待补齐。\n",
+        "src/stock.py": "def available(total, reserved):\n    return total - reserved\n",
+        "decision.txt": "产品负责人已确认：本项目可用数量扣减所有未释放的预留；本次只要求把已确认含义补入术语文档，不改变实现。\n",
+        "feedback.txt": "文档没有说明可用数量如何计算，后续执行者反复读实现。\n"
+      }
+    },
+    {
+      "id": "c04",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "按具体任务决定工具和执行条件。改动规则需要可追溯依据；本次允许调查反馈，尚未批准全局配置变更。\n",
+        "feedback.txt": "上次跑得慢，也许所有任务都应使用同一种执行配置。\n",
+        "materials.txt": "未提供原请求、执行日志、使用的技能版本、工具调用或耗时记录。只有这一次口头反馈。\n"
+      }
+    },
+    {
+      "id": "c05",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "记录中的本地 Markdown 链接必须存在。项目检查入口为 Makefile 的 check。允许修复本次入口及其验证。\n",
+        "Makefile": "check:\n\tpython3 -m unittest discover -s tests\n\ncheck-records:\n\tpython3 tools/check_records.py\n",
+        ".github/workflows/check.yml": "name: check\non: [push]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: make check\n",
+        "project/index.md": "# Records\n[Run](missing.md)\n",
+        "project/run.md": "# Run\nThe delivered record.\n",
+        "tools/check_records.py": "from pathlib import Path\nimport re\nerrors = []\nfor source in Path(\"project\").rglob(\"*.md\"):\n    for target in re.findall(r\"\\]\\(([^)]+)\\)\", source.read_text()):\n        if not (source.parent / target).is_file():\n            errors.append(str(source) + \": \" + target)\nprint(\"\\n\".join(errors) if errors else \"record links passed\")\nraise SystemExit(bool(errors))\n",
+        "tests/test_smoke.py": "import unittest\nclass Smoke(unittest.TestCase):\n    def test_ready(self):\n        self.assertEqual(2 + 2, 4)\n",
+        "feedback.txt": "入口链接坏了，但常用本地检查和 CI 都显示通过。请修复并验证。\n"
+      }
+    },
+    {
+      "id": "c06",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "交付摘要位于 records/；团队从 HOME.md 导航。原始日志仅保留在受限运行区。摘要须标出版本和访问限制，状态以 SUMMARY.md 为准。\n",
+        "HOME.md": "# Home\n[Delivery](records/summary.md)\n",
+        "SUMMARY.md": "# Status\n交付已验收。\n",
+        "records/summary.md": "# Delivery\n配置文档更新已交付，状态见 [Status](../SUMMARY.md)。版本 fixture-z3；原始检查输出保留在受限 archive/run-z/check.txt，团队副本不含原文。如需复核由维护者提供访问。\n",
+        ".gitignore": "archive/\n",
+        "archive/run-z/check.txt": "fixture-z3\nconfiguration docs check: passed\n",
+        "feedback.txt": "请确认交付记录是否还需调整。接收者能看团队副本，已约定不共享原始运行日志。\n"
+      }
+    },
+    {
+      "id": "c07",
+      "request": "读取给定项目材料，完成已授权的本地收尾与反馈处置。给出可复核的最小修改或无需修改的依据，说明事实来源、落点、已验证结果及尚缺证据。通用技能仅可在报告中提出候选，不在评估工作区外写入。",
+      "files": {
+        "AGENTS.md": "设计评审标准写在 review/design.md。允许补齐该评审遗漏，不改变已确认的架构。\n",
+        "review/design.md": "# Review\n依赖方向遵守已确认模块边界。\n",
+        "architecture.md": "# Decision\n各适配器只负责传输转换；共享业务约束由应用层持有。判断某段逻辑是否属于业务约束须结合调用方、数据所有权和异常含义；同名函数可以承担不同责任。\n",
+        "feedback.txt": "两处函数名相同、语法相似，但其中一处同时改变业务状态；独立审查漏看了该职责差异。请补齐项目评审依据。\n"
+      }
+    }
+  ]
+}
