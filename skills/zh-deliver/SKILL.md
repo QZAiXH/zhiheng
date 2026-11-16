@@ -40,8 +40,8 @@ Use existing project tooling and authorized interfaces. When a required conditio
 
 ## Close and return
 
-Preserve required verification, diagnosis, and recovery evidence before cleaning attributable temporary materials. Clean only items whose ownership, active use, and remaining references have been checked under the shared lifecycle rules.
+Before local delivery or platform handoff, read and perform [closure](../zh/references/change-recovery.md#closure).
 
-Return the delivered locations and versions, actual endpoint state and platform links when applicable, verification summary, data and migration handoff, retained evidence, cleanup result, and remaining work. Delivery is complete only when the agreed endpoint and its mandatory conditions are met. The coordinator records current acceptance and overall state; individual returned or merged slices still require integrated completion checks.
+Return the delivered locations and versions, actual endpoint state and platform links when applicable, verification summary, data and migration handoff, closure outcome, and remaining work. Delivery is complete when the commissioned endpoint and closure checks pass. The coordinator records current acceptance and overall state; individual returned or merged slices still require integrated completion checks.
 
 This entry is independently authored from the project's accepted delivery requirements. It does not incorporate or translate the upstream `pr` skill.
