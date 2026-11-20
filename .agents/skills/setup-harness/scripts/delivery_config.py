@@ -12,36 +12,55 @@ import tempfile
 
 MODES = ('local', 'github-pr')
 TRACKERS = ('github', 'gitlab', 'local')
-DELIVERY_LINE = re.compile(rb'^<!-- harness-delivery(?=[: \t\r\n]|$)[^\r\n]*', re.MULTILINE)
+STRUCTURAL_LINE = re.compile(
+    rb'^(?: {0,3}(?P<fence>`{3,}|~{3,})(?P<info>[^\r\n]*)'
+    rb'|<!-- harness-delivery(?=[: \t\r\n]|$)[^\r\n]*)',
+    re.MULTILINE,
+)
 VALID_LINE = re.compile(rb'<!-- harness-delivery: (local|github-pr) -->')
 
 
-def delivery_line(guide):
-    lines = list(DELIVERY_LINE.finditer(guide))
-    if not lines:
-        return None
-    if len(lines) != 1 or not VALID_LINE.fullmatch(lines[0].group()):
-        raise ValueError('Expected exactly one valid harness-delivery line.')
-    return lines[0]
+def inspect_guide(guide):
+    """Locate the active marker and a place to add one outside fenced examples."""
+    marker = None
+    fence = None
+    insertion = len(guide)
+    for line in STRUCTURAL_LINE.finditer(guide):
+        delimiter = line['fence']
+        if fence is not None:
+            if delimiter and delimiter.startswith(fence) and not line['info'].strip(b' \t'):
+                fence = None
+                insertion = len(guide)
+        elif delimiter:
+            if delimiter.startswith(b'~') or b'`' not in line['info']:
+                fence = delimiter
+                insertion = line.start()
+        elif marker is None and VALID_LINE.fullmatch(line.group()):
+            marker = line
+        else:
+            raise ValueError('Expected exactly one valid harness-delivery line.')
+    return marker, insertion
 
 
-def prepare(guide, line, mode):
+def prepare(guide, line, insertion, mode):
     desired = f'<!-- harness-delivery: {mode} -->'.encode('ascii')
     if line:
         return guide[:line.start()] + desired + guide[line.end():]
 
     first_lf = guide.find(b'\n')
     newline = b'\r\n' if first_lf > 0 and guide[first_lf - 1:first_lf] == b'\r' else b'\n'
-    if guide and not guide.endswith(newline):
-        guide += newline
-    if guide and not guide.endswith(newline * 2):
-        guide += newline
-    return guide + desired + newline
+    prefix, suffix = guide[:insertion], guide[insertion:]
+    if prefix and not prefix.endswith(newline):
+        prefix += newline
+    if prefix and not prefix.endswith(newline * 2):
+        prefix += newline
+    return prefix + desired + newline + (newline + suffix if suffix else b'')
 
 
 def apply(guide, candidate, baseline):
     desired = candidate.read_bytes()
-    if delivery_line(desired) is None:
+    marker, _ = inspect_guide(desired)
+    if marker is None:
         raise ValueError('The approved candidate needs a harness-delivery line.')
 
     guide = guide.resolve()
@@ -102,13 +121,13 @@ def main():
             apply(args.guide, args.candidate, args.baseline)
             return
         guide = args.guide.read_bytes()
-        line = delivery_line(guide)
+        line, insertion = inspect_guide(guide)
         if args.command == 'read':
             print(VALID_LINE.fullmatch(line.group())[1].decode('ascii') if line else 'missing')
         else:
             if args.mode == 'github-pr' and args.tracker != 'github':
                 raise ValueError('github-pr requires the GitHub Issues tracker.')
-            sys.stdout.buffer.write(prepare(guide, line, args.mode))
+            sys.stdout.buffer.write(prepare(guide, line, insertion, args.mode))
     except (OSError, ValueError) as error:
         parser.exit(1, f'{error}\n')
 

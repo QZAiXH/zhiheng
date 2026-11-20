@@ -1,6 +1,6 @@
 # Configure project delivery
 
-The effective project entry links to the generated tracker guide, normally `docs/agents/issue-tracker.md`. Keep exactly one standalone delivery line in that guide. Its spelling stays fixed across languages.
+The effective project entry links to the generated tracker guide, normally `docs/agents/issue-tracker.md`. Keep exactly one standalone delivery line outside fenced code examples in that guide. Its spelling stays fixed across languages.
 
 - `<!-- harness-delivery: local -->` selects local delivery. Record the branch, commit and verification on the original ticket after acceptance.
 - `<!-- harness-delivery: github-pr -->` selects GitHub PR delivery. Open or reuse the PR in the code repository, link the original ticket, and check acceptance and applicable CI/CD on the current PR head before closure. When no remote checks apply, record how that was established and the agreed local verification. Leave the PR for the user to merge.

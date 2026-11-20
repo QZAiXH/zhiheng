@@ -191,6 +191,32 @@ class DeliveryConfigTests(unittest.TestCase):
                     self.assertEqual(result.stdout, b'')
                 self.assertEqual(self.guide.read_bytes(), original)
 
+    def test_fenced_examples_survive_migration_and_mode_changes(self):
+        examples = (
+            b'  ````html\r\n<!-- harness-delivery: local -->\r\n```\r\n'
+            b'<!-- harness-delivery: example -->\r\n   `````\r\n'
+            b'~~~text\r\n<!-- harness-delivery: github-pr -->\r\n~~~\r\n'
+        )
+        self.guide.write_bytes(examples)
+        self.assert_mode('missing')
+        self.preview('github', 'github-pr')
+        self.apply_preview()
+        self.assert_mode('github-pr')
+        self.preview('github', 'local')
+        self.apply_preview()
+        self.assertEqual(self.guide.read_bytes(), examples + b'\r\n<!-- harness-delivery: local -->\r\n')
+
+    def test_new_setting_stays_outside_an_unclosed_fence(self):
+        prefix = b'# Guide\n\n'
+        example = b'```md\n<!-- harness-delivery: github-pr -->'
+        self.guide.write_bytes(prefix + example)
+        self.assert_mode('missing')
+        self.preview('github', 'local')
+        self.apply_preview()
+        self.assert_mode('local')
+        self.assertEqual(self.guide.read_bytes(), prefix + b'<!-- harness-delivery: local -->\n\n' + example)
+        self.assertEqual(self.preview('github', 'local'), b'')
+
     def test_non_github_tracker_cannot_prepare_github_pr_mode(self):
         for tracker, original in (('gitlab', GITLAB_GUIDE), ('local', LOCAL_GUIDE)):
             with self.subTest(tracker=tracker):
