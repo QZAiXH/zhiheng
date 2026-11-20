@@ -1,0 +1,6 @@
+interface:
+  display_name: "Set Up Development Harness"
+  short_description: "Connect a repository to dual-loop development"
+  default_prompt: "Use $setup-harness to onboard this repository to dual-loop development."
+policy:
+  allow_implicit_invocation: true

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify a project key, or provision one on an authorized OpenViking host."""
+"""Verify, load, or provision an OpenViking project key."""
 
 import argparse
 import fcntl
@@ -22,13 +22,17 @@ class KeepCredentialsOnHost(HTTPRedirectHandler):
 client = build_opener(ProxyHandler({}), KeepCredentialsOnHost())
 
 
-def request(url, key, payload=None):
+def authorization_header(key):
     if not key:
         raise ValueError("Missing credential.")
     if not key.isascii() or not key.isprintable() or any(char.isspace() for char in key):
         raise ValueError("The credential must be a single API key.")
+    return f"Bearer {key}"
+
+
+def request(url, key, payload=None):
+    headers = {"Authorization": authorization_header(key), "Content-Type": "application/json"}
     data = json.dumps(payload).encode() if payload is not None else None
-    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     with client.open(Request(url, data=data, headers=headers), timeout=30) as response:
         return json.load(response)
 
@@ -142,10 +146,15 @@ def main():
     issue.add_argument("--config", type=Path, required=True, help="Service-side OpenViking JSON configuration.")
     issue.add_argument("--key-file", type=Path, required=True, help="Private credential destination outside Git.")
     issue.add_argument("--rotate-lost-key", action="store_true", help="Invalidate an existing lost key after explicit authorization.")
+    headers = modes.add_parser("mcp-headers", help="Supply the Authorization header to Codex.")
+    headers.add_argument("--key-file", type=Path, required=True, help="Private project key file outside the repository.")
     for command in (check, issue):
         command.add_argument("--account", required=True, help="Selected OpenViking account ID.")
         command.add_argument("--user", default="codex", help="Ordinary project user (default: codex).")
     args = parser.parse_args()
+    if args.mode == "mcp-headers":
+        print(json.dumps({"Authorization": authorization_header(read_key(args.key_file))}))
+        return
     if any(value in ("", ".", "..") or "/" in value for value in (args.account, args.user)):
         parser.error("Supply a single account and user identifier.")
     if args.mode == "provision":

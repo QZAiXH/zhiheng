@@ -1,0 +1,4 @@
+[mcp_servers.openviking]
+url = "http://192.168.31.141:1933/mcp"
+http_headers_helper = 'exec python3 -B "$(git rev-parse --show-toplevel)/plugins/zhiheng/skills/setup-harness/scripts/project_access.py" mcp-headers --key-file "$HOME/.config/openviking/projects/qzaixh-zhiheng.key"'
+enabled_tools = ["find", "read"]

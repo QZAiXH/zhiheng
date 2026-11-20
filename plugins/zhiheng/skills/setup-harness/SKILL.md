@@ -16,11 +16,11 @@ Start at the target repository. The outcome is a short, effective project instru
 
 ## 2. Resolve choices and preview
 
-Use prior decisions. On a rerun, verify the existing setup in place. If it already covers the same choices, paths, checks and verified knowledge, finish with zero edits. For an undecided tracker, propose the matching GitHub or GitLab remote, or local Markdown for a local-only repository. Have the user select the actual issue repository, which may differ from the code repository. Give the smallest remaining choices together when practicable.
+Use prior decisions. On a rerun, verify the existing setup in place, including the OpenViking credential source. If it already covers the same choices, paths, checks and verified knowledge, finish with zero edits. For an undecided tracker, propose the matching GitHub or GitLab remote, or local Markdown for a local-only repository. Have the user select the actual issue repository, which may differ from the code repository. Give the smallest remaining choices together when practicable.
 
 Use a single glossary unless an existing map or distinct project domains call for several. Keep legacy paths that are still in use. Include triage only when the **project uses it**. If adopted, confirm the five role mappings against the existing labels. Installation alone does not select triage.
 
-For OpenViking, agree on the project binding. Check an existing ordinary credential first. New accounts require administrative authorization for that project. A repository edit and a server-side change are separate effects. See [OpenViking setup and recovery](openviking.md).
+For OpenViking, agree on the project binding. Check an existing ordinary credential first. New accounts require administrative authorization for that project. A repository edit and a server-side change are separate effects. Follow [OpenViking setup and recovery](openviking.md) for new client configuration and migration from an environment variable.
 
 Agree on the [project model routing table](model-routing.md) in this session on first setup. For an assigned setup update, work within the confirmed scope and hand choices that need approval back to the caller. Preview the difficulty examples, three default pairs, any role exceptions, and the complete resolved table with the rest of the setup. On refresh, retain confirmed values and resolve only gaps unless the user requests a change.
 

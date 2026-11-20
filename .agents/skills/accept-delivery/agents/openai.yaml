@@ -1,0 +1,4 @@
+interface:
+  display_name: "Accept Delivery"
+  short_description: "Verify implementation and close delivery"
+  default_prompt: "Use $accept-delivery to verify this delivery from the original ticket and produce an acceptance report."
