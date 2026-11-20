@@ -105,7 +105,7 @@ class VisibleReferences(HTMLParser):
                   "h1 h2 h3 h4 h5 h6 header hr li main ol p pre section table tbody td th "
                   "thead tr ul".split())
     _void = set("area base br col embed hr img input link meta param source track wbr".split())
-    _ignored = {"code", "head", "noscript", "pre", "script", "style", "template", "title"}
+    _ignored = {"head", "noscript", "pre", "script", "style", "template", "title"}
     _hidden_style = re.compile(
         r"(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse))"
         r"\s*(?:!\s*important\s*)?(?:;|$)", re.IGNORECASE
@@ -126,7 +126,7 @@ class VisibleReferences(HTMLParser):
         attrs = dict(attrs)
         if tag in self._blocks:
             self.text.append("\n")
-        if (tag in self._ignored or "hidden" in attrs or
+        if (tag in self._ignored or (tag == "code" and self.anchor is None) or "hidden" in attrs or
                 (attrs.get("aria-hidden") or "").lower() == "true" or
                 self._hidden_style.search(attrs.get("style") or "")):
             if tag not in self._void:

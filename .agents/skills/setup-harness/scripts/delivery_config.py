@@ -20,6 +20,10 @@ STRUCTURAL_LINE = re.compile(
 VALID_LINE = re.compile(rb'<!-- harness-delivery: (local|github-pr) -->')
 LIST_ITEM = re.compile(rb' {0,3}(?:[-+*]|[0-9]{1,9}[.)])(?P<space> +|$)')
 THEMATIC_BREAK = re.compile(rb' {0,3}(?:(?:- *){3,}|(?:\* *){3,})')
+PARAGRAPH_BREAK = re.compile(
+    rb' {0,3}(?:<!--|</?[a-zA-Z][\w-]*(?: |/?>)|>|#{1,6}(?: |$)|`{3,}|~{3,}'
+    rb'|(?:=+|-+|(?:_ *){3,}) *$)'
+)
 
 
 def inspect_guide(guide):
@@ -27,20 +31,30 @@ def inspect_guide(guide):
     marker = None
     fence = None
     list_indent = 0
+    list_paragraph = False
     insertion = len(guide)
-    for row in re.finditer(rb'(?m)^[^\n]+', guide):
+    for row in re.finditer(rb'(?m)^[^\n]*(?:\n|$)', guide):
         if fence is None:
-            content = row.group().rstrip(b'\r').expandtabs(4)
+            content = row.group().rstrip(b'\r\n').expandtabs(4)
             if not content.strip():
+                list_paragraph = False
                 continue
             if list_indent and content.startswith(b' ' * list_indent):
+                list_paragraph = not PARAGRAPH_BREAK.match(content[list_indent:])
+                continue
+            item = LIST_ITEM.match(content)
+            thematic = THEMATIC_BREAK.fullmatch(content)
+            if list_paragraph and not (item or thematic or PARAGRAPH_BREAK.match(content)):
+                # GFM permits an unindented paragraph continuation inside a list item.
                 continue
             list_indent = 0
-            item = LIST_ITEM.match(content)
-            if item and not THEMATIC_BREAK.fullmatch(content):
+            list_paragraph = False
+            if item and not thematic:
                 # Indented continuations belong to the list, including its code fences.
                 spaces = len(item['space'])
                 list_indent = item.start('space') + (spaces if 1 <= spaces <= 4 else 1)
+                rest = content[item.end():]
+                list_paragraph = bool(rest and not PARAGRAPH_BREAK.match(rest))
                 continue
         line = STRUCTURAL_LINE.match(guide, row.start())
         if not line:

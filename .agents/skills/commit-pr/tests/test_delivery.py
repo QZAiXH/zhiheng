@@ -346,6 +346,16 @@ class DeliveryTest(unittest.TestCase):
         self.assertEqual(self.state()["pr"]["body"], inline)
         self.assertEqual(self.state()["creates"], 1)
 
+    def test_clickable_code_label_preserves_template_and_reuses_pr(self):
+        template = f"Related to [`request #20`]({ISSUE}).\n"
+        rendered = f'<p>Related to <a href="{ISSUE}"><code>request #20</code></a>.</p>'
+        self.body.write_text(template)
+        self.render_fixture(template, rendered)
+        self.assertEqual(self.publish()["number"], 41)
+        self.assertEqual(self.state()["pr"]["body"], template)
+        self.assertEqual(self.publish()["number"], 41)
+        self.assertEqual(self.state()["creates"], 1)
+
     def test_draft_adds_visible_reference_and_keeps_template(self):
         other = ISSUE.removesuffix("20") + "21"
         template = (f"Related to [request 21]({other}).\n\n[template-example]: {ISSUE}\n"
