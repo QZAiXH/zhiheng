@@ -1,8 +1,4 @@
-/.harness/runs/
-/dist/
-/docs/evidence/
-/docs/reviews/
-/docs/tasks/
+.DS_Store
 __pycache__/
 *.pyc
 .venv/

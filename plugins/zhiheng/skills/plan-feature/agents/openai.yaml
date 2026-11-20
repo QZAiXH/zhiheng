@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirements and Design"
+  short_description: "Turn agreed requirements into testable delivery tickets"
+  default_prompt: "Use $plan-feature to plan this change from the original ticket and show how we will verify it."

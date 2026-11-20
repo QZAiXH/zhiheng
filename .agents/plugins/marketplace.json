@@ -5,7 +5,7 @@
       "name": "zhiheng",
       "source": {
         "source": "local",
-        "path": "./dist/zhiheng"
+        "path": "./plugins/zhiheng"
       },
       "policy": {
         "installation": "AVAILABLE",

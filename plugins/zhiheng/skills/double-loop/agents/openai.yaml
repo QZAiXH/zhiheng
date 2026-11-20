@@ -1,0 +1,6 @@
+interface:
+  display_name: "Route Dual-Loop Delivery"
+  short_description: "Route ticket work using the project's confirmed model table"
+  default_prompt: "Use $double-loop to complete the named ticket."
+policy:
+  allow_implicit_invocation: true

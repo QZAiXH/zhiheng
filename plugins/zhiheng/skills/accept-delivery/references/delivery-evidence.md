@@ -1,0 +1,8 @@
+# Delivery evidence and cleanup
+
+Use the original tracker record and its linked parent or children as the entry point. Preserve each required original report, command output, reproducer, dispatch record and unique failure artifact. Keep the link with its tested or reviewed revision and the check it supports. Preserve original bytes when relocating evidence.
+
+1. **Before releasing a work area**, put any unique original needed for acceptance, recovery or an agreed retrospective in a durable tracker attachment, Git revision or project evidence archive. A formal local tracker can keep evidence alongside its ticket using relative paths. Preserve the link layout in portable archives. Update the tracker pointers and verify each final copy against the source, using a digest for relocated files when practical.
+2. **Before closure**, open every required original from its final pointer on the tracker record, including linked handoffs and any child evidence used by the parent. Verify that it covers the cited revision and criterion. Record a missing path or attachment by name and keep the affected ticket open until its evidence can be verified.
+3. **For cleanup**, remove only items created by this task that are explicitly disposable and have no remaining references. Check the current worktree and tracker pointers before deleting. Preserve active checkpoints, unique originals, pending synchronization bodies and anything of uncertain ownership or use.
+4. **After cleanup**, start again at the original ticket in the retained or restored location and open the same pointers before marking it closed. Reopen the closed ticket to verify its recorded status and that its evidence still opens.
