@@ -5,13 +5,13 @@ description: "Plan a requested feature or architecture change, triage an origina
 
 # Requirements and design
 
-Own outer-loop `Plan` through ticket breakdown and acceptance design. A fresh delivery session should be able to start from the original ticket. Keep a discussion-only request in the conversation. When the user authorizes recording decisions, update the project's chosen tracker as decisions are made.
+Own outer-loop `Plan` through ticket breakdown and acceptance design. A fresh delivery session should be able to start from the original ticket. Keep a discussion-only request in the conversation. Record authorized decisions as they are made. In a routed delivery, send tracker updates to the coordinator for writing and readback.
 
 Write specs, tickets, diagrams, knowledge bodies and handoffs in the user's conversation language. An explicit deliverable language overrides that default for the named artifacts. Preserve code identifiers, commands, URIs and fixed tracker or protocol fields.
 
 ## Choose the planning work
 
-Start at the project's `AGENTS.md` or `CLAUDE.md`. Read the original ticket, its comments, linked decisions and target release. Honor any existing [task budget and checkpoint](references/ticket-and-spec.md#pause-and-resume-at-an-existing-limit). Check the relevant implementation or tests for current behavior. Before asking a business question, designing a model or writing acceptance criteria, look up the applicable decision for that scenario and version. For a project bound to OpenViking, use its ordinary project identity and the [knowledge procedure](references/project-knowledge.md).
+Start at the project's `AGENTS.md` or `CLAUDE.md`. For an explicit development request from chat, use [ticket intake](references/ticket-and-spec.md#resolve-the-original-ticket) before writing or handing off. Read the original ticket, its comments, linked decisions and target release when a ticket exists. Honor any existing [task budget and checkpoint](references/ticket-and-spec.md#pause-and-resume-at-an-existing-limit). Check the relevant implementation or tests for current behavior. Before asking a business question, designing a model or writing acceptance criteria, look up the applicable decision for that scenario and version. For a project bound to OpenViking, use its ordinary project identity and the [knowledge procedure](references/project-knowledge.md).
 
 | Situation | Action and stopping point |
 | --- | --- |
@@ -29,10 +29,10 @@ Cite and show any earlier user-approved design that covers this exact change. Ob
 
 ## Hand off from the original ticket
 
-For a small change, add only the missing example, decision or check to the ticket. When interfaces or tickets share a contract, synthesize a parent spec. When work needs separate deliveries, **Plan proposes and records the approved split**. Use the [spec and ticket guide](references/ticket-and-spec.md) for the tracker, dependency edges and integrated example.
+For a small change, add only the missing example, decision or check to the ticket. When interfaces or tickets share a contract, synthesize a parent spec. When work needs separate deliveries, prepare the proposed split and capture the approval for the original ticket. Use the [spec and ticket guide](references/ticket-and-spec.md) for the tracker, dependency edges and integrated example.
 
-Reopen the original ticket as the receiver would. Follow its links to the target version, accepted decisions, concrete inputs, expected outcomes and check entry points. For a split, identify what can start now, what each blocked ticket awaits and which behavior must be checked after integration. Report actual observations and mark planned checks as pending.
+Once the handoff is recorded, reopen the original ticket as the receiver would. Follow its links to the target version, accepted decisions, concrete inputs, expected outcomes and check entry points. In a routed delivery, the coordinator performs this readback for its writes. For a split, identify what can start now, what each blocked ticket awaits and which behavior must be checked after integration. Report actual observations and mark planned checks as pending.
 
 For a maintainer-requested `retro`, take the original ticket, delivery revision and evidence to the [Act retrospective](../accept-delivery/references/retro.md). Carry adopted Git clauses, their verified knowledge URIs and their checks into affected follow-up tickets.
 
-When assigned by [double-loop](../double-loop/SKILL.md), return the verified planning handoff, ready work or next decision to the route for dispatch. For direct invocation on an end-to-end request, continue straight to [implement-ticket](../implement-ticket/SKILL.md) when the work is ready, or to [accept-delivery](../accept-delivery/SKILL.md) when there is a delivery ready for `Check`. “Only develop” ends at the implementation handoff. “Only produce an acceptance report” goes to `Check` on the delivered revision. A planning-only request ends with the design or ready ticket.
+When assigned by [double-loop](../double-loop/SKILL.md), return proposed tracker updates, the verified planning handoff, ready work or the next decision to the coordinator for recording and dispatch. For direct invocation on an end-to-end request, continue straight to [implement-ticket](../implement-ticket/SKILL.md) when the work is ready, or to [accept-delivery](../accept-delivery/SKILL.md) when there is a delivery ready for `Check`. “Only develop” ends at the implementation handoff. “Only produce an acceptance report” goes to `Check` on the delivered revision. A planning-only request ends with the design or ready ticket.

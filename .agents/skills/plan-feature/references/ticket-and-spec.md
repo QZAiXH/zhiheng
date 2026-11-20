@@ -5,7 +5,19 @@
 Follow the issue-tracker guide linked from the project's instructions. Update the original ticket and retain its history. A discussion stays in the conversation. If the destination is undecided or a write is unavailable, provide the finished draft and identify where it still needs to be recorded.
 
 - **Local Markdown.** Follow the existing layout. The setup default is `.scratch/<feature-slug>/spec.md` for a parent and `issues/<NN>-<slug>.md` below the same directory for each implementation ticket. Number new tickets in dependency order from `01`, keeping existing numbers stable. Keep `Status:` near the top, use `Blocked by:` for real ticket references and append decisions, evidence and handoffs under `## Comments`. Give the full repository-relative ticket path in the agreed worktree.
-- **GitHub or GitLab.** Use the selected repository, tracker states and labels. Reuse the original issue and any existing parent. Link children in both directions using repository-qualified references and native blocking relationships where supported. After an authorized write, reopen the issue and links. If the response was lost, check for the existing issue or comment before retrying.
+- **GitHub or GitLab.** Use the selected repository, tracker states and labels. Reuse the original issue and any existing parent. Link children in both directions using repository-qualified references and native blocking relationships where supported. Read back each authorized write and reconcile uncertain writes as described below.
+
+## Resolve the original ticket
+
+Apply the requested mode before writes. A discussion or explanation stays in chat unless the user authorizes recording decisions. A report-only request resolves an existing delivery through read-only Git, tracker, and knowledge access. A clear request to implement or repair can start intake even when it arrives in chat without a ticket number. In a routed request the coordinator owns intake and tracker writes.
+
+1. Use the configured tracker and verified project. Open an explicitly named issue or local path and confirm its scope. Otherwise search the configured tracker, including closed records, using the requested outcome, project terms, affected behavior and acceptance scenarios. Read plausible matches and their comments, parent links and target versions. Compare the observable result and applicable version. Reuse the record covering that work, following duplicate or parent links to the appropriate original. Resolve ambiguity before creating a record or dispatching work.
+2. For an explicit development request, create one original only when the search found no match and the configured tracker permits the write. Capture the requested outcome, target version if known, scope, acceptance examples or open questions, and source request. When creation is unavailable or the search is incomplete, return a ready-to-file draft with the destination or missing tracker choice and the outstanding condition. Stop intake before development. Keep report-only work on the existing artifact.
+3. Read back the repository-qualified issue or full repository-relative ticket path and use it for `Plan`, `Do`, review, and `Check`. For a closed record, reuse its verified result if it still covers the request. If the same agreed outcome now fails, verify the regression and, when authorized, reopen that original using the tracker convention, preserving its history and adding the new evidence.
+
+### Reconcile uncertain writes
+
+After a create, update, reopen or close, read back the record and affected links. When the outcome is uncertain, search again before retrying. For creation, rerun the same scope search and inspect candidates for the intended request. For an existing record, reopen it and look for the intended comment, round, evidence or state. Reuse an existing result. Retry only after establishing that the previous write did not land. If its outcome remains unknown, return the pending operation and the readback needed to resolve it.
 
 ## Describe a checkable result
 
