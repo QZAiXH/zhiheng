@@ -31,6 +31,35 @@ class ProjectAccessTests(unittest.TestCase):
         with patch.object(sys, 'argv', ['project_access.py', *self.args, *extra]), contextlib.redirect_stdout(io.StringIO()):
             access.main()
 
+    def mcp_headers(self):
+        return subprocess.run([sys.executable, '-B', access.__file__, 'mcp-headers',
+                               '--key-file', str(self.key_file)], capture_output=True, text=True)
+
+    def test_mcp_headers_load_project_key_from_private_file(self):
+        self.key_file.parent.mkdir()
+        access.save_key(self.key_file, 'ordinary-test')
+
+        result = self.mcp_headers()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {'Authorization': 'Bearer ordinary-test'})
+
+    def test_mcp_headers_reject_invalid_key_file_without_echoing_secret(self):
+        self.key_file.parent.mkdir()
+        marker = 'PRIVATE-TEST-FRAGMENT'
+        for mode, key, message in ((0o644, marker, 'private regular key file'),
+                                   (0o600, f'first\n{marker}', 'single API key')):
+            with self.subTest(mode=oct(mode)):
+                access.save_key(self.key_file, key)
+                self.key_file.chmod(mode)
+
+                result = self.mcp_headers()
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, '')
+                self.assertIn(message, result.stderr)
+                self.assertNotIn(marker, result.stderr)
+
     def test_existing_key_needs_only_the_ordinary_health_check(self):
         self.key_file.parent.mkdir()
         access.save_key(self.key_file, 'ordinary-test')
