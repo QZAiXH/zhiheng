@@ -1,6 +1,6 @@
 {
   "name": "zhiheng",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "用同一张工单完成需求设计、开发和交付验收的双层循环技能",
   "skills": "./skills/"
 }
