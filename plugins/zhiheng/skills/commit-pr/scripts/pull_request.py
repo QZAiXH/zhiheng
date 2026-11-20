@@ -5,8 +5,12 @@ import json
 import re
 import subprocess
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import quote, urlencode, urlsplit
+from urllib.parse import quote, urlencode, urljoin, urlsplit
+
+
+FULL_PR = "application/vnd.github.full+json"
 
 
 class Unverified(Exception):
@@ -31,8 +35,10 @@ def git(*args):
     return run("git", *args).stdout.strip()
 
 
-def api(host, endpoint, *, pages=False, data=None, allow_unprotected=False):
+def api(host, endpoint, *, pages=False, data=None, accept=None, allow_unprotected=False):
     args = ["gh", "api", "--hostname", host]
+    if accept:
+        args += ["--header", f"Accept: {accept}"]
     if pages:
         args += ["--paginate", "--slurp"]
     if data is not None:
@@ -43,6 +49,8 @@ def api(host, endpoint, *, pages=False, data=None, allow_unprotected=False):
         require("gh: Branch not protected (HTTP 404)" in result.stderr.splitlines(),
                 "Classic branch protection is unverified")
         return None
+    if accept == "text/html":
+        return result.stdout
     response = json.loads(result.stdout)
     require(response is not None, "GitHub response is empty")
     if pages:
@@ -92,60 +100,101 @@ def pr_side(pr, side):
     return ref["repo"]["full_name"].lower(), ref["ref"]
 
 
-_QUOTE = r"(?:[ ]{0,3}>[ \t]?)"
-_PR_MARKUP = re.compile(
-    rf"""(?imx)
-    ^(?P<quotes>{_QUOTE}*)(?P<indent>[ \t]*)
-      (?P<list_item>(?:[-+*]|\d{{1,9}}[.)])[ \t]+)?
-      (?P<fence>`{{3,}}|~{{3,}})[^\n]*(?:\n|$)
-    | ^{_QUOTE}*(?:[ ]{{4}}|\t)[^\n]*
-    | <!--[\s\S]*?(?:-->|\Z)
-    | <(?P<tag>pre|code)\b[^>]*>[\s\S]*?(?:</(?P=tag)\s*>|\Z)
-    | (?<![`\\])(?P<ticks>`+)(?!`)
-      (?:(?!\r?\n[ \t]*\r?\n)[\s\S])*?(?<!`)(?P=ticks)(?!`)
-    """
-)
+class VisibleReferences(HTMLParser):
+    _blocks = set("address article aside blockquote br dd div dl dt figcaption figure footer "
+                  "h1 h2 h3 h4 h5 h6 header hr li main ol p pre section table tbody td th "
+                  "thead tr ul".split())
+    _void = set("area base br col embed hr img input link meta param source track wbr".split())
+    _ignored = {"code", "head", "noscript", "pre", "script", "style", "template", "title"}
+    _hidden_style = re.compile(
+        r"(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse))"
+        r"\s*(?:!\s*important\s*)?(?:;|$)", re.IGNORECASE
+    )
+
+    def __init__(self):
+        super().__init__()
+        self.text = []
+        self.links = set()
+        self.anchor = None
+        self.ignored = []
+
+    def handle_starttag(self, tag, attrs):
+        if self.ignored:
+            if tag == self.ignored[-1]:
+                self.ignored.append(tag)
+            return
+        attrs = dict(attrs)
+        if tag in self._blocks:
+            self.text.append("\n")
+        if (tag in self._ignored or "hidden" in attrs or
+                (attrs.get("aria-hidden") or "").lower() == "true" or
+                self._hidden_style.search(attrs.get("style") or "")):
+            if tag not in self._void:
+                self.ignored.append(tag)
+            if tag == "code":
+                self.text.append("@")
+        elif tag == "a" and attrs.get("href") is not None:
+            # The destination is authoritative, even if the label names another issue.
+            self.anchor = attrs["href"].strip()
+            self.text.append("@")
+        elif tag == "img" and self.anchor is not None and (attrs.get("src") or attrs.get("alt")):
+            self.links.add(self.anchor)
+
+    def handle_endtag(self, tag):
+        if self.ignored:
+            if tag == self.ignored[-1]:
+                self.ignored.pop()
+            return
+        if tag in self._blocks:
+            self.text.append("\n")
+        if tag == "a":
+            self.anchor = None
+
+    def handle_data(self, data):
+        if not self.ignored:
+            if self.anchor is None:
+                self.text.append(data)
+            elif data.strip():
+                self.links.add(self.anchor)
 
 
-def visible_pr_body(body):
-    """Exclude template comments and code while leaving ordinary links intact."""
-    parts = []
-    start = 0
-    while match := _PR_MARKUP.search(body, start):
-        parts.append(body[start:match.start()])
-        parts.append("\n")
-        start = match.end()
-        fence = match.group("fence")
-        if fence:
-            depth = match["quotes"].count(">")
-            quotes = rf"{_QUOTE}{{{depth}}}"
-            list_prefix = match["list_item"] or ""
-            indent = max(3, len((match["indent"] + list_prefix).expandtabs(4)) + 3
-                         if list_prefix else len(match["indent"].expandtabs(4)))
-            end_fence = rf"{quotes}[ ]{{0,{indent}}}{fence[0]}{{{len(fence)},}}[ \t]*\r?$"
-            # A quoted block ends as soon as the surrounding quote ends.
-            closer = re.compile(rf"(?m)^(?:{end_fence}|(?!{quotes}))").search(body, start)
-            start = closer.end() if closer else len(body)
-    parts.append(body[start:])
-    return "".join(parts)
+def related(html, issue, base_repo, host):
+    require(isinstance(html, str) and (not html.strip() or html.lstrip().startswith("<")),
+            "GitHub rendered PR body is unavailable")
+    body = VisibleReferences()
+    body.feed(html)
+    body.close()
 
-
-def related(body, issue, base_repo, host):
-    body = visible_pr_body(body or "")
-    url_pattern = rf"(?<![\w/]){re.escape(issue)}(?![\w/-]|\.\w)"
-    match = re.fullmatch(
+    github_issue = re.fullmatch(
         rf"https://{re.escape(host)}/([\w.-]+/[\w.-]+)/issues/([1-9][0-9]*)",
         issue, re.IGNORECASE,
     )
-    if re.search(url_pattern, body, re.IGNORECASE if match else 0):
+    shorthand = set()
+    if github_issue:
+        issue_repo, number = github_issue.groups()
+        shorthand.add(f"{issue_repo.lower()}#{number}")
+        if issue_repo.lower() == base_repo.lower():
+            shorthand.add(f"#{number}")
+
+    def matches(value, *, link=False):
+        if not github_issue:
+            return value == issue or (issue.startswith(("https://", "http://"))
+                                      and value.startswith((issue + "#", issue + "?")))
+        try:
+            url = urlsplit(urljoin(f"https://{host}/{base_repo}/pull/", value) if link else value)
+        except ValueError:
+            return False
+        return (url.scheme == "https" and url.netloc.lower() == host.lower() and
+                url.path.lower() == f"/{issue_repo.lower()}/issues/{number}")
+
+    if any(matches(link, link=True) for link in body.links):
         return True
-    if not match:
-        return False
-    issue_repo, number = match.groups()
-    shorthand = re.escape(issue_repo) + "#" + number
-    if issue_repo.lower() == base_repo.lower():
-        shorthand = rf"(?:{shorthand}|#{number})"
-    return bool(re.search(rf"(?<![\w/.-]){shorthand}(?![\w/])", body, re.IGNORECASE))
+    # Keep URL fragments attached to their hosts when scanning unlinked text.
+    for token in re.findall(r"""[^\s<>"'“”‘’]+""", "".join(body.text)):
+        value = token.strip(".,;!?()[]{}:，。；！？（）【】")
+        if matches(token) or matches(value) or value.lower() in shorthand:
+            return True
+    return False
 
 
 def check_issue(args):
@@ -191,27 +240,29 @@ def publish(args):
                 f"PR #{pr['number']} is closed or merged (target {target}, expected {args.base})")
         require(pr_side(pr, "head") == head_side and pr_side(pr, "base") == base_side,
                 "PR repository or branch changed")
-        require(related(pr["body"], args.issue, base_repo, args.host),
+        require(related(pr.get("body_html"), args.issue, base_repo, args.host),
                 "PR does not link the original ticket")
         return pr
 
     def observe(expected_number):
         tip = remote_head(url, ref)
-        pages = api(args.host, endpoint + "?" + query, pages=True)
+        pages = api(args.host, endpoint + "?" + query, pages=True, accept=FULL_PR)
         matches = []
         for page in pages:
             for pr in page:
                 if pr["head"]["repo"] and pr_side(pr, "head") == head_side:
                     if (pr["state"] == "open" or pr_side(pr, "base") == base_side
-                            or related(pr["body"], args.issue, base_repo, args.host)):
+                            or related(pr.get("body_html"), args.issue, base_repo, args.host)):
                         matches.append(pr["number"])
-        if expected_number is not None:
-            pr = check_pr(api(args.host, f"{endpoint}/{expected_number}"))
-            require(pr["number"] == expected_number and set(matches) <= {expected_number},
-                    "Conflicting PR for the task branch")
-            return tip, pr
-        require(len(matches) <= 1, "Multiple PRs for the task branch require reconciliation")
-        return tip, check_pr(api(args.host, f"{endpoint}/{matches[0]}")) if matches else None
+        if expected_number is None:
+            require(len(matches) <= 1, "Multiple PRs for the task branch require reconciliation")
+            if not matches:
+                return tip, None
+            expected_number = matches[0]
+        pr = check_pr(api(args.host, f"{endpoint}/{expected_number}", accept=FULL_PR))
+        require(pr["number"] == expected_number and set(matches) <= {expected_number},
+                "Conflicting PR for the task branch")
+        return tip, pr
 
     def write(operation):
         try:
@@ -224,12 +275,27 @@ def publish(args):
     if pr is None:
         require(args.title and args.body_file, "Provide a PR title and body file to open a PR")
         body = Path(args.body_file).read_bytes().decode("utf-8")
-        if not related(body, args.issue, base_repo, args.host):
+
+        def draft_links(markdown):
+            html = api(args.host, "markdown", accept="text/html",
+                       data={"text": markdown, "mode": "gfm", "context": base_repo})
+            return related(html, args.issue, base_repo, args.host)
+
+        if not draft_links(body):
             reference = f"Refs {args.issue}\n"
             separator = "\n" if body.endswith("\n") else "\n\n"
             appended = body + separator + reference
-            # An unfinished code fence or comment can hide text appended to a template.
-            body = appended if related(appended, args.issue, base_repo, args.host) else reference + "\n" + body
+            # Unclosed template markup may hide an appended line.
+            if draft_links(appended):
+                body = appended
+            else:
+                body = reference + "\n" + body
+                require(draft_links(body), "GitHub did not render the original ticket in the PR draft")
+
+        if tip != head:
+            # The PR list may have changed while GitHub rendered the draft.
+            current_tip, pr = observe(args.pr)
+            require(current_tip == tip, "Remote branch changed while rendering the PR draft. Recheck.")
     number = pr["number"] if pr else None
     recovery = []
     if tip != head:
@@ -280,14 +346,14 @@ def publish(args):
 
 
 def snapshot(args):
-    pr = api(args.host, f"repos/{args.repo}/pulls/{args.pr}")
+    pr = api(args.host, f"repos/{args.repo}/pulls/{args.pr}", accept=FULL_PR)
     require(pr["number"] == args.pr and pr_side(pr, "base") == (args.repo.lower(), args.base),
             "Wrong PR number, base repository, or target branch")
     require(pr["state"] == "open" and pr["merged"] is False, "PR is no longer open")
     require(pr_side(pr, "head") == (args.head_repo.lower(), args.branch),
             "PR head repository or branch changed")
     require(pr["head"]["sha"] == args.head, "PR head changed or does not match the delivery")
-    require(related(pr["body"], args.issue, args.repo, args.host), "PR does not link the original ticket")
+    require(related(pr.get("body_html"), args.issue, args.repo, args.host), "PR does not link the original ticket")
     require(github_ref(args.host, args.head_repo, args.branch) == args.head, "PR head is changing")
     base = sha(pr["base"]["sha"])
     require(github_ref(args.host, args.repo, args.base) == base, "PR base is changing")
