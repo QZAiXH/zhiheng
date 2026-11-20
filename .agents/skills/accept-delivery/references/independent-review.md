@@ -9,10 +9,22 @@ Resolve the agreed comparison base and delivered head to immutable commits in th
 Collect these inputs with exact locations, versions, and applicable scope.
 
 - The repository or read-only checkout, `base` and `head`, diff and commit list, target delivery version, and the specific scope assigned to the reviewer.
-- The original ticket body and approved decision comments, relevant parent spec and child criteria, and the acceptance examples with their starting states, operations, and expected outcomes. Pin the source revision or retain a dated snapshot of mutable tracker text.
+- The original ticket body and approved decision comments, linked parent spec and child criteria, and their acceptance examples with starting states, operations and expected outcomes. Use the spec recovery order below when a required source is missing.
 - The approved standards applicable to the reviewed revision and paths, including `CODING_STANDARDS.md`, `CONTRIBUTING.md`, and local instructions where present. Record the exact clauses and revisions for the coverage they govern.
 - The applicable original business or engineering decisions. Identify the canonical Git path, clause and revision, approved tracker record, or project knowledge URI with its effective version and confirmation source. Read the original and check scope and supersession using the shared knowledge procedure. [Project knowledge](../../plan-feature/references/project-knowledge.md)
 - The actual test commands or operations, environment, tested artifact revision, and original results such as exit codes, logs, or receipts. Give reviewers pointers to the raw outputs.
+
+### Recover the originating spec
+
+Start with the original ticket and its saved handoff. For missing spec coverage, try these sources in order:
+
+1. Read the full pinned commit messages with `git log --format=%B <base>..<head>` and fetch referenced issues and discussions through the configured tracker. Follow confirmed parent and spec links.
+2. Open a spec path supplied by the user.
+3. Look under `docs/`, `specs/` and the project's `.scratch/` for a spec matching the feature, scope and target version.
+
+Verify each candidate covers the missing clauses and agrees with the original ticket and its approved decisions. Pin the source revision or retain a dated snapshot of mutable text. Record the exact source and clauses on the original ticket through its writer and reopen the link. For read-only work, include the source and proposed update in the report. If no authoritative source covers a requirement, record the search and request the missing source. Return that `Spec` coverage as pending for `Act`. Continue `Standards` and any verifiable `Spec` scope.
+
+### Check rules and input gaps
 
 When a standards URI is out of scope, superseded, or conflicts with the Git clause at the reviewed revision, use that revision's applicable Git source for the finding. Include the outdated URI and the current clause in the reviewer brief when already known. Apply the current Git source even if it is the only applicable record the reviewer can read.
 

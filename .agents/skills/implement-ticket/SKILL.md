@@ -21,7 +21,7 @@ For a repair returned by acceptance, start at the recorded delivery, preserve it
 
 ## Implement and test
 
-For one ticket, work on the agreed branch or an isolated worktree if needed. Reproduce reported defects and verify the ticket through the normal entry points. Use the project's tests and add coverage for the requested behavior. Preserve earlier supported data and behavior covered by the ticket. Record the tested commit, working directory, command, exit status or observed outcome and raw output. On a repair, reproduce the returned input and rerun the affected checks.
+For one ticket, work on the agreed branch or an isolated worktree if needed. Exercise the agreed scenarios at the test seams recorded on the original ticket. Reproduce reported defects, run focused checks during edits and verify the final revision through the project's normal entry points. Add coverage for the requested behavior. Preserve earlier supported data and behavior covered by the ticket. Record the tested commit, working directory, command, exit status or observed outcome and raw output. On a repair, reproduce the returned input and rerun the affected checks.
 
 For tickets delivered together, follow [parallel implementation](references/parallel-implementation.md). It covers dependency validation, fresh worker sessions, isolated worktrees, integration and recovery. A shared contract that two tickets plan to change must be agreed or explicitly sequenced before parallel edits.
 
