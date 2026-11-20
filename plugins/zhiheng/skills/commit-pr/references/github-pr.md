@@ -1,0 +1,23 @@
+# Publish or reuse a GitHub PR
+
+Read this only for an authorized GitHub PR delivery. Start from the verified task commit or range in [the skill](../SKILL.md).
+
+1. Resolve the GitHub host, base code repository and target branch from the ticket and project. Independently resolve the remote's push URL, head repository and task branch. The tracker can live in another repository or service. Use its original ticket URL or an unambiguous project-qualified local ticket locator. Check the whole branch range against the intended target, including commits already on the remote task branch.
+2. Follow the repository's PR template. Give the PR a focused title and explain why the change is needed, what changed, how it was verified, and any relevant compatibility or migration impact. Link the original ticket using a reference such as `Related to <issue URL>` so the delivery workflow retains control of closure. [Help others review your changes](https://docs.github.com/en/pull-requests/concepts/helping-others-review-your-changes)
+3. Before writing, read the exact remote head with `git ls-remote --refs` against the verified push endpoint. List matching PRs in the base repository with the [List pull requests API](https://docs.github.com/en/rest/pulls/pulls#list-pull-requests), using all states and the head owner and branch. Read the exact candidate with `gh pr view <number> --repo <host/owner/repo>` or the Get pull request API. Match the full head and base repositories and branches, and the original ticket link. Accept existing inline URLs, Markdown links and GitHub issue references in their repository context. Reuse the matching open PR and preserve its body. A conflicting, ambiguous, retargeted, closed or merged PR needs reconciliation before another write.
+4. If necessary, push the verified commit to the explicit task ref with an ordinary fast-forward push. If the ref already exists, establish that it belongs to this delivery and that its current tip is an ancestor of the intended commit. Restrict the refspec to the task ref. Read back the remote ref and the matching PR before proceeding. If the branch is published and a PR is still absent, create it with an explicit base repository, base branch and head, using `gh pr create --repo … --base … --head … --title … --body-file …` or the Create pull request API. With a fork, pass the head owner and branch and identify the head repository when the API needs it.
+5. After any ambiguous push or create result, reconcile the remote ref and PR before retrying. If the write took effect, use the readback. If conflicting state appeared or the readback is incomplete, preserve the observed state for recovery. Before reporting publication, verify the exact open PR and the remote ref both show the intended SHA. Record the PR URL and number, base and head repositories and branches, original ticket, and full SHA. Leave the PR open for the user.
+
+For a repeatable publish and readback using Git and `gh api`, run this from the verified linked worktree with Python 3.9+ and an authenticated `gh`. Set `skill_dir` to the absolute path of this skill. Use the repository's existing Git/PR conventions when preparing the message and body.
+
+```sh
+python3 -B "$skill_dir/scripts/pull_request.py" publish \
+  --repo "$base_repo" --base "$base_branch" \
+  --head-repo "$head_repo" --branch "$task_branch" --head "$delivery_sha" \
+  --remote "$push_remote" --issue "$issue_url" \
+  --title "$title" --body-file "$body_file"
+```
+
+Use `--host` for GitHub Enterprise, `--pr` when a PR number is recorded, and `--previous-head` only for a verified earlier delivery tip without a PR. A PR number or GitHub CLI exit status alone is insufficient publication evidence. If the helper cannot identify a valid custom remote or an existing link, verify the identities using the native procedure above. [git push](https://git-scm.com/docs/git-push) · [gh pr create](https://cli.github.com/manual/gh_pr_create) · [GitHub pull request templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository)
+
+Continue with [Verify checks on the current PR](pr-checks.md) when the delivery stage calls for CI/CD verification.
