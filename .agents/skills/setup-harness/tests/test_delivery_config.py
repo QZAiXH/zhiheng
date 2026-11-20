@@ -224,6 +224,8 @@ class DeliveryConfigTests(unittest.TestCase):
             b'- ```md\n  ' + desired_marker + b'\n  ```\n',
             b'1. Project note\n\n   ~~~html\n   ' + original_marker + b'\n   ~~~\n',
             b'* ```md\n  ' + original_marker + b'\n',
+            b'- Example for developers\ncontinues here.\n\n  ```md\n  '
+            + desired_marker + b'\n    ```\n',
         ):
             with self.subTest(example=example):
                 prefix = b'# Tracker\n\n' + example + b'\n'
