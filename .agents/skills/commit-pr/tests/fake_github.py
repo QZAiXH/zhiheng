@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 root = Path(os.environ["DELIVERY_FIXTURE"])
 state_path = root / "github.json"
+FULL_PR = "application/vnd.github.full+json"
 
 
 def ref(repo, branch):
@@ -23,11 +24,23 @@ def ref(repo, branch):
 
 def github():
     state = json.loads(state_path.read_text())
+    assert sys.argv[1:4] == ["api", "--hostname", "github.com"]
+    args = sys.argv[4:-1]
+    accept = args[args.index("--header") + 1] if "--header" in args else None
     url = urlsplit(sys.argv[-1])
+    if url.path == "markdown":
+        assert accept == "Accept: text/html"
+        assert args[args.index("--method") + 1] == "POST"
+        assert args[args.index("--input") + 1] == "-"
+        payload = json.load(sys.stdin)
+        assert payload["mode"] == "gfm" and payload["context"] == "Code/app"
+        if state.get("markdown_error"):
+            print("gh: Markdown unavailable (HTTP 503)", file=sys.stderr)
+            sys.exit(1)
+        return state["renderings"][payload["text"]]
     parts = unquote(url.path).split("/")
     target = "/".join(parts[1:3])
     endpoint = "/".join(parts[3:])
-    assert sys.argv[1:4] == ["api", "--hostname", "github.com"]
     assert target in {"Code/app", "Fork/app"}
     if endpoint.startswith("git/ref/heads/"):
         branch = endpoint.removeprefix("git/ref/heads/")
@@ -77,10 +90,12 @@ def github():
     if endpoint == "pulls":
         assert parse_qs(url.query)["head"] == ["Fork:task/20"]
         assert parse_qs(url.query)["state"] == ["all"]
-        return [[pull(item, state) for item in candidates]]
+        rows = [pull(item, state, accept, "list") for item in candidates]
+        return [rows] if "--slurp" in args else rows
     if endpoint.startswith("pulls/"):
         number = int(endpoint.removeprefix("pulls/"))
-        return pull(next(item for item in candidates if item["number"] == number), state)
+        return pull(next(item for item in candidates if item["number"] == number),
+                    state, accept, "get")
     revision, _, suffix = endpoint.removeprefix("commits/").partition("/")
     if not suffix:
         current = pull(pr, state)
@@ -110,11 +125,11 @@ def github():
     return [{"sha": revision, "total_count": len(statuses), "statuses": statuses}]
 
 
-def pull(pr, state):
+def pull(pr, state, accept=None, operation=None):
     base, head = ref("Code/app", pr["base"]), ref("Fork/app", "task/20")
     merge = hashlib.sha1((base + head).encode()).hexdigest()
     number = pr["number"]
-    return {
+    response = {
         "number": number, "html_url": f"https://github.com/Code/app/pull/{number}",
         "title": pr["title"], "body": pr["body"],
         "base": {"sha": base, "ref": pr["base"], "repo": {"full_name": "Code/app"}},
@@ -122,6 +137,9 @@ def pull(pr, state):
         "state": pr["state"], "merged": False, "mergeable": state.get("mergeable", True),
         "merge_commit_sha": merge,
     }
+    if accept == f"Accept: {FULL_PR}" and state.get("missing_pr_html") != operation:
+        response["body_html"] = state["renderings"][pr["body"]]
+    return response
 
 
 def ssh():
@@ -140,6 +158,10 @@ def ssh():
 
 
 if Path(sys.argv[0]).name == "gh":
-    print(json.dumps(github()))
+    response = github()
+    if sys.argv[-1] == "markdown":
+        sys.stdout.write(response)
+    else:
+        print(json.dumps(response))
 else:
     sys.exit(ssh())

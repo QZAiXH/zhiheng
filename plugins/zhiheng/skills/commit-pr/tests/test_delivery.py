@@ -48,7 +48,10 @@ class DeliveryTest(unittest.TestCase):
         self.git("worktree", "add", "-b", BRANCH, self.task, cwd=self.repo)
         self.head = self.commit("feature implemented")
         self.body = self.root / "pr.md"
-        self.body.write_text("Make the reviewed case work.\n\nVerified with the fixture.\n")
+        draft = "Make the reviewed case work.\n\nVerified with the fixture.\n"
+        self.body.write_text(draft)
+        self.render_fixture(draft, "<p>Make the reviewed case work.</p><p>Verified with the fixture.</p>",
+                            add_ref=True)
 
     def git(self, *args, cwd=None):
         result = run(["git", *args], cwd=cwd or self.task, env=self.env,
@@ -61,6 +64,12 @@ class DeliveryTest(unittest.TestCase):
     def write_state(self, **changes):
         state = self.state() if self.state_path.exists() else {}
         self.state_path.write_text(json.dumps({**state, **changes}))
+
+    def render_fixture(self, body, html, *, add_ref=False):
+        renderings = {**self.state().get("renderings", {}), body: html}
+        if add_ref:
+            renderings[body + f"\nRefs {ISSUE}\n"] = html + f'<p>Refs <a href="{ISSUE}">{ISSUE}</a></p>'
+        self.write_state(renderings=renderings)
 
     def commit(self, text):
         path = self.task / "feature"
@@ -101,6 +110,7 @@ class DeliveryTest(unittest.TestCase):
         readback = run(["gh", "api", "--hostname", "github.com", "repos/Code/app/pulls/41"],
                        env=self.env, text=True, capture_output=True, check=True)
         pr = json.loads(readback.stdout)
+        self.assertNotIn("body_html", pr)
         self.assertEqual(pr["title"], "Implement ticket 20")
         self.assertEqual(pr["body"], self.body.read_text() + f"\nRefs {ISSUE}\n")
         self.put_checks(self.head, check={"ci": "success"}, status={"ci": "success"})
@@ -239,20 +249,27 @@ class DeliveryTest(unittest.TestCase):
 
     def test_existing_template_keeps_inline_ticket_links_and_body(self):
         self.publish()
-        for body, issue in [
-            (f"See {ISSUE} for the business case.", ISSUE),
-            (f"Read [the original request]({ISSUE}) before reviewing.", ISSUE),
-            ("Addresses Tracker/requests#20 in a different repository.", ISSUE),
-            (f"> ~~~\n> Example for another ticket\n\nVisible [request]({ISSUE}).", ISSUE),
-            ("Recorded in #20 with the business case.", "https://github.com/Code/app/issues/20"),
-            ("Tracked at [GitLab](https://gitlab.example.org/ops/work/-/issues/20).",
-             "https://gitlab.example.org/ops/work/-/issues/20"),
+        local = "local:Tracker/requests/tickets/20.md#acceptance"
+        gitlab = "https://gitlab.example.org/ops/work/-/issues/20"
+        same_repo = "https://github.com/Code/app/issues/20"
+        for body, html, issue in [
+            (f"See {ISSUE}.", f"<p>See {ISSUE}.</p>", ISSUE),
+            (f"[the original request]({ISSUE})", f'<p><a href="{ISSUE}">the original request</a></p>', ISSUE),
+            ("Addresses Tracker/requests#20.", f'<p>Addresses <a href="{ISSUE}">Tracker/requests#20</a>.</p>',
+             ISSUE),
+            ("Recorded in #20.", '<p>Recorded in <a href="/Code/app/issues/20">#20</a>.</p>', same_repo),
+            ("Recorded in **#20**.", "<p>Recorded in <strong>#20</strong>.</p>", same_repo),
+            (f"[GitLab]({gitlab})", f'<p><a href="{gitlab}">GitLab</a></p>', gitlab),
+            (f"Refs {local}", f"<p>Refs {local}</p>", local),
         ]:
             with self.subTest(body=body):
+                self.render_fixture(body, html)
                 self.write_state(pr={**self.state()["pr"], "body": body})
                 self.assertEqual(self.publish(issue=issue)["number"], 41)
                 self.assertEqual(self.state()["pr"]["body"], body)
-        self.write_state(pr={**self.state()["pr"], "body": "Different tracker: Unrelated/app#20"})
+        body = "Different tracker: Unrelated/app#20"
+        self.render_fixture(body, f"<p>{body}</p>")
+        self.write_state(pr={**self.state()["pr"], "body": body})
         self.assertIn("original ticket", self.publish(result=2)["reason"])
         self.assertEqual(self.state()["creates"], 1)
 
@@ -265,24 +282,120 @@ class DeliveryTest(unittest.TestCase):
             f"<pre><code>{ISSUE}</code></pre>\n"
         )
         self.body.write_text(template)
+        self.render_fixture(
+            template, f"<h2>Change</h2><!-- {ISSUE} --><pre><code>{ISSUE}</code></pre>"
+            "<blockquote><pre><code>Tracker/requests#20</code></pre></blockquote>"
+            f"<pre><code>See {ISSUE}</code></pre><p>Use <code>Tracker/requests#20</code>.</p>"
+            f"<pre><code>{ISSUE}</code></pre>", add_ref=True,
+        )
         self.assertEqual(self.publish()["recovered_writes"], [])
         self.assertEqual(self.state()["pr"]["body"], template + f"\nRefs {ISSUE}\n")
-        templates = [
-            f"<!-- {ISSUE} -->",
-            f"```md\n[issue]({ISSUE})\n```",
-            f"~~~~\n{ISSUE}\n~~~~~",
-            f"~~~\n> ~~~\n    ~~~\n{ISSUE}\n~~~",
-            f"\n    {ISSUE}\n",
-            "Use ``Tracker/requests#20`` in the example.",
-            f"<pre><code>{ISSUE}</code></pre>",
+        examples = [
+            (f"<!-- {ISSUE} -->", f"<!-- {ISSUE} -->"),
+            (f"```md\n[issue]({ISSUE})\n```", f"<pre><code>[issue]({ISSUE})</code></pre>"),
+            (f"~~~~\n{ISSUE}\n~~~~~", f"<pre><code>{ISSUE}</code></pre>"),
+            (f"~~~\n> ~~~\n    ~~~\n{ISSUE}\n~~~", f"<pre><code>{ISSUE}</code></pre>"),
+            (f"\n    {ISSUE}\n", f"<pre><code>{ISSUE}</code></pre>"),
+            ("Use ``Tracker/requests#20`` in the example.", "<p>Use <code>Tracker/requests#20</code>.</p>"),
+            (f"<pre><code>{ISSUE}</code></pre>", f"<pre><code>{ISSUE}</code></pre>"),
         ]
         fixed = self.commit("new task 20 revision")
-        for example in templates:
+        for example, html in examples:
             with self.subTest(example=example):
                 body = f"{example}\n\nRelated to Tracker/requests#21\n"
+                self.render_fixture(body, html + "<p>Related to Tracker/requests#21</p>")
                 self.write_state(pr={**self.state()["pr"], "body": body})
                 self.assertIn("original ticket", self.publish("--pr", "41", head=fixed, result=2)["reason"])
                 self.assertIn("original ticket", self.check(result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.head)
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_unused_reference_does_not_authorize_another_ticket(self):
+        other = ISSUE.removesuffix("20") + "21"
+        template = f"Related to [request 21]({other}).\n\n[template-example]: {ISSUE}\n"
+        self.body.write_text(template)
+        rendered = f'<p>Related to <a href="{other}">request 21</a>.</p>'
+        self.render_fixture(template, rendered)
+        self.assertEqual(self.publish(issue=other)["number"], 41)
+        self.assertEqual(self.state()["pr"]["body"], template)
+
+        updated = self.commit("change for ticket 20")
+        for args in [(), ("--pr", "41")]:
+            self.assertIn("original ticket", self.publish(*args, head=updated, result=2)["reason"])
+        self.assertIn("original ticket", self.check(result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.head)
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_nested_list_preserves_used_reference_and_reuses_pr(self):
+        inline = ("1. Delivery summary\n   - Implementation details.\n"
+                  f"     Related to [request 20]({ISSUE}).\n")
+        template = (inline.replace(f"[request 20]({ISSUE})", "[request 20][original-ticket]")
+                    + f"\n[original-ticket]: {ISSUE}\n")
+        rendered = (f'<ol><li>Delivery summary<ul><li>Implementation details. '
+                    f'Related to <a href="{ISSUE}">request 20</a>.</li></ul></li></ol>')
+        self.body.write_text(template)
+        self.render_fixture(template, rendered)
+        self.assertEqual(self.publish()["number"], 41)
+        self.assertEqual(self.state()["pr"]["body"], template)
+
+        self.render_fixture(inline, rendered)
+        self.write_state(pr={**self.state()["pr"], "body": inline})
+        updated = self.commit("update nested list delivery")
+        self.assertEqual(self.publish("--pr", "41", head=updated)["number"], 41)
+        self.assertEqual(self.remote_tip(), updated)
+        self.assertEqual(self.state()["pr"]["body"], inline)
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_draft_adds_visible_reference_and_keeps_template(self):
+        other = ISSUE.removesuffix("20") + "21"
+        template = (f"Related to [request 21]({other}).\n\n[template-example]: {ISSUE}\n"
+                    "<!-- unfinished template comment\n")
+        reference = f"Refs {ISSUE}\n"
+        html = f'<p>Related to <a href="{other}">request 21</a>.</p>'
+        self.body.write_text(template)
+        self.render_fixture(template, html)
+        self.render_fixture(template + "\n" + reference, html)
+        self.render_fixture(reference + "\n" + template,
+                            f'<p>Refs <a href="{ISSUE}">{ISSUE}</a></p>' + html)
+        self.assertEqual(self.publish()["number"], 41)
+        self.assertEqual(self.state()["pr"]["body"], reference + "\n" + template)
+
+    def test_hidden_content_and_misleading_labels_do_not_authorize_updates(self):
+        self.publish()
+        issue = "https://github.com/Code/app/issues/20"
+        other = "https://github.com/Code/app/issues/21"
+        external = "https://example.org/#20"
+        body = (f"[{issue}]({other}) and [#20]({external})\n\n"
+                f"Plain fragment: {external}\n\n<div hidden><div><a href=\"{issue}\">#20</a></div></div>"
+                f'<span style="display: none"> {issue} </span>'
+                f'<script> {issue} </script><style> {issue} </style>')
+        html = (f'<p><a href="{other}">{issue}</a> and <a href="{external}">#20</a></p>'
+                f"<p>Plain fragment: {external}</p>" + body[body.index("<div hidden>"):])
+        self.render_fixture(body, html)
+        self.write_state(pr={**self.state()["pr"], "body": body})
+        updated = self.commit("change for the original ticket")
+        self.assertIn("original ticket", self.publish(issue=issue, head=updated, result=2)["reason"])
+        self.assertIn("original ticket", self.check(issue=issue, result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.head)
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_missing_rendering_blocks_before_remote_writes(self):
+        self.write_state(markdown_error=True)
+        self.assertIn("gh api exited 1", self.publish(result=2)["reason"])
+        self.assertEqual(self.git("--git-dir", self.root / "Fork.git", "branch", "--list", BRANCH), "")
+        self.assertEqual(self.state()["creates"], 0)
+
+        self.write_state(markdown_error=False)
+        self.publish()
+        updated = self.commit("change after renderer failure")
+        self.write_state(missing_pr_html="get")
+        self.assertIn("rendered PR body", self.publish(head=updated, result=2)["reason"])
+        self.assertIn("rendered PR body", self.check(result=2)["reason"])
+
+        self.git("--git-dir", self.root / "Code.git", "update-ref", "refs/heads/release", self.base)
+        self.write_state(missing_pr_html="list", pr={**self.state()["pr"], "base": "release", "state": "closed"})
+        report = self.publish("--previous-head", self.head, head=updated, result=2)
+        self.assertIn("rendered PR body", report["reason"])
         self.assertEqual(self.remote_tip(), self.head)
         self.assertEqual(self.state()["creates"], 1)
 
