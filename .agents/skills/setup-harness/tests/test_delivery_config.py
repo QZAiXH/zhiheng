@@ -217,6 +217,24 @@ class DeliveryConfigTests(unittest.TestCase):
         self.assertEqual(self.guide.read_bytes(), prefix + b'<!-- harness-delivery: local -->\n\n' + example)
         self.assertEqual(self.preview('github', 'local'), b'')
 
+    def test_list_fences_leave_the_top_level_setting_editable(self):
+        original_marker = b'<!-- harness-delivery: local -->'
+        desired_marker = b'<!-- harness-delivery: github-pr -->'
+        for example in (
+            b'- ```md\n  ' + desired_marker + b'\n  ```\n',
+            b'1. Project note\n\n   ~~~html\n   ' + original_marker + b'\n   ~~~\n',
+            b'* ```md\n  ' + original_marker + b'\n',
+        ):
+            with self.subTest(example=example):
+                prefix = b'# Tracker\n\n' + example + b'\n'
+                self.guide.write_bytes(prefix + original_marker + b'\n')
+                self.assert_mode('local')
+                self.preview('github', 'github-pr')
+                self.assertEqual(self.after.read_bytes(), prefix + desired_marker + b'\n')
+                self.apply_preview()
+                self.assert_mode('github-pr')
+                self.assertEqual(self.preview('github', 'github-pr'), b'')
+
     def test_non_github_tracker_cannot_prepare_github_pr_mode(self):
         for tracker, original in (('gitlab', GITLAB_GUIDE), ('local', LOCAL_GUIDE)):
             with self.subTest(tracker=tracker):

@@ -18,14 +18,33 @@ STRUCTURAL_LINE = re.compile(
     re.MULTILINE,
 )
 VALID_LINE = re.compile(rb'<!-- harness-delivery: (local|github-pr) -->')
+LIST_ITEM = re.compile(rb' {0,3}(?:[-+*]|[0-9]{1,9}[.)])(?P<space> +|$)')
+THEMATIC_BREAK = re.compile(rb' {0,3}(?:(?:- *){3,}|(?:\* *){3,})')
 
 
 def inspect_guide(guide):
     """Locate the active marker and a place to add one outside fenced examples."""
     marker = None
     fence = None
+    list_indent = 0
     insertion = len(guide)
-    for line in STRUCTURAL_LINE.finditer(guide):
+    for row in re.finditer(rb'(?m)^[^\n]+', guide):
+        if fence is None:
+            content = row.group().rstrip(b'\r').expandtabs(4)
+            if not content.strip():
+                continue
+            if list_indent and content.startswith(b' ' * list_indent):
+                continue
+            list_indent = 0
+            item = LIST_ITEM.match(content)
+            if item and not THEMATIC_BREAK.fullmatch(content):
+                # Indented continuations belong to the list, including its code fences.
+                spaces = len(item['space'])
+                list_indent = item.start('space') + (spaces if 1 <= spaces <= 4 else 1)
+                continue
+        line = STRUCTURAL_LINE.match(guide, row.start())
+        if not line:
+            continue
         delimiter = line['fence']
         if fence is not None:
             if delimiter and delimiter.startswith(fence) and not line['info'].strip(b' \t'):
