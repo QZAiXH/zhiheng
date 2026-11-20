@@ -22,7 +22,7 @@ class DeliveryTest(unittest.TestCase):
         self.repo = self.root / "repo"
         self.task = self.root / "task"
         self.state_path = self.root / "github.json"
-        self.write_state(pr=None, creates=0, checks={})
+        self.write_state(pr=None, creates=0, checks={}, rules=[])
         fixture = (SKILL / "tests" / "fake_github.py").read_text()
         for command in ("gh", "ssh"):
             executable = self.root / command
@@ -73,9 +73,9 @@ class DeliveryTest(unittest.TestCase):
         return ["--repo", "Code/app", "--base", "main", "--head-repo", "Fork/app",
                 "--branch", BRANCH, "--head", head, "--issue", issue]
 
-    def command(self, mode, *args, head=None, issue=ISSUE, result=0):
+    def command(self, mode, *args, head=None, issue=ISSUE, result=0, cwd=None):
         proc = run([sys.executable, "-B", SCRIPT, mode, *self.args(head or self.head, issue), *args],
-                   cwd=self.task, env=self.env, capture_output=True, text=True)
+                   cwd=cwd or self.task, env=self.env, capture_output=True, text=True)
         self.assertEqual(proc.returncode, result, proc.stdout + proc.stderr)
         return json.loads(proc.stdout)
 
@@ -88,7 +88,7 @@ class DeliveryTest(unittest.TestCase):
 
     def put_checks(self, head, check=None, status=None):
         checks = self.state()["checks"]
-        checks[head] = {"check": check or {}, "status": status or {}}
+        checks[head] = {"check": check or [], "status": status or {}}
         self.write_state(checks=checks)
 
     def merge(self, head=None):
@@ -96,6 +96,13 @@ class DeliveryTest(unittest.TestCase):
 
     def test_current_pr_checks_pass(self):
         published = self.publish()
+        self.assertEqual(published["recovered_writes"], [])
+        self.assertEqual(self.state()["creates"], 1)
+        readback = run(["gh", "api", "--hostname", "github.com", "repos/Code/app/pulls/41"],
+                       env=self.env, text=True, capture_output=True, check=True)
+        pr = json.loads(readback.stdout)
+        self.assertEqual(pr["title"], "Implement ticket 20")
+        self.assertEqual(pr["body"], self.body.read_text() + f"\nRefs {ISSUE}\n")
         self.put_checks(self.head, check={"ci": "success"}, status={"ci": "success"})
         report = self.check("--expect", "ci")
         self.assertEqual(published["pr"], report["scope"]["pr"])
@@ -150,6 +157,76 @@ class DeliveryTest(unittest.TestCase):
         self.assertIn("No active CI rules", report["reason"])
         self.assertEqual(self.check("--none", "empty", "--expect", "ci", result=2)["state"], "waiting")
 
+    def test_plain_expect_honors_classic_and_active_app_requirements(self):
+        self.publish()
+        self.write_state(
+            classic={"required_status_checks": {"contexts": ["ci"], "checks": [
+                {"context": "ci", "app_id": 7},
+            ]}},
+            rules=[{"type": "required_status_checks", "parameters": {"required_status_checks": [
+                {"context": "ci", "integration_id": 77},
+            ]}}],
+        )
+        for apps, missing_app in [([5], 7), ([7], 77), ([77], 7)]:
+            with self.subTest(apps=apps):
+                self.put_checks(self.head, check=[("ci", "success", app) for app in apps])
+                report = self.check("--expect", "ci", result=2)
+                self.assertIn(missing_app, [item["app_id"] for item in report["missing"]["required"]])
+        self.put_checks(self.head, check=[("ci", "success", 7), ("ci", "success", 77)])
+        self.assertEqual(self.check("--expect", "ci")["state"], "passed")
+
+    def test_ruleset_only_branch_and_legacy_publisher_are_distinct(self):
+        self.publish()
+        self.write_state(rules=[{"type": "required_status_checks", "parameters": {"required_status_checks": [
+            {"context": "ci", "integration_id": 77},
+        ]}}])
+        self.put_checks(self.head, check={"ci": "success"})
+        self.assertEqual(self.check("--expect", "ci", result=2)["state"], "waiting")
+        self.put_checks(self.head, status={"ci": "success"})
+        report = self.check("--expect", "ci", result=2)
+        self.assertEqual(report["missing"]["required"], [{"name": "ci", "kind": "status", "app_id": 77}])
+        self.put_checks(self.head, check=[("ci", "success", 77)])
+        self.assertEqual(self.check("--expect", "ci")["state"], "passed")
+
+    def test_same_name_check_and_status_wait_independently(self):
+        self.publish()
+        self.write_state(rules=[{"type": "required_status_checks", "parameters": {"required_status_checks": [
+            {"context": "ci"},
+        ]}}])
+        self.put_checks(self.head, check={"ci": "success"})
+        self.assertEqual(self.check("--expect", "ci", "--expect-status", "ci",
+                                    result=2)["missing"]["status"], ["ci"])
+        self.put_checks(self.head, status={"ci": "success"})
+        self.assertEqual(self.check("--expect", "ci", "--expect-check", "ci",
+                                    result=2)["missing"]["check"], ["ci"])
+        self.put_checks(self.merge(), check={"ci": "success"})
+        report = self.check("--expect", "ci", result=2)
+        self.assertEqual(report["effective_sha"], self.merge())
+        self.assertEqual(report["missing"]["required"], [{"name": "ci", "kind": "status", "app_id": None}])
+        self.put_checks(self.merge(), check={"ci": "success"}, status={"ci": "pending"})
+        self.assertEqual(self.check("--expect", "ci", result=2)["state"], "waiting")
+        self.put_checks(self.merge(), check={"ci": "success"}, status={"ci": "success"})
+        self.assertEqual(self.check("--expect", "ci", "--expect-status", "ci")["state"], "passed")
+
+    def test_inaccessible_rules_and_classic_source_remain_unverified(self):
+        self.publish()
+        self.put_checks(self.head, check={"ci": "success"})
+        self.write_state(rules_inaccessible=True)
+        self.assertIn("active branch rules", self.check("--expect", "ci", result=2)["reason"])
+        self.write_state(rules_inaccessible=False, classic="inaccessible")
+        self.assertIn("classic branch protection", self.check("--expect", "ci", result=2)["reason"])
+        self.write_state(classic={"required_status_checks": {"contexts": ["ci"]}})
+        self.assertIn("classic status check sources", self.check("--expect", "ci", result=2)["reason"])
+
+    def test_classic_details_resolve_context_only_summary(self):
+        self.publish()
+        self.write_state(
+            classic={"required_status_checks": {"contexts": ["ci"]}},
+            classic_status_details={"contexts": ["ci"], "checks": [{"context": "ci", "app_id": -1}]},
+        )
+        self.put_checks(self.head, status={"ci": "success"})
+        self.assertEqual(self.check("--expect", "ci")["state"], "passed")
+
     def test_retry_reads_back_unknown_writes_and_reuses_pr(self):
         self.write_state(lost_push=True, lost_create=True)
         first = self.publish()
@@ -166,6 +243,7 @@ class DeliveryTest(unittest.TestCase):
             (f"See {ISSUE} for the business case.", ISSUE),
             (f"Read [the original request]({ISSUE}) before reviewing.", ISSUE),
             ("Addresses Tracker/requests#20 in a different repository.", ISSUE),
+            (f"> ~~~\n> Example for another ticket\n\nVisible [request]({ISSUE}).", ISSUE),
             ("Recorded in #20 with the business case.", "https://github.com/Code/app/issues/20"),
             ("Tracked at [GitLab](https://gitlab.example.org/ops/work/-/issues/20).",
              "https://gitlab.example.org/ops/work/-/issues/20"),
@@ -176,6 +254,61 @@ class DeliveryTest(unittest.TestCase):
                 self.assertEqual(self.state()["pr"]["body"], body)
         self.write_state(pr={**self.state()["pr"], "body": "Different tracker: Unrelated/app#20"})
         self.assertIn("original ticket", self.publish(result=2)["reason"])
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_template_examples_are_preserved_but_do_not_link_the_ticket(self):
+        template = (
+            f"## Change\n\n<!-- \nExample: {ISSUE}\n-->\n"
+            f"```md\nSee [issue]({ISSUE})\n```\n"
+            f"> ~~~~\n> Tracker/requests#20\n> ~~~~~\n"
+            f"\n    See {ISSUE}\n\nUse ``Tracker/requests#20`` in the example.\n"
+            f"<pre><code>{ISSUE}</code></pre>\n"
+        )
+        self.body.write_text(template)
+        self.assertEqual(self.publish()["recovered_writes"], [])
+        self.assertEqual(self.state()["pr"]["body"], template + f"\nRefs {ISSUE}\n")
+        templates = [
+            f"<!-- {ISSUE} -->",
+            f"```md\n[issue]({ISSUE})\n```",
+            f"~~~~\n{ISSUE}\n~~~~~",
+            f"~~~\n> ~~~\n    ~~~\n{ISSUE}\n~~~",
+            f"\n    {ISSUE}\n",
+            "Use ``Tracker/requests#20`` in the example.",
+            f"<pre><code>{ISSUE}</code></pre>",
+        ]
+        fixed = self.commit("new task 20 revision")
+        for example in templates:
+            with self.subTest(example=example):
+                body = f"{example}\n\nRelated to Tracker/requests#21\n"
+                self.write_state(pr={**self.state()["pr"], "body": body})
+                self.assertIn("original ticket", self.publish("--pr", "41", head=fixed, result=2)["reason"])
+                self.assertIn("original ticket", self.check(result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.head)
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_retargeted_closed_pr_blocks_retry_without_recorded_number(self):
+        self.publish()
+        self.git("--git-dir", self.root / "Code.git", "update-ref", "refs/heads/release", self.base)
+        self.write_state(pr={**self.state()["pr"], "base": "release", "state": "closed"})
+        for args in [("--pr", "41"), ()]:
+            with self.subTest(args=args):
+                report = self.publish(*args, result=2)
+                self.assertIn("closed", report["reason"])
+                self.assertIn("release", report["reason"])
+                self.assertIn("#41", report["reason"])
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_publish_after_recreating_cleaned_task_worktree(self):
+        self.git("worktree", "remove", self.task, cwd=self.repo)
+        self.assertFalse(self.task.exists())
+        self.assertEqual(self.git("rev-parse", f"refs/heads/{BRANCH}", cwd=self.repo), self.head)
+        refusal = self.publish(cwd=self.repo, result=2)
+        self.assertIn("linked task worktree", refusal["reason"])
+        self.assertEqual(self.state()["creates"], 0)
+        self.git("worktree", "add", self.task, BRANCH, cwd=self.repo)
+        self.assertEqual(self.git("rev-parse", "HEAD"), self.head)
+        self.assertEqual(self.publish()["recovered_writes"], [])
+        self.assertEqual(self.remote_tip(), self.head)
         self.assertEqual(self.state()["creates"], 1)
 
     def test_mixed_index_retains_unrelated_staged_change(self):
@@ -190,8 +323,13 @@ class DeliveryTest(unittest.TestCase):
         self.git("add", "--", "other")
         staged = self.git("diff", "--cached", "--", "other")
         (self.task / "feature").write_text("reviewed task fix\n")
-        self.git("--literal-pathspecs", "commit", "--only", "-m", "task fix", "--", "feature")
-        self.assertEqual(self.git("show", "--format=", "--name-only", "HEAD"), "feature")
+        message_file = self.root / "message.txt"
+        message_file.write_text("task fix\n")
+        (self.task / "new").write_text("new ticket file\n")
+        self.git("add", "--", "new")
+        self.git("--literal-pathspecs", "commit", "--only", "-F", message_file, "--", "feature", "new")
+        self.assertEqual(self.git("show", "--format=", "--name-only", "HEAD").splitlines(), ["feature", "new"])
+        self.assertEqual(self.git("log", "-1", "--format=%s"), "task fix")
         self.assertEqual(self.git("diff", "--cached", "--", "other"), staged)
         self.assertEqual(self.git("status", "--short", cwd=self.repo), "")
         self.assertEqual(hook_log.read_text(), "ran\n")
@@ -206,6 +344,29 @@ class DeliveryTest(unittest.TestCase):
         self.assertIn("was not confirmed", self.publish("--pr", "41", head=fixed, result=2)["reason"])
         self.assertEqual(self.git("--git-dir", fork, "rev-parse", f"refs/heads/{BRANCH}"), outside)
         self.assertEqual(self.state()["creates"], 1)
+
+    def remote_tip(self):
+        return self.git("--git-dir", self.root / "Fork.git", "rev-parse", f"refs/heads/{BRANCH}")
+
+    def test_remote_race_does_not_undo_ancestor_rollback(self):
+        self.publish()
+        fixed = self.commit("verified fast forward")
+        self.write_state(race_tip=self.base)
+        self.assertIn("was not confirmed", self.publish("--pr", "41", head=fixed, result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.base)
+        self.assertEqual(self.state()["creates"], 1)
+
+    def test_remote_race_does_not_overwrite_concurrent_branch_creation(self):
+        self.write_state(race_tip=self.base)
+        self.assertIn("was not confirmed", self.publish(result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.base)
+        self.assertEqual(self.state()["creates"], 0)
+
+    def test_verified_pr_branch_cannot_be_pushed_backwards(self):
+        self.publish()
+        self.git("reset", "--hard", self.base)
+        self.assertIn("merge-base", self.publish("--pr", "41", head=self.base, result=2)["reason"])
+        self.assertEqual(self.remote_tip(), self.head)
 
     def test_invalid_merge_or_base_movement_discards_observation(self):
         self.publish()

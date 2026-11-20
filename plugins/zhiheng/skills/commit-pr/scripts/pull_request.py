@@ -31,15 +31,20 @@ def git(*args):
     return run("git", *args).stdout.strip()
 
 
-def api(host, endpoint, *, pages=False, data=None):
+def api(host, endpoint, *, pages=False, data=None, allow_unprotected=False):
     args = ["gh", "api", "--hostname", host]
     if pages:
         args += ["--paginate", "--slurp"]
     if data is not None:
         args += ["--method", "POST", "--input", "-"]
-    response = json.loads(
-        run(*args, endpoint, input_text=json.dumps(data) if data is not None else None).stdout
-    )
+    result = run(*args, endpoint, allowed=(0, 1) if allow_unprotected else (0,),
+                 input_text=json.dumps(data) if data is not None else None)
+    if result.returncode:
+        require("gh: Branch not protected (HTTP 404)" in result.stderr.splitlines(),
+                "Classic branch protection is unverified")
+        return None
+    response = json.loads(result.stdout)
+    require(response is not None, "GitHub response is empty")
     if pages:
         require(isinstance(response, list) and response, "Paginated GitHub response is incomplete")
     return response
@@ -87,8 +92,46 @@ def pr_side(pr, side):
     return ref["repo"]["full_name"].lower(), ref["ref"]
 
 
+_QUOTE = r"(?:[ ]{0,3}>[ \t]?)"
+_PR_MARKUP = re.compile(
+    rf"""(?imx)
+    ^(?P<quotes>{_QUOTE}*)(?P<indent>[ \t]*)
+      (?P<list_item>(?:[-+*]|\d{{1,9}}[.)])[ \t]+)?
+      (?P<fence>`{{3,}}|~{{3,}})[^\n]*(?:\n|$)
+    | ^{_QUOTE}*(?:[ ]{{4}}|\t)[^\n]*
+    | <!--[\s\S]*?(?:-->|\Z)
+    | <(?P<tag>pre|code)\b[^>]*>[\s\S]*?(?:</(?P=tag)\s*>|\Z)
+    | (?<![`\\])(?P<ticks>`+)(?!`)
+      (?:(?!\r?\n[ \t]*\r?\n)[\s\S])*?(?<!`)(?P=ticks)(?!`)
+    """
+)
+
+
+def visible_pr_body(body):
+    """Exclude template comments and code while leaving ordinary links intact."""
+    parts = []
+    start = 0
+    while match := _PR_MARKUP.search(body, start):
+        parts.append(body[start:match.start()])
+        parts.append("\n")
+        start = match.end()
+        fence = match.group("fence")
+        if fence:
+            depth = match["quotes"].count(">")
+            quotes = rf"{_QUOTE}{{{depth}}}"
+            list_prefix = match["list_item"] or ""
+            indent = max(3, len((match["indent"] + list_prefix).expandtabs(4)) + 3
+                         if list_prefix else len(match["indent"].expandtabs(4)))
+            end_fence = rf"{quotes}[ ]{{0,{indent}}}{fence[0]}{{{len(fence)},}}[ \t]*\r?$"
+            # A quoted block ends as soon as the surrounding quote ends.
+            closer = re.compile(rf"(?m)^(?:{end_fence}|(?!{quotes}))").search(body, start)
+            start = closer.end() if closer else len(body)
+    parts.append(body[start:])
+    return "".join(parts)
+
+
 def related(body, issue, base_repo, host):
-    body = body or ""
+    body = visible_pr_body(body or "")
     url_pattern = rf"(?<![\w/]){re.escape(issue)}(?![\w/-]|\.\w)"
     match = re.fullmatch(
         rf"https://{re.escape(host)}/([\w.-]+/[\w.-]+)/issues/([1-9][0-9]*)",
@@ -143,7 +186,9 @@ def publish(args):
     head_side, base_side = (head_repo.lower(), branch), (base_repo.lower(), args.base)
 
     def check_pr(pr):
-        require(pr["state"] == "open" and not pr.get("merged"), "Recorded PR is closed or merged")
+        target = pr["base"]["ref"]
+        require(pr["state"] == "open" and not pr.get("merged"),
+                f"PR #{pr['number']} is closed or merged (target {target}, expected {args.base})")
         require(pr_side(pr, "head") == head_side and pr_side(pr, "base") == base_side,
                 "PR repository or branch changed")
         require(related(pr["body"], args.issue, base_repo, args.host),
@@ -157,7 +202,8 @@ def publish(args):
         for page in pages:
             for pr in page:
                 if pr["head"]["repo"] and pr_side(pr, "head") == head_side:
-                    if pr["state"] == "open" or pr_side(pr, "base") == base_side:
+                    if (pr["state"] == "open" or pr_side(pr, "base") == base_side
+                            or related(pr["body"], args.issue, base_repo, args.host)):
                         matches.append(pr["number"])
         if expected_number is not None:
             pr = check_pr(api(args.host, f"{endpoint}/{expected_number}"))
@@ -169,18 +215,21 @@ def publish(args):
 
     def write(operation):
         try:
-            operation()
-            return None
+            return operation(), None
         except (Unverified, subprocess.TimeoutExpired, OSError, ValueError) as error:
-            return str(error) if isinstance(error, Unverified) else type(error).__name__
+            return None, str(error) if isinstance(error, Unverified) else type(error).__name__
 
     github_ref(args.host, base_repo, args.base)
     tip, pr = observe(args.pr)
     if pr is None:
         require(args.title and args.body_file, "Provide a PR title and body file to open a PR")
-        body = Path(args.body_file).read_text(encoding="utf-8")
+        body = Path(args.body_file).read_bytes().decode("utf-8")
         if not related(body, args.issue, base_repo, args.host):
-            body = f"{body.rstrip()}\n\nRefs {args.issue}\n"
+            reference = f"Refs {args.issue}\n"
+            separator = "\n" if body.endswith("\n") else "\n\n"
+            appended = body + separator + reference
+            # An unfinished code fence or comment can hide text appended to a template.
+            body = appended if related(appended, args.issue, base_repo, args.host) else reference + "\n" + body
     number = pr["number"] if pr else None
     recovery = []
     if tip != head:
@@ -192,8 +241,10 @@ def publish(args):
             git("merge-base", "--is-ancestor", tip, head)
         local_head()
         require(remote_head(url, ref) == tip, "Remote branch changed before push. Recheck.")
-        error = write(lambda: git("push", "--porcelain", "--no-follow-tags", "--recurse-submodules=no",
-                                  "--", url, f"{head}:{ref}"))
+        _, error = write(lambda: git(
+            "push", "--porcelain", "--no-follow-tags", "--recurse-submodules=no",
+            f"--force-with-lease={ref}:{tip}", "--", url, f"{head}:{ref}",
+        ))
         tip, pr = observe(number)
         require(tip == head, f"Remote head was not confirmed after push ({error or 'unverified'}).")
         if error:
@@ -207,7 +258,13 @@ def publish(args):
             data = {"title": args.title, "body": body, "base": args.base, "head": head_label}
             if head_repo.lower() != base_repo.lower():
                 data["head_repo"] = head_repo.split("/")[1]
-            error = write(lambda: api(args.host, endpoint, data=data))
+            def created_number():
+                response = api(args.host, endpoint, data=data)
+                require(isinstance(response, dict) and type(response.get("number")) is int
+                        and response["number"] > 0, "Create pull request response has no valid PR number")
+                return response["number"]
+
+            number, error = write(created_number)
             tip, pr = observe(number)
             require(tip == head and pr, f"PR creation was not confirmed ({error or 'unverified'}).")
             if error:
@@ -249,7 +306,7 @@ def observed_checks(host, repo, revision):
         for row in page["check_runs"]:
             require(row["head_sha"] == revision, "Check-run head SHA mismatch")
             records.append({
-                "id": f"check:{row['id']}", "name": row["name"],
+                "id": f"check:{row['id']}", "name": row["name"], "kind": "check",
                 "app_id": (row.get("app") or {}).get("id"),
                 "state": row["conclusion"] if row["status"] == "completed" else "pending",
                 "url": row.get("details_url"), "suite_id": (row.get("check_suite") or {}).get("id"),
@@ -264,7 +321,7 @@ def observed_checks(host, repo, revision):
             require(row["context"] not in contexts, "Combined status changed during pagination")
             contexts.add(row["context"])
             records.append({
-                "id": f"status:{row['id']}", "name": row["context"],
+                "id": f"status:{row['id']}", "name": row["context"], "kind": "status",
                 "creator": (row.get("creator") or {}).get("login"),
                 "state": row["state"], "url": row.get("target_url"),
             })
@@ -272,26 +329,112 @@ def observed_checks(host, repo, revision):
     return records
 
 
-def decide(report, expect, expect_merge, none):
+def branch_requirements(args, base_sha):
+    branch = quote(args.base, safe="")
+    repo = f"repos/{args.repo}"
+    requirements = []
+
+    def read(endpoint, description, **options):
+        try:
+            return api(args.host, endpoint, **options)
+        except (Unverified, subprocess.TimeoutExpired, OSError, ValueError):
+            raise Unverified(f"Could not read {description}; rule visibility is unverified") from None
+
+    def add(rows, app_key, source):
+        require(isinstance(rows, list), f"Invalid {source} status check rules")
+        for row in rows:
+            name, app_id = row["context"], row.get(app_key)
+            require(isinstance(name, str) and name and
+                    (app_id is None or (type(app_id) is int and (app_id == -1 or app_id > 0))),
+                    f"Invalid {source} status check identity")
+            requirements.append({"name": name, "app_id": None if app_id == -1 else app_id,
+                                 "source": source})
+
+    pages = read(f"{repo}/rules/branches/{branch}?per_page=100", "active branch rules", pages=True)
+    for page in pages:
+        require(isinstance(page, list), "Invalid active branch rules response")
+        for rule in page:
+            if rule["type"] == "required_status_checks":
+                add(rule["parameters"]["required_status_checks"], "integration_id", "ruleset")
+            require(rule["type"] != "workflows", "Required ruleset workflows need PR-specific verification")
+
+    branch_endpoint = f"{repo}/branches/{branch}"
+    metadata = read(branch_endpoint, "base branch protection metadata")
+    require(metadata["name"] == args.base and metadata["commit"]["sha"] == base_sha
+            and isinstance(metadata["protected"], bool), "Base branch protection metadata is unverified")
+    if metadata["protected"]:
+        classic = read(branch_endpoint + "/protection", "classic branch protection",
+                       allow_unprotected=True)
+        require(classic is None or isinstance(classic, dict), "Invalid classic branch protection")
+        protection = (classic or {}).get("required_status_checks")
+        if protection is not None:
+            contexts = protection["contexts"]
+            require(isinstance(contexts, list), "Invalid classic status check contexts")
+            rows = protection.get("checks")
+            if rows is None and contexts:
+                details = read(branch_endpoint + "/protection/required_status_checks",
+                               "classic status check sources")
+                rows = details.get("checks") if isinstance(details, dict) else None
+            rows = [] if rows is None else rows
+            require(isinstance(rows, list) and all("app_id" in row for row in rows)
+                    and set(contexts) <= {row["context"] for row in rows},
+                    "Could not verify classic status check sources")
+            add(rows, "app_id", "classic")
+    return requirements
+
+
+def decide(report, args):
     scope, observed = report["scope"], report["observations"]
     head, merge = scope["head"], scope["merge_sha"]
     effective = merge if observed.get(merge) else head
     report["effective_sha"] = effective
     current = observed[effective]
-    missing = sorted(set(expect) - {row["name"] for row in current})
-    missing_merge = sorted(set(expect_merge) - {row["name"] for row in observed.get(merge, [])})
-    report["missing"] = {"effective": missing, "merge": missing_merge}
+    names = {row["name"] for row in current}
+    expected = report["expected"]
+    expected_kinds = {"check": set(expected["check"]), "status": set(expected["status"])}
+    kinds = {}
+    for rows in observed.values():
+        for row in rows:
+            kinds.setdefault(row["name"], set()).add(row["kind"])
+    for name in expected["effective"]:
+        if len(kinds.get(name, ())) > 1:
+            for kind in kinds[name]:
+                expected_kinds[kind].add(name)
+
+    missing = {
+        "effective": sorted(set(expected["effective"]) - names),
+        "merge": sorted(set(expected["merge"]) - {row["name"] for row in observed.get(merge, [])}),
+        "required": [],
+    }
+    for kind, wanted in expected_kinds.items():
+        missing[kind] = sorted(wanted - {row["name"] for row in current if row["kind"] == kind})
+
+    for requirement in report["requirements"]:
+        name, app_id = requirement["name"], requirement["app_id"]
+        required_kinds = kinds.get(name, set()) | {
+            kind for kind, wanted in expected_kinds.items() if name in wanted
+        }
+        for kind in sorted(required_kinds or {"any"}):
+            if not any(row["name"] == name and kind in ("any", row["kind"]) and
+                       (app_id is None or row.get("app_id") == app_id) for row in current):
+                item = {"name": name, "kind": kind, "app_id": app_id}
+                if item not in missing["required"]:
+                    missing["required"].append(item)
+    report["missing"] = missing
+
     failed = {"action_required", "cancelled", "error", "failure", "stale",
               "startup_failure", "timed_out"}
     passed = {"success", "neutral", "skipped"}
     if any(row["state"] in failed for row in current):
         return "failed", "A check on the effective SHA has a non-passing conclusion"
-    if missing or missing_merge or any(row["state"] not in passed for row in current):
-        return "waiting", "An expected check is missing or a current check is pending"
+    if any(missing.values()):
+        return "waiting", "An expected check kind or publisher is missing or unverified"
+    if any(row["state"] not in passed for row in current):
+        return "waiting", "A current check is pending"
     if current:
-        return "passed", "All observed effective-SHA results and named expectations passed"
-    if none and none.strip() and not expect and not expect_merge:
-        return "no-applicable-checks", none
+        return "passed", "Current checks and verified branch requirements passed"
+    if args.none and args.none.strip():
+        return "no-applicable-checks", args.none
     return "waiting", "No current check has reported and absence is unverified"
 
 
@@ -313,9 +456,18 @@ def checks(args):
                 "Test merge commit does not bind the current base and head")
     revisions = [args.head, merge] if merge else [args.head]
     report["observations"] = {rev: observed_checks(args.host, args.repo, rev) for rev in revisions}
+    rule_error = None
+    try:
+        report["requirements"] = branch_requirements(args, before["base_sha"])
+    except (Unverified, KeyError, TypeError) as error:
+        rule_error = str(error) if isinstance(error, Unverified) else "Invalid branch rule evidence"
     require(snapshot(args) == before, "PR changed during check collection. Discard the observation.")
-    report["expected"] = {"effective": args.expect, "merge": args.expect_merge}
-    report["state"], report["reason"] = decide(report, args.expect, args.expect_merge, args.none)
+    report["expected"] = {"effective": args.expect, "merge": args.expect_merge,
+                          "check": args.expect_check, "status": args.expect_status}
+    if rule_error:
+        report.update(state="waiting", reason=rule_error)
+    else:
+        report["state"], report["reason"] = decide(report, args)
     return report
 
 
@@ -339,6 +491,8 @@ def main():
     delivery.add_argument("--body-file")
     read.add_argument("--expect", action="append", default=[], help="Expected check name; repeat as needed")
     read.add_argument("--expect-merge", action="append", default=[], help="Check expected on the test merge SHA")
+    read.add_argument("--expect-check", action="append", default=[], help="Expected check run on the effective SHA")
+    read.add_argument("--expect-status", action="append", default=[], help="Expected legacy status on the effective SHA")
     read.add_argument("--none", help="Observed evidence that no remote checks apply")
     args = parser.parse_args()
     try:
