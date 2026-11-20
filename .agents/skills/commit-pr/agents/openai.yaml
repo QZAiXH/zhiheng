@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit or Publish a Pull Request"
+  short_description: "Commit one ticket or publish its pull request"
+  default_prompt: "Use $commit-pr to commit only this ticket from its assigned worktree."

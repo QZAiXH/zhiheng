@@ -1,5 +1,7 @@
 # GitLab Issues
 
+Record the [delivery value](delivery-mode.md) `local` in the generated guide. Keep the MR intake opt-in below as a separate setting.
+
 The selected tracker is `https://<host>/<namespace>/<project>`. Substitute the confirmed host and full namespace, including any subgroups. Pass `-R https://<host>/<namespace>/<project>` on issue commands across clones and worktrees. Pin the same host and project in API calls. Check the selection with `glab repo view https://<host>/<namespace>/<project>` when access is available.
 
 - Publish the parent spec and each implementation ticket as separate issues with `glab issue create -R https://<host>/<namespace>/<project> --title '<title>' --description '<body>'`. Record the returned URL and project-scoped issue IID.

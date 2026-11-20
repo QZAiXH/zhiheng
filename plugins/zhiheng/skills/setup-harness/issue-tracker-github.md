@@ -1,5 +1,7 @@
 # GitHub Issues
 
+After the user confirms the PR and current-revision CI/CD choice, record the selected [delivery value](delivery-mode.md) in the generated guide. Keep the PR intake opt-in below as a separate setting.
+
 The selected tracker is `<host>/<owner>/<repo>`. Substitute the confirmed target in this guide. Use that target explicitly, including from forks and worktrees. Check it with `gh repo view <host>/<owner>/<repo> --json nameWithOwner,url` when access is available.
 
 - Publish the parent spec and each implementation ticket as separate issues with `gh issue create -R <host>/<owner>/<repo> --title '<title>' --body-file <file>`. Record the returned issue URL.
