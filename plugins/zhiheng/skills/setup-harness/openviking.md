@@ -2,16 +2,16 @@
 
 ## Bind the ordinary identity
 
-Record the approved service base URL, stable project ID, dedicated account, ordinary user, project resource root and project-specific credential environment variable in `docs/agents/project-knowledge.md` or its existing equivalent. Read the settings in registered worktrees before proposing a new ID. Match an existing account to the project's recorded binding or the administrator's provisioning record before resuming setup. A resource root scopes searches inside an account. Assign a separate account to every distinct project.
+Record the approved service base URL, stable project ID, dedicated account, ordinary user, project resource root and private credential file path in `docs/agents/project-knowledge.md` or its existing equivalent. Read the settings in registered worktrees before proposing a new ID. Match an existing account to the project's recorded binding or the administrator's provisioning record before resuming setup. A resource root scopes searches inside an account. Assign a separate account to every distinct project.
 
-With an existing key, verify the identity returned by the service's authenticated `/health`. The helper uses Python 3.9+ on macOS or Linux. Paths below are relative to this skill when running its helper. Substitute the agreed values.
+Reuse the project's private key file. For a new client file, use a path such as `~/.config/openviking/projects/<project-id>.key` outside Git with mode `0600`. Verify the identity returned by the service's authenticated `/health`. The helper uses Python 3.9+ on macOS or Linux. Run the helper from this skill's directory and substitute the agreed values.
 
 ```sh
-python3 scripts/project_access.py verify --url "$ov_base" --account "$ov_account" \
-  --user "$ov_user" --key-env "$ov_key_variable"
+python3 -B scripts/project_access.py verify --url "$ov_base" --account "$ov_account" \
+  --user "$ov_user" --key-file "$ov_private_key_file"
 ```
 
-`--key-file` also accepts an owner-only credential file. Check the returned account, user and `user` role before using any project data. If the service or credential is unavailable, record the missing binding or check as pending and finish the approved repository edits. Resume from the same binding.
+When migrating a key available only through a legacy environment variable, save that same ordinary key to the private file and verify it there before switching the MCP configuration. Check the returned account, user and `user` role before using project data. If the service or credential is unavailable, record the check as pending and finish the other approved repository edits. Resume from the same binding.
 
 ## Create or resume an account
 
@@ -28,14 +28,18 @@ python3 scripts/project_access.py provision --config /etc/openviking/ov.conf \
 
 ## Configure the project client
 
-Merge the named table into the project's `.codex/config.toml`, preserving unrelated settings. Codex loads project MCP configuration for trusted projects. Check `find` and `read` in a fresh client with the project credential loaded. If local configuration is disabled, note the pending MCP check and use the native HTTP equivalents below with the same ordinary identity. Use the deployment's actual client configuration when the target client differs. Record how to load the referenced credential into the client process. Paths and environment variable **names** may be documented. Secret values stay in the private store.
+For a trusted Codex project with a local Streamable HTTP connection, configure `http_headers_helper` to read the private file at startup. Use a project-relative copy of `project_access.py` that supports `mcp-headers`. Reuse the project's existing helper or use `.agents/skills/setup-harness/scripts/project_access.py` for a project-local skill install. If the skill is available only through the marketplace, include a copy of `scripts/project_access.py` at `.codex/openviking-project-access.py` in the setup preview and use that path in the command.
+
+Fill in the service URL, the project-relative helper path and the actual private key path. Merge the table into the project's `.codex/config.toml`, preserving unrelated settings. When migrating, remove the old `bearer_token_env_var` from this table after the same credential verifies from the private file. Check the effective settings for an inherited bearer token or `Authorization` header.
 
 ```toml
 [mcp_servers.openviking]
 url = "<service-base-url>/mcp"
-bearer_token_env_var = "<project-specific-environment-variable>"
+http_headers_helper = 'exec python3 -B "$(git rev-parse --show-toplevel)/<project-relative-helper>" mcp-headers --key-file "$HOME/.config/openviking/projects/<project-id>.key"'
 enabled_tools = ["find", "read"]
 ```
+
+In a fresh Codex client without a project credential environment variable, check that MCP starts and call `find` and `read` against the bound project. If there is no record to read, report the successful connection and the missing readback separately. Record the credential file path and normal Codex startup in the generated project guide. Secret values stay in the private file. If the client lacks local HTTP helper support or project configuration is disabled, report the MCP check as pending and use the native HTTP equivalents below with the same ordinary identity. Configure a different client using its supported credential source.
 
 ## Put daily use in the project guide
 
