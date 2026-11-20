@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Tickets"
+  short_description: "Implement ready tickets and hand off tested revisions"
+  default_prompt: "Use $implement-ticket to complete the work from the original ticket and record the tested revision."
